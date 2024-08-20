@@ -1,0 +1,12 @@
+Wallet innym walletem auth
+thhteshold key ICP - musiałybyć
+
+
+
+podpisywać innym walletem
+
+2 rzeczy
+
+
+Zwracać środki gdzies, jeśli 1 nie żyje , a drugi nie wiedział.
+
