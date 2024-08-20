@@ -42,8 +42,9 @@ This project aims to create a digital will, allowing for the scheduled release o
 - **Proof of Life:** The system sends reminders to execute the `i_am_alive` function or checks if there has been any activity on a certain identity.
 
 
-- **Monetization Now or At Payout:** The system can be set to monetize itself at setting up the testament or at the time of payout to the beneficiaries.
-    --Transfer Fee: The fee needs to cover the cycle for this smart contract. This could be separate or collected from the testator's ICP, Fiat, BTC, etc.
+- **Monetization Options**: The fee needs to cover the cycles for this smart contract, including e.g BTC fees
+ -- at setting up the testament 
+ -- at the time of payout to the beneficiaries.
 
 - **The testator options:**
     - The will can be made visible in a register of wills.
