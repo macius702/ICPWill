@@ -8,27 +8,24 @@ This project aims to create a digital will, allowing for the scheduled release o
 ### Features
 - **Inheritable Assets:** These can be anything from a secret piece of text, an action of asset transfer, granting access to an asset, transfer of identity.
 - **Funds transfer on steroids.**
-Transfer can be:
+  - Transfer can be:
     - immediate
     - after some time
     - exact date
     - periodic  / scheduled
     - after some event like:
-        - api call
-        - absence of api call(s) = inactivity (DEATH?)
+      - api call
+      - absence of api call(s) = inactivity (DEATH?)
     - send the whole sum to 
-        -- one beneficiary
-        -- beneficiaries separately
-        -- the sum can be 
-            --- fixed amount denominated 
-                ---- in crypto
-                ---- in fiat
-            --- percent 
-
+      - one beneficiary
+      - beneficiaries separately
+      - the sum can be 
+        - fixed amount denominated 
+          - in crypto
+          - in fiat
+        - percent 
     - integrated into NNS
     - Associated Message: This can be a will and can be encrypted. Decryption is available after schedule or auto-decryption.
-
-
 - **Digital assets:**
     - ICP coins
     - ICP hosted tokens
@@ -56,7 +53,7 @@ Transfer can be:
         - Nobody
     - Jurisdiction: The will can specify where, when, and under what jurisdiction it was written. Alternatively, it can be kept secret.
 
-- **Beneficiary Controller:** A person (a lawyer) can be made the controller of the canister with assets or information.
+- **Beneficiary Controller:** A person (a lawyer, a DAO) can be made the controller of the canister with assets or information.
 
 
 
