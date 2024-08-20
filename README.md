@@ -2,6 +2,7 @@
 ## Digital Will
 
 This project aims to create a digital will, allowing for the scheduled release of funds and testament orders.
+Your crypto will not be lost forever!
 
 
 
