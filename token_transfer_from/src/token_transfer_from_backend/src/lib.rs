@@ -8,19 +8,21 @@ use serde::Serialize;
 pub struct TransferArgs {
     amount: NumTokens,
     to_account: Account,
+    from_account: Account,
 }
 
 #[ic_cdk::update]
 async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     ic_cdk::println!(
-        "Transferring {} tokens to account {}",
+        "Transferring {} tokens to account {} \n from account {}",
         &args.amount,
         &args.to_account,
+        &args.from_account
     );
 
     let transfer_from_args = TransferFromArgs {
         // the account we want to transfer tokens from (in this case we assume the caller approved the canister to spend funds on their behalf)
-        from: Account::from(ic_cdk::caller()),
+        from: Account::from(args.from_account),
         // can be used to distinguish between transactions
         memo: None,
         // the amount we want to transfer

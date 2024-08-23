@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-dfx stop
 dfx killall
 set -e
 # trap 'dfx stop' EXIT
@@ -7,7 +6,11 @@ set -e
 echo "===========SETUP========="
 dfx start --background --clean
 sleep 5
-dfx deploy icrc1_ledger_canister --argument "(variant {
+dfx identity list
+
+export LEDGER=icrc1_ledger_canister
+
+dfx deploy $LEDGER --argument "(variant {
   Init = record {
     token_symbol = \"ICRC1\";
     token_name = \"L-ICRC1\";
@@ -19,7 +22,7 @@ dfx deploy icrc1_ledger_canister --argument "(variant {
     initial_balances = vec {
       record {
         record {
-          owner = principal \"$(dfx identity --identity default get-principal)\";
+          owner = principal \"$(dfx identity --identity Alice get-principal)\";
         };
         10_000_000_000;
       };
@@ -34,15 +37,18 @@ dfx deploy icrc1_ledger_canister --argument "(variant {
     };
   }
 })"
-dfx canister call icrc1_ledger_canister icrc1_balance_of "(record {
-  owner = principal \"$(dfx identity --identity default get-principal)\";
+dfx canister call $LEDGER icrc1_balance_of "(record {
+  owner = principal \"$(dfx identity --identity Alice get-principal)\";
+})"
+dfx canister call $LEDGER icrc1_balance_of "(record {
+  owner = principal \"$(dfx identity --identity Bob get-principal)\";
 })"
 echo "===========SETUP DONE========="
 
 dfx deploy token_transfer_from_backend
 
 # approve the token_transfer_from_backend canister to spend 100 tokens
-dfx canister call --identity default icrc1_ledger_canister icrc2_approve "(
+dfx canister call --identity Alice $LEDGER icrc2_approve "(
   record {
     spender= record {
       owner = principal \"$(dfx canister id token_transfer_from_backend)\";
@@ -51,11 +57,36 @@ dfx canister call --identity default icrc1_ledger_canister icrc2_approve "(
   }
 )"
 
+dfx canister call --identity Alice $LEDGER icrc2_allowance  "(record {
+  account = record {
+    owner = principal \"$(dfx identity --identity Alice get-principal)\";
+  };
+  spender = record {
+    owner = principal \"$(dfx canister id token_transfer_from_backend)\";
+  };
+})"
+
 dfx canister call token_transfer_from_backend transfer "(record {
   amount = 100_000_000;
   to_account = record {
-    owner = principal \"$(dfx canister id token_transfer_from_backend)\";
+    owner = principal \"$(dfx identity --identity Bob get-principal)\";
   };
+  from_account = record {
+    owner = principal \"$(dfx identity --identity Alice get-principal)\";
+  };
+})"
+
+
+
+dfx canister call $LEDGER icrc1_balance_of "(record {
+  owner = principal \"$(dfx identity --identity Alice get-principal)\";
+})"
+
+dfx canister call $LEDGER icrc1_balance_of "(record {
+  owner = principal \"$(dfx canister id token_transfer_from_backend)\";
+})"
+dfx canister call $LEDGER icrc1_balance_of "(record {
+  owner = principal \"$(dfx identity --identity Bob get-principal)\";
 })"
 
 echo "DONE"
