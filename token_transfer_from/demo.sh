@@ -47,6 +47,11 @@ echo "===========SETUP DONE========="
 
 dfx deploy token_transfer_from_backend
 
+dfx canister call $LEDGER icrc1_balance_of "(record {
+  owner = principal \"$(dfx identity --identity Alice get-principal)\";
+})"
+
+echo "===========APPROVE========="
 # approve the token_transfer_from_backend canister to spend 100 tokens
 dfx canister call --identity Alice $LEDGER icrc2_approve "(
   record {
@@ -57,15 +62,13 @@ dfx canister call --identity Alice $LEDGER icrc2_approve "(
   }
 )"
 
-dfx canister call --identity Alice $LEDGER icrc2_allowance  "(record {
-  account = record {
-    owner = principal \"$(dfx identity --identity Alice get-principal)\";
-  };
-  spender = record {
-    owner = principal \"$(dfx canister id token_transfer_from_backend)\";
-  };
+
+
+dfx canister call $LEDGER icrc1_balance_of "(record {
+  owner = principal \"$(dfx identity --identity Alice get-principal)\";
 })"
 
+echo "===========TRANSFER========="
 dfx canister call token_transfer_from_backend transfer "(record {
   amount = 100_000_000;
   to_account = record {
