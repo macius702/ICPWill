@@ -10,6 +10,22 @@ dfx identity list
 
 export LEDGER=icrc1_ledger_canister
 
+function balance() {
+    local identity=$1
+    dfx canister call $LEDGER icrc1_balance_of "(record {
+      owner = principal \"$(dfx identity --identity $identity get-principal)\";
+    })"
+}
+
+function balance_of_canister() {
+  local canister_name=$1
+    dfx canister call $LEDGER icrc1_balance_of "(record {
+      owner = principal \"$(dfx canister id $canister_name)\";
+    })"
+}
+
+
+
 dfx deploy $LEDGER --argument "(variant {
   Init = record {
     token_symbol = \"ICRC1\";
@@ -37,19 +53,13 @@ dfx deploy $LEDGER --argument "(variant {
     };
   }
 })"
-dfx canister call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx identity --identity Alice get-principal)\";
-})"
-dfx canister call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx identity --identity Bob get-principal)\";
-})"
+balance Alice
+balance Bob
+
 echo "===========SETUP DONE========="
 
 dfx deploy token_transfer_from_backend
-
-dfx canister call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx identity --identity Alice get-principal)\";
-})"
+balance Alice
 
 echo "===========APPROVE========="
 # approve the token_transfer_from_backend canister to spend 100 tokens
@@ -62,11 +72,8 @@ dfx canister call --identity Alice $LEDGER icrc2_approve "(
   }
 )"
 
+balance Alice
 
-
-dfx canister call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx identity --identity Alice get-principal)\";
-})"
 
 echo "===========TRANSFER========="
 dfx canister call token_transfer_from_backend transfer "(record {
@@ -79,17 +86,12 @@ dfx canister call token_transfer_from_backend transfer "(record {
   };
 })"
 
+balance Alice
+balance Bob
 
 
-dfx canister call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx identity --identity Alice get-principal)\";
-})"
+balance_of_canister token_transfer_from_backend
 
-dfx canister call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx canister id token_transfer_from_backend)\";
-})"
-dfx canister call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx identity --identity Bob get-principal)\";
-})"
+
 
 echo "DONE"
