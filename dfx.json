@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "bootcamp_chat_backend": {
+      "candid": "src/bootcamp_chat_backend/bootcamp_chat_backend.did",
+      "package": "bootcamp_chat_backend",
+      "type": "rust"
+    },
+    "bootcamp_chat_frontend": {
+      "dependencies": [
+        "bootcamp_chat_backend"
+      ],
+      "source": [
+        "src/bootcamp_chat_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "bootcamp_chat_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
