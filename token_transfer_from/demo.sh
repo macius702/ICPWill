@@ -2,7 +2,7 @@
 dfx stop
 dfx killall
 set -e
-trap 'dfx stop' EXIT
+# trap 'dfx stop' EXIT
 
 echo "===========SETUP========="
 dfx start --background --clean
