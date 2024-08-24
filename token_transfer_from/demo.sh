@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
+#  If you run the script without any arguments, `MODE` will be set to `local`.
+# can be run with `local` or `nonlocal` as a script argument
+MODE=${1:-local}
 
 # in nonllocal mode feed Alice with some ICP first:
 # dfx ledger --ic transfer --identity Matiki --amount 0.01 --memo 9 $(dfx ledger account-id  --identity Alice)
 
-
-#MODE=local
-MODE=nonlocal
 
 echo Building in $MODE mode
 
