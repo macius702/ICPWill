@@ -1,4 +1,4 @@
 type Account = record { owner : principal; subaccount : opt blob };
 type Result = variant { Ok : nat; Err : text };
-type TransferArgs = record { to_account : Account; amount : nat ; from_account : Account};
+type TransferArgs = record { to_account : Account; amount : nat ; from_account : Account; delay_in_seconds : nat64 };
 service : { transfer : (TransferArgs) -> (Result) }

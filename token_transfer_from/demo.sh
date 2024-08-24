@@ -7,7 +7,11 @@ MODE=${1:-local}
 # dfx ledger --ic transfer --identity Matiki --amount 0.01 --memo 9 $(dfx ledger account-id  --identity Alice)
 
 
-echo Building in $MODE mode
+if [ "$MODE" = "local" ]; then
+  echo "Building in local mode"
+else
+  echo "Building in non-local mode"
+fi
 
 dfx killall
 set -e
@@ -99,7 +103,7 @@ echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 
 
 echo "===========APPROVE========="
-# approve the token_transfer_from_backend canister to spend 100 tokens
+# approve the token_transfer_from_backend canister to spend 300 + transfer fee tokens
 dfx canister $NETWORK call --identity Alice $LEDGER icrc2_approve "(
   record {
     spender= record {
@@ -111,13 +115,6 @@ dfx canister $NETWORK call --identity Alice $LEDGER icrc2_approve "(
 
 balance Alice
 
-
-echo -e "${PUSH_RED}Perhaps this backend canister does not have enough cycles??$POP"
-
-
-
-
-
 echo "===========TRANSFER========="
 dfx canister $NETWORK call $BACKEND_CANISTER_ID transfer "(record {
   amount = 300;
@@ -127,6 +124,7 @@ dfx canister $NETWORK call $BACKEND_CANISTER_ID transfer "(record {
   from_account = record {
     owner = principal \"$(dfx identity $NETWORK --identity Alice get-principal)\";
   };
+  delay_in_seconds = 20;
 })"
 balance Alice
 balance Bob
@@ -137,6 +135,27 @@ dfx canister $NETWORK call $LEDGER icrc1_balance_of "(record {
   owner = principal \"$(dfx canister $PLAYGROUND id token_transfer_from_backend)\";
 })"
 
+
+
+function check_bob_balance_increase {
+  local BobBalanceAfter=$(balance Bob)
+
+  # BoB balances are in the form (3_300 : nat), so we need to parse them before subtraction
+  BobBalanceBefore=$(echo $BobBalanceBefore | tr -d '_' | sed 's/.*(\([0-9]*\).*/\1/')
+  BobBalanceAfter=$(echo $BobBalanceAfter | tr -d '_' | sed 's/.*(\([0-9]*\).*/\1/')
+  if [ $((BobBalanceAfter - BobBalanceBefore)) -ne 300 ]; then
+    echo -e "${PUSH_RED}Error: Bob's balance hasn't increased by 300$POP"
+  else
+    echo -e "${PUSH_GREEN}OK: Bob's balance has increased by 300$POP"
+  fi
+}
+
+check_bob_balance_increase
+
+sleep 20
+
+balance Alice
+balance Bob
 balance Matiki
 
 MatikiBalanceAfter=$(balance Matiki)
@@ -146,19 +165,8 @@ else
     echo "${PUSH_RED}Error: Matiki balance has changed !!!$POP"
 fi
 
-BobBalanceAfter=$(balance Bob)
 
-
-
-
-# BoB balances are in the form (3_300 : nat), so we need to parse them before subtraction
-BobBalanceBefore=$(echo $BobBalanceBefore | tr -d '_' | sed 's/.*(\([0-9]*\).*/\1/')
-BobBalanceAfter=$(echo $BobBalanceAfter | tr -d '_' | sed 's/.*(\([0-9]*\).*/\1/')
-if [ $((BobBalanceAfter - BobBalanceBefore)) -ne 300 ]; then
-    echo -e "${PUSH_RED}Error: Bob's balance hasn't increased by 300$POP"
-else
-    echo -e "${PUSH_GREEN}OK: Bob's balance has increased by 300$POP"
-fi
+check_bob_balance_increase
 
 
 echo "DONE"
