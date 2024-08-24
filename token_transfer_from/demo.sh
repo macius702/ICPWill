@@ -22,10 +22,12 @@ if [ "$MODE" == "local" ]; then
     export LEDGER_CANISTER_ID=mxzaz-hqaaa-aaaar-qaada-cai
     export LEDGER=icrc1_ledger_canister
     export NETWORK=
+    export PLAYGROUND=
 else
     export LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
     export LEDGER=$LEDGER_CANISTER_ID
     export NETWORK=--ic
+    export PLAYGROUND=--playground
 fi
 
 
@@ -90,13 +92,8 @@ echo "===========SETUP DONE========="
 
 balance Alice
 
-if [ "$MODE" == "local" ]; then
-  dfx deploy token_transfer_from_backend
-  export BACKEND_CANISTER_ID=$(dfx canister id token_transfer_from_backend)
-else
-  dfx deploy --playground token_transfer_from_backend
-  export BACKEND_CANISTER_ID=$(dfx canister --playground id token_transfer_from_backend)
-fi
+dfx deploy $PLAYGROUND token_transfer_from_backend
+export BACKEND_CANISTER_ID=$(dfx canister $PLAYGROUND id token_transfer_from_backend)
 
 echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 
@@ -137,7 +134,7 @@ balance Bob
 
 
 dfx canister $NETWORK call $LEDGER icrc1_balance_of "(record {
-  owner = principal \"$(dfx canister --playground id token_transfer_from_backend)\";
+  owner = principal \"$(dfx canister $PLAYGROUND id token_transfer_from_backend)\";
 })"
 
 balance Matiki
