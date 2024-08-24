@@ -42,6 +42,10 @@ Your crypto will not be lost forever!
 
 - **Proof of Life:** The system sends reminders to execute the `i_am_alive` function or checks if there has been any activity on a certain identity.
 
+- **Low battery condition:** The system warns that it is running out of cycles and needs topping up 
+  - otherwise it performs it's action prematurely
+  - or feeds itself from the approved funds
+
 - **Monetization Options**: The fee needs to cover the cycles for this smart contract, including e.g BTC fees
     - when setting up the testament 
     - at the time of payout to the beneficiaries.
