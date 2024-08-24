@@ -70,12 +70,8 @@ balance Bob
 
 echo "===========SETUP DONE========="
 
-dfx identity use Alice
-
 dfx deploy --playground token_transfer_from_backend
 balance Alice
-
-dfx identity use default
 
 
 export BACKEND_CANISTER_ID=$(dfx canister --playground id token_transfer_from_backend)
@@ -89,7 +85,7 @@ dfx canister $NETWORK call --identity Alice $LEDGER icrc2_approve "(
     spender= record {
       owner = principal \"$BACKEND_CANISTER_ID\";
     };
-    amount = 30_000: nat;
+    amount = 1_000: nat;
   }
 )"
 
@@ -110,15 +106,15 @@ echo -e "\e[31mPerhaps this backend canister does not have enough cycles??\e[0m"
 
 
 
-# echo "===========BACKEND CANISTER STATUS========="
-# set -x
-# dfx canister $NETWORK --identity Alice status $BACKEND_CANISTER_ID
-# set +x
+echo "===========BACKEND CANISTER STATUS========="
+set -x
+dfx canister $NETWORK status $BACKEND_CANISTER_ID
+set +x
 
 
 echo "===========TRANSFER========="
 set -x
-dfx canister $NETWORK --identity Alice call $BACKEND_CANISTER_ID transfer "(record {
+dfx canister $NETWORK call $BACKEND_CANISTER_ID transfer "(record {
   amount = 300;
   to_account = record {
     owner = principal \"$(dfx identity $NETWORK --identity Bob get-principal)\";
