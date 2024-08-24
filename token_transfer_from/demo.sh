@@ -85,35 +85,20 @@ dfx canister $NETWORK call --identity Alice $LEDGER icrc2_approve "(
     spender= record {
       owner = principal \"$BACKEND_CANISTER_ID\";
     };
-    amount = 1_000: nat;
+    amount = 10_300: nat;
   }
 )"
 
 balance Alice
 
-echo "===========ALLOWANCE========="
-dfx canister $NETWORK call --identity Alice $LEDGER icrc2_allowance  "(record {
-  account = record {
-    owner = principal \"$(dfx identity --identity Alice get-principal)\";
-  };
-  spender = record {
-    owner = principal \"$BACKEND_CANISTER_ID\";
-  };
-})"
 
-balance Alice
 echo -e "\e[31mPerhaps this backend canister does not have enough cycles??\e[0m"
 
 
 
-echo "===========BACKEND CANISTER STATUS========="
-set -x
-dfx canister $NETWORK status $BACKEND_CANISTER_ID
-set +x
 
 
 echo "===========TRANSFER========="
-set -x
 dfx canister $NETWORK call $BACKEND_CANISTER_ID transfer "(record {
   amount = 300;
   to_account = record {
@@ -123,7 +108,6 @@ dfx canister $NETWORK call $BACKEND_CANISTER_ID transfer "(record {
     owner = principal \"$(dfx identity $NETWORK --identity Alice get-principal)\";
   };
 })"
-set +x
 balance Alice
 balance Bob
 
