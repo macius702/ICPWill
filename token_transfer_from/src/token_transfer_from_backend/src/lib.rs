@@ -4,9 +4,6 @@ use icrc_ledger_types::icrc1::transfer::{BlockIndex, NumTokens};
 use icrc_ledger_types::icrc2::transfer_from::{TransferFromArgs, TransferFromError};
 use serde::Serialize;
 
-const LEDGER_CANISTER_ID: &'static str = env!("LEDGER_CANISTER_ID");
-
-
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct TransferArgs {
     amount: NumTokens,
@@ -44,7 +41,8 @@ async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     ic_cdk::call::<(TransferFromArgs,), (Result<BlockIndex, TransferFromError>,)>(
         // 2. Convert a textual representation of a Principal into an actual `Principal` object. The principal is the one we specified in `dfx.json`.
         //    `expect` will panic if the conversion fails, ensuring the code does not proceed with an invalid principal.
-        Principal::from_text(LEDGER_CANISTER_ID)
+        ////Principal::from_text("mxzaz-hqaaa-aaaar-qaada-cai")
+        Principal::from_text("ryjl3-tyaaa-aaaaa-aaaba-cai")
             .expect("Could not decode the principal."),
         // 3. Specify the method name on the target canister to be called, in this case, "icrc1_transfer".
         "icrc2_transfer_from",

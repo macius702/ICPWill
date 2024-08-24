@@ -1,14 +1,4 @@
 #!/usr/bin/env bash
-
-# in nonllocal mode feed Alice with some ICP first:
-# dfx ledger --ic transfer --identity Matiki --amount 0.01 --memo 9 $(dfx ledger account-id  --identity Alice)
-
-
-#MODE=local
-MODE=nonlocal
-
-echo Building in $MODE mode
-
 dfx killall
 set -e
 # trap 'dfx stop' EXIT
@@ -18,15 +8,13 @@ dfx start --background --clean
 sleep 5
 dfx identity list
 
-if [ "$MODE" == "local" ]; then
-    export LEDGER_CANISTER_ID=mxzaz-hqaaa-aaaar-qaada-cai
-    export LEDGER=icrc1_ledger_canister
-    export NETWORK=
-else
-    export LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
-    export LEDGER=$LEDGER_CANISTER_ID
-    export NETWORK=--ic
-fi
+# export LEDGER=icrc1_ledger_canister
+# export NETWORK=
+
+# export LEDGER=icrc1_ledger_canister
+# export NETWORK=
+export LEDGER=ryjl3-tyaaa-aaaaa-aaaba-cai
+export NETWORK=--ic
 
 
 function balance() {
@@ -45,57 +33,49 @@ function balance_of_canister() {
 }
 
 
-if [ "$MODE" == "local" ]; then
-  dfx deploy $LEDGER --argument "(variant {
-    Init = record {
-      token_symbol = \"ICRC1\";
-      token_name = \"L-ICRC1\";
-      minting_account = record {
-        owner = principal \"$(dfx identity --identity anonymous get-principal)\"
-      };
-      transfer_fee = 10_000;
-      metadata = vec {};
-      initial_balances = vec {
-        record {
-          record {
-            owner = principal \"$(dfx identity --identity Alice get-principal)\";
-          };
-          10_000_000_000;
-        };
-      };
-      archive_options = record {
-        num_blocks_to_archive = 1000;
-        trigger_threshold = 2000;
-        controller_id = principal \"$(dfx identity --identity anonymous get-principal)\";
-      };
-      feature_flags = opt record {
-        icrc2 = true;
-      };
-    }
-  })"
 
-fi
+# dfx deploy $LEDGER --argument "(variant {
+#   Init = record {
+#     token_symbol = \"ICRC1\";
+#     token_name = \"L-ICRC1\";
+#     minting_account = record {
+#       owner = principal \"$(dfx identity --identity anonymous get-principal)\"
+#     };
+#     transfer_fee = 10_000;
+#     metadata = vec {};
+#     initial_balances = vec {
+#       record {
+#         record {
+#           owner = principal \"$(dfx identity --identity Alice get-principal)\";
+#         };
+#         10_000_000_000;
+#       };
+#     };
+#     archive_options = record {
+#       num_blocks_to_archive = 1000;
+#       trigger_threshold = 2000;
+#       controller_id = principal \"$(dfx identity --identity anonymous get-principal)\";
+#     };
+#     feature_flags = opt record {
+#       icrc2 = true;
+#     };
+#   }
+# })"
 
 balance Matiki
 MatikiBalanceBefore=$(balance Matiki)
 
 balance Alice
 balance Bob
-BobBalanceBefore=$(balance Bob)
 
 echo "===========SETUP DONE========="
 
+dfx deploy --playground token_transfer_from_backend
 balance Alice
 
-if [ "$MODE" == "local" ]; then
-  dfx deploy token_transfer_from_backend
-  export BACKEND_CANISTER_ID=$(dfx canister id token_transfer_from_backend)
-else
-  dfx deploy --playground token_transfer_from_backend
-  export BACKEND_CANISTER_ID=$(dfx canister --playground id token_transfer_from_backend)
-fi
 
-echo -e "\e[33mBACKEND_CANISTER_ID: $BACKEND_CANISTER_ID\e[0m"
+export BACKEND_CANISTER_ID=$(dfx canister --playground id token_transfer_from_backend)
+echo -e "\e[33mBACKEND_CANISTER_ID on playground: $BACKEND_CANISTER_ID\e[0m"
 
 
 echo "===========APPROVE========="
@@ -141,23 +121,9 @@ balance Matiki
 
 MatikiBalanceAfter=$(balance Matiki)
 if [ "$MatikiBalanceBefore" == "$MatikiBalanceAfter" ]; then
-    echo "OK: Matiki balance hasn't changed."
+    echo "Matiki balance hasn't changed."
 else
-    echo "\e[31mError: Matiki balance has changed !!!\e[0m"
-fi
-
-BobBalanceAfter=$(balance Bob)
-
-
-
-
-# BoB balances are in the form (3_300 : nat), so we need to parse them before subtraction
-BobBalanceBefore=$(echo $BobBalanceBefore | tr -d '_' | sed 's/.*(\([0-9]*\).*/\1/')
-BobBalanceAfter=$(echo $BobBalanceAfter | tr -d '_' | sed 's/.*(\([0-9]*\).*/\1/')
-if [ $((BobBalanceAfter - BobBalanceBefore)) -ne 300 ]; then
-    echo -e "\e[31mError: Bob's balance hasn't increased by 300\e[0m"
-else
-    echo "OK: Bob's balance has increased by 300"
+    echo "\e[31mMatiki balance has changed !!!\e[0m"
 fi
 
 
