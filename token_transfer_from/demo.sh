@@ -6,7 +6,6 @@ MODE=${1:-local}
 # in nonllocal mode feed Alice with some ICP first:
 # dfx ledger --ic transfer --identity Matiki --amount 0.01 --memo 9 $(dfx ledger account-id  --identity Alice)
 
-
 if [ "$MODE" = "local" ]; then
   echo "Building in local mode"
 else
@@ -16,36 +15,34 @@ fi
 dfx killall
 set -e
 
-
 echo "===========SETUP========="
 dfx start --background --clean
 sleep 5
 dfx identity list
 
 if [ "$MODE" == "local" ]; then
-    export LEDGER_CANISTER_ID=mxzaz-hqaaa-aaaar-qaada-cai
-    export LEDGER=icrc1_ledger_canister
-    export NETWORK=
-    export PLAYGROUND=
+  export LEDGER_CANISTER_ID=mxzaz-hqaaa-aaaar-qaada-cai
+  export LEDGER=icrc1_ledger_canister
+  export NETWORK=
+  export PLAYGROUND=
 else
-    export LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
-    export LEDGER=$LEDGER_CANISTER_ID
-    export NETWORK=--ic
-    export PLAYGROUND=--playground
+  export LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
+  export LEDGER=$LEDGER_CANISTER_ID
+  export NETWORK=--ic
+  export PLAYGROUND=--playground
 fi
 
-
 function balance() {
-    local identity=$1
-    # --identity Matiki is only to silence a warning about the identity 'default'
-    dfx canister $NETWORK call --identity Matiki $LEDGER icrc1_balance_of "(record {
+  local identity=$1
+  # --identity Matiki is only to silence a warning about the identity 'default'
+  dfx canister $NETWORK call --identity Matiki $LEDGER icrc1_balance_of "(record {
       owner = principal \"$(dfx identity --identity $identity get-principal)\";
     })"
 }
 
 function balance_of_canister() {
   local canister_name=$1
-    dfx canister $NETWORK call $LEDGER icrc1_balance_of "(record {
+  dfx canister $NETWORK call $LEDGER icrc1_balance_of "(record {
       owner = principal \"$(dfx canister id $canister_name)\";
     })"
 }
@@ -101,7 +98,6 @@ export BACKEND_CANISTER_ID=$(dfx canister $PLAYGROUND id token_transfer_from_bac
 
 echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 
-
 echo "===========APPROVE========="
 # approve the token_transfer_from_backend canister to spend 300 + transfer fee tokens
 dfx canister $NETWORK call --identity Alice $LEDGER icrc2_approve "(
@@ -109,9 +105,24 @@ dfx canister $NETWORK call --identity Alice $LEDGER icrc2_approve "(
     spender= record {
       owner = principal \"$BACKEND_CANISTER_ID\";
     };
-    amount = 10_300: nat;
+    amount = 10_823: nat;
   }
 )"
+
+function check_allowance {
+    local output=$(dfx canister $NETWORK call --identity Alice $LEDGER icrc2_allowance "(
+      record {
+        account = record {
+          owner = principal \"$(dfx identity --identity Alice get-principal)\";
+        };
+        spender = record {
+          owner = principal \"$BACKEND_CANISTER_ID\";
+      };
+    })")
+    echo "========ALLOWANCE is what is approved: $output"
+}
+
+check_allowance
 
 balance Alice
 
@@ -129,12 +140,11 @@ dfx canister $NETWORK call $BACKEND_CANISTER_ID transfer "(record {
 balance Alice
 balance Bob
 
-
-
 dfx canister $NETWORK call $LEDGER icrc1_balance_of "(record {
   owner = principal \"$(dfx canister $PLAYGROUND id token_transfer_from_backend)\";
 })"
 
+check_allowance
 
 
 function check_bob_balance_increase {
@@ -160,13 +170,14 @@ balance Matiki
 
 MatikiBalanceAfter=$(balance Matiki)
 if [ "$MatikiBalanceBefore" == "$MatikiBalanceAfter" ]; then
-    echo "Matiki balance hasn't changed."
+  echo "Matiki balance hasn't changed."
 else
-    echo "${PUSH_RED}Error: Matiki balance has changed !!!$POP"
+  echo "${PUSH_RED}Error: Matiki balance has changed !!!$POP"
 fi
+
+check_allowance
 
 
 check_bob_balance_increase
-
 
 echo "DONE"
