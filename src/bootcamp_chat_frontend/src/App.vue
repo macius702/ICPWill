@@ -151,6 +151,10 @@ export default {
       console.log('mtlk Matiki here');
 
 
+      //caller in backend :  22hlo-vukku-nwwrv-hndxd-p6vwz-thrwl-udox2-gchyj-kbtpm-7watc-jqe
+
+
+
         const { principal } = this.isUserLogged()
       let from_acc = { owner: principal, subaccount: [] };
        const backend = this.getAuthClient();
@@ -181,12 +185,15 @@ export default {
           },
         };
 
+        console.log('identity principal toText:', identity.getPrincipal().toText());
 
         console.log('mtlk Matiki here 2f');
         console.log('identity:', identity);
         console.log('host:', import.meta.env.VITE_AUTH_PROVIDER_URL); 
         console.log('dfx netowrk:', process.env.DFX_NETWORK);
         console.log('fetchRootKey:', process.env.DFX_NETWORK === "local");
+
+        console.log('canisterId:', canisterId);
         
         const agent = await createAgent({
           identity: identity,
@@ -212,6 +219,21 @@ export default {
 
 
         const name = await icrc1_ledger_canister.icrc1_name();
+        console.log('icrc1_ledger_canister.icrc1_name():', name);
+        
+        // //'icrc1_balance_of' : IDL.Func([Account], [Tokens], ['query']),
+        // balance = await this.actor.icrc1_balance_of({
+        // owner: Principal.fromText(address),
+
+
+        const identity_balance = await icrc1_ledger_canister.icrc1_balance_of({
+          owner: Principal.fromText('zgcr3-w3e7h-6okfu-e5dke-k66xm-kadri-lvnuw-kipko-mysl7-r6p53-xae'),   subaccount: [],
+        });
+        console.log('identity_balance:', identity_balance);
+
+        const metadata = await icrc1_ledger_canister.icrc1_metadata();
+        console.log('metadata:', metadata);
+
 
   //       const ApproveArgs = IDL.Record({
   //   'fee' : IDL.Opt(IDL.Nat),
@@ -242,7 +264,7 @@ export default {
           expected_allowance:  [],
           expires_at:  [],
           spender: {
-            owner: Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae'),
+            owner: Principal.fromText('dxzul-dqaaa-aaaan-qmvuq-cai'),
             subaccount:  []
           }
         });
@@ -262,7 +284,7 @@ export default {
           {
             account: from_acc,
             spender: {
-              owner: Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae'),
+              owner: Principal.fromText('dxzul-dqaaa-aaaan-qmvuq-cai'),
               subaccount:  []
             }
           }
@@ -329,6 +351,9 @@ export default {
           notatke</button>
       </div>
       <button @click="transfer">Transferuj</button>
+    </div>
+    <div v-else>
+      <button @click="transfer">Transferuj w/o authorization</button>
     </div>
   </main>
 </template>
