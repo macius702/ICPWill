@@ -15,7 +15,11 @@
   "workspaces": [
     "src/bootcamp_chat_frontend"
   ],
+  "devDependencies": {
+    "@types/node": "^22.5.0"
+  },
   "dependencies": {
-    "@dfinity/auth-client": "^2.0.0"
+    "@dfinity/ledger-icrc": "^2.4.0",
+    "@dfinity/utils": "^2.4.0"
   }
 }

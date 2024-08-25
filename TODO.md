@@ -1,0 +1,2 @@
+- generate src/bootcamp_chat_frontend/.env for vite and VITE_APP_IDENTITY_PROVIDER
+- to sth with amount : nat in src/bootcamp_chat_backend/bootcamp_chat_backend.did
