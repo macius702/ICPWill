@@ -153,6 +153,9 @@ export default {
        const backend = this.getAuthClient();
 
        console.log(backend);
+       console.log('identity:', this.identity);
+       console.log('identity principal:', this.identity?.getPrincipal());
+       console.log('identity principal toText:', this.identity?.getPrincipal().toText());
 
        console.log('mtlk Matiki here 2');
 
@@ -163,6 +166,9 @@ export default {
         //   identity: this.identity,
         // };
 
+        if (!this.identity) {
+          throw new Error("mtlk No identity")
+        }
 
         const identity = this.identity || {
           getPrincipal: () => Principal.fromText('default-principal-id'),
@@ -172,19 +178,30 @@ export default {
           },
         };
 
+
+        console.log('mtlk Matiki here 2f');
+        console.log('identity:', identity);
+        console.log('host:', import.meta.env.VITE_AUTH_PROVIDER_URL); 
+        console.log('dfx netowrk:', process.env.DFX_NETWORK);
+        console.log('fetchRootKey:', process.env.DFX_NETWORK === "local");
+        
         const agent = await createAgent({
           identity: identity,
           host: import.meta.env.VITE_AUTH_PROVIDER_URL,
           fetchRootKey: process.env.DFX_NETWORK === "local",
         });
 
-
+        console.log('agent:', agent); 
         console.log('mtlk Matiki here 3');
 
 
+        console.log('icrc1_ledger_canister_id :', icrc1_ledger_canister_id);
+
         // Create an instance of the icrc1_ledger_canister
         const icrc1_ledger_canister = Actor.createActor(icrc1_ledger_canister_idl, { agent, canisterId: icrc1_ledger_canister_id });
+
         console.log('mtlk Matiki here 4');
+        console.log('icrc1_ledger_canister:', icrc1_ledger_canister);
 
         // Now you can call functions on the icrc1_ledger_canister instance. For example:
 
@@ -192,6 +209,64 @@ export default {
 
 
         const name = await icrc1_ledger_canister.icrc1_name();
+
+  //       const ApproveArgs = IDL.Record({
+  //   'fee' : IDL.Opt(IDL.Nat),
+  //   'memo' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+  //   'from_subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+  //   'created_at_time' : IDL.Opt(IDL.Nat64),
+  //   'amount' : IDL.Nat,
+  //   'expected_allowance' : IDL.Opt(IDL.Nat),
+  //   'expires_at' : IDL.Opt(IDL.Nat64),
+  //   'spender' : Account,
+  // });
+
+//   dfx canister $NETWORK call --identity Alice $LEDGER icrc2_approve "(
+//   record {
+//     spender= record {
+//       owner = principal \"$BACKEND_CANISTER_ID\";
+//     };
+//     amount = 10_300: nat;
+//   }
+// )"
+
+        const approveResult = await icrc1_ledger_canister.icrc2_approve({
+          fee: [],
+          memo: [],
+          from_subaccount:  [],
+          created_at_time:  [],
+          amount: BigInt(20000),
+          expected_allowance:  [],
+          expires_at:  [],
+          spender: {
+            owner: Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae'),
+            subaccount:  []
+          }
+        });
+
+        console.log('approveResult:', approveResult);
+
+        console.log('mtlk Matiki here 5f');
+
+        //'icrc2_allowance' : IDL.Func([AllowanceArgs], [Allowance], ['query']),
+  //       const AllowanceArgs = IDL.Record({
+  //   'account' : Account,
+  //   'spender' : Account,
+  // });
+
+  const mtlk_allowance = 
+        await icrc1_ledger_canister.icrc2_allowance(
+          {
+            account: from_acc,
+            spender: {
+              owner: Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae'),
+              subaccount:  []
+            }
+          }
+        );
+        
+        console.log('mtlk_allowance:', mtlk_allowance);
+        
 
         console.log('mtlk Matiki here 6');
 
@@ -210,6 +285,8 @@ export default {
         from_account: from_acc,
         delay_in_seconds: 20
       };
+
+      console.log('transferArgs:', transferArgs);
 
 
       // the function below returns:
