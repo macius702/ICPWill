@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MODE=${1:-local}
+MODE=${1:-nonlocal}
 
 PATTERN1="========================================"
 PATTERN2="----------------------------------------"
@@ -24,7 +24,12 @@ fi
 set -eu
 
 echo "===========SETUP========="
-dfx start --background --clean
+if [ "$MODE" = "local" ]; then
+  dfx start --background --clean
+else
+  dfx start --background
+fi
+
 sleep 5
 dfx identity list
 
@@ -43,7 +48,7 @@ else
     export LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
     export LEDGER=$LEDGER_CANISTER_ID
     export NETWORK=--ic
-    export PLAYGROUND=--playground
+    export PLAYGROUND=--ic
 fi
 
 
@@ -76,21 +81,22 @@ if [ "$MODE" == "local" ]; then
     }
   })"
 
-  dfx deploy $PLAYGROUND bootcamp_chat_frontend  
 
 fi
 
 
 # npm install
 dfx deploy $PLAYGROUND bootcamp_chat_backend
+
 export BACKEND_CANISTER_ID=$(dfx canister $PLAYGROUND id bootcamp_chat_backend)
 
 echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 
 
 dfx deploy $PLAYGROUND bootcamp_chat_frontend
+#fx deploy $PLAYGROUND bootcamp_chat_frontend
 
-
+echo DONE.
 
 
 

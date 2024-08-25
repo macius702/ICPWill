@@ -10,7 +10,10 @@ import { Principal } from '@dfinity/principal';
 import type { UserData } from '../../declarations/bootcamp_chat_backend/bootcamp_chat_backend.did';
 import { IcrcLedgerCanister } from "@dfinity/ledger-icrc";
 import { createAgent } from "@dfinity/utils";
-import { idlFactory as icrc1_ledger_canister_idl, canisterId as icrc1_ledger_canister_id } from '../../declarations/icrc1_ledger_canister';
+import { idlFactory as icrc1_ledger_canister_idl } from '../../declarations/icrc1_ledger_canister';
+
+const LEDGER_CANISTER_ID='ryjl3-tyaaa-aaaaa-aaaba-cai'
+
 
 
 export default {
@@ -71,8 +74,8 @@ export default {
     async login() {
       const authClient = await AuthClient.create();
       await authClient.login({
-        identityProvider: import.meta.env.VITE_APP_IDENTITY_PROVIDER,
-        //identityProvider: "https://identity.ic0.app/#authorize",
+        //identityProvider: import.meta.env.VITE_APP_IDENTITY_PROVIDER,
+        identityProvider: "https://identity.ic0.app/#authorize",
         //identityProvider: "http://be2us-64aaa-aaaaa-qaabq-cai.localhost:4943/",
         onSuccess: async () => {
           const identity = authClient.getIdentity();
@@ -195,10 +198,10 @@ export default {
         console.log('mtlk Matiki here 3');
 
 
-        console.log('icrc1_ledger_canister_id :', icrc1_ledger_canister_id);
+        console.log('icrc1_ledger_canister_id :', LEDGER_CANISTER_ID);
 
         // Create an instance of the icrc1_ledger_canister
-        const icrc1_ledger_canister = Actor.createActor(icrc1_ledger_canister_idl, { agent, canisterId: icrc1_ledger_canister_id });
+        const icrc1_ledger_canister = Actor.createActor(icrc1_ledger_canister_idl, { agent, canisterId: LEDGER_CANISTER_ID });
 
         console.log('mtlk Matiki here 4');
         console.log('icrc1_ledger_canister:', icrc1_ledger_canister);
@@ -325,7 +328,7 @@ export default {
         <textarea v-model="newChat" placeholder="wiadomosc"></textarea><button @click="dodajChatMSG">Dodaj
           notatke</button>
       </div>
-      <button @click="transfer">Transfer</button>
+      <button @click="transfer">Transferuj</button>
     </div>
   </main>
 </template>
