@@ -3,6 +3,7 @@ use candid::CandidType;
 #[derive(Clone, CandidType)]
 pub struct UserData {
     nickname: String,
+    pub source_btc_address: Option<String>,
     avatar_url: Option<String>,
 }
 

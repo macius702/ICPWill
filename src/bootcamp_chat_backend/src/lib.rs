@@ -23,6 +23,42 @@ fn register(nick: String) {
     USERS.with_borrow_mut(|users| users.insert(user, UserData::new(nick)));
 }
 
+#[ic_cdk::update]
+fn assign_source_BTC_address(btc_address: String) {
+    let user = caller();
+
+    if user == Principal::anonymous() {
+        panic!("Anonymous Principal!")
+    }
+
+    USERS.with_borrow_mut(|users| {
+        if let Some(user_data) = users.get_mut(&user) {
+            user_data.source_btc_address = Some(btc_address);
+        }
+    })
+}
+
+#[ic_cdk::update]
+fn add_target_BTC_address(btc_address: String) {
+    let user = caller();
+
+    if user == Principal::anonymous() {
+        panic!("Anonymous Principal!")
+    }
+
+    let is_user_registered = USERS.with_borrow(|users| users.contains_key(&user));
+
+    if !is_user_registered {
+        panic!("Not registered!")
+    }
+
+    USERS.with_borrow_mut(|users| {
+        if let Some(user_data) = users.get_mut(&user) {
+            user_data.target_btc_addresses.insert(target, btc_address);
+        }
+    })
+}
+
 #[ic_cdk::query]
 fn get_users() -> HashMap<Principal, UserData> {
     USERS.with_borrow(|users| users.clone())
