@@ -50,7 +50,7 @@ export default {
       }
       return targetPrincipal
     },
-    getAuthClient() {
+    getAuthenticatedActor() {
       this.isUserLogged()
       return createActor(canisterId, {
         agentOptions: {
@@ -60,7 +60,7 @@ export default {
     },
     async dodajChatMSG() {
       const targetPrincipal = this.validateTargetPrincipal()
-      const backend = this.getAuthClient();
+      const backend = this.getAuthenticatedActor();
       await backend.add_chat_msg(this.newChat, targetPrincipal)
       await this.pobierzChaty()
     },
@@ -79,6 +79,7 @@ export default {
         //identityProvider: "http://be2us-64aaa-aaaaa-qaabq-cai.localhost:4943/",
         onSuccess: async () => {
           const identity = authClient.getIdentity();
+          console.log('authClient.getIdentity():', identity);
           
           const principal = identity.getPrincipal();
           this.principal = principal;
@@ -99,7 +100,7 @@ export default {
     },
     async registerUsername() {
       const trimedUsername = this.newUsername.trim();
-      const backend = this.getAuthClient();
+      const backend = this.getAuthenticatedActor();
       await backend.register(trimedUsername)
       await this.getUserData()
       await this.getAllUsers()
@@ -117,7 +118,152 @@ export default {
     async getAllUsers() {
       this.allUsers = await bootcamp_chat_backend.get_users()
     },
+
+
     async transfer() {
+      
+      console.log('mtlk Matiki here 0');
+
+
+       console.log('identity:', this.identity);
+       console.log('identity principal:', this.identity?.getPrincipal());
+       console.log('identity principal toText:', this.identity?.getPrincipal().toText());
+
+       console.log('mtlk Matiki here 2');
+
+        if (!this.identity) {
+          throw new Error("mtlk No identity")
+        }
+
+        const identity = this.identity;
+
+        const AUTH_PROVIDER_URL = 'https://icp-api.io';
+
+        console.log('identity principal toText:', identity.getPrincipal().toText());
+
+        console.log('mtlk Matiki here 2f');
+        console.log('identity:', identity);
+        console.log('host:', AUTH_PROVIDER_URL); 
+        console.log('dfx netowrk:', process.env.DFX_NETWORK);
+        console.log('fetchRootKey:', process.env.DFX_NETWORK === "local");
+
+        console.log('canisterId:', canisterId);
+        
+        const agent = await createAgent({
+          identity: identity,
+          host: AUTH_PROVIDER_URL,
+          fetchRootKey: process.env.DFX_NETWORK === "local",
+        });
+
+        console.log('agent:', agent); 
+        console.log('mtlk Matiki here 3');
+
+
+        console.log('icrc1_ledger_canister_id :', LEDGER_CANISTER_ID);
+
+        // Create an instance of the icrc1_ledger_canister
+        const icrc1_ledger_canister = Actor.createActor(icrc1_ledger_canister_idl, { agent, canisterId: LEDGER_CANISTER_ID });
+
+        console.log('mtlk Matiki here 4');
+        console.log('icrc1_ledger_canister:', icrc1_ledger_canister);
+
+        // Now you can call functions on the icrc1_ledger_canister instance. For example:
+
+        console.log('mtlk Matiki here 5');
+
+
+        const name = await icrc1_ledger_canister.icrc1_name();
+        console.log('icrc1_ledger_canister.icrc1_name():', name);
+        
+        // //'icrc1_balance_of' : IDL.Func([Account], [Tokens], ['query']),
+        // balance = await this.actor.icrc1_balance_of({
+        // owner: Principal.fromText(address),
+
+
+        const identity_balance = await icrc1_ledger_canister.icrc1_balance_of({
+          owner: Principal.fromText('zgcr3-w3e7h-6okfu-e5dke-k66xm-kadri-lvnuw-kipko-mysl7-r6p53-xae'),   subaccount: [],
+        });
+        console.log('identity_balance:', identity_balance);
+
+        const metadata = await icrc1_ledger_canister.icrc1_metadata();
+        console.log('metadata:', metadata);
+
+
+
+
+        const approveResult = await icrc1_ledger_canister.icrc2_approve({
+          fee: [],
+          memo: [],
+          from_subaccount:  [],
+          created_at_time:  [],
+          amount: BigInt(3),
+          expected_allowance:  [],
+          expires_at:  [],
+          spender: {
+            owner: Principal.fromText('dxzul-dqaaa-aaaan-qmvuq-cai'),
+            subaccount:  []
+          }
+        });
+
+        console.log('approveResult:', approveResult);
+
+        console.log('mtlk Matiki here 5f');
+
+        //'icrc2_allowance' : IDL.Func([AllowanceArgs], [Allowance], ['query']),
+  //       const AllowanceArgs = IDL.Record({
+  //   'account' : Account,
+  //   'spender' : Account,
+  // });
+
+  let from_acc = { owner: Principal.fromText('zgcr3-w3e7h-6okfu-e5dke-k66xm-kadri-lvnuw-kipko-mysl7-r6p53-xae'), subaccount: [] };
+
+
+  const mtlk_allowance = 
+        await icrc1_ledger_canister.icrc2_allowance(
+          {
+            account: from_acc,
+            spender: {
+              owner: Principal.fromText('dxzul-dqaaa-aaaan-qmvuq-cai'),
+              subaccount:  []
+            }
+          }
+        );
+        
+        console.log('mtlk_allowance:', mtlk_allowance);
+        
+
+        console.log('mtlk Matiki here 6');
+
+        console.log(name);      
+
+        console.log('mtlk Matiki here 7');
+
+
+      let to_principal = Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae');
+
+      let to_acc = { owner: to_principal, subaccount: [] };
+
+      let transferArgs = {
+        amount: BigInt(300),
+        to_account: to_acc,
+        from_account: from_acc,
+        delay_in_seconds: 20
+      };
+
+      console.log('transferArgs:', transferArgs);
+
+
+      // the function below returns:
+      // type Result = variant { Ok : nat; Err : text };
+      let result = await backend.transfer(transferArgs);
+      console.log(result);
+
+    }
+    ,
+
+    
+
+    async transfer_old() {
       
 
       //   //const a = await icrc1_ledger_canister.icrc2_approve("
@@ -156,8 +302,7 @@ export default {
 
 
         const { principal } = this.isUserLogged()
-      let from_acc = { owner: principal, subaccount: [] };
-       const backend = this.getAuthClient();
+       const backend = this.getAuthenticatedActor();
 
        console.log(backend);
        console.log('identity:', this.identity);
@@ -260,7 +405,7 @@ export default {
           memo: [],
           from_subaccount:  [],
           created_at_time:  [],
-          amount: BigInt(20000),
+          amount: BigInt(3),
           expected_allowance:  [],
           expires_at:  [],
           spender: {
@@ -278,6 +423,9 @@ export default {
   //   'account' : Account,
   //   'spender' : Account,
   // });
+
+  let from_acc = { owner: Principal.fromText('zgcr3-w3e7h-6okfu-e5dke-k66xm-kadri-lvnuw-kipko-mysl7-r6p53-xae'), subaccount: [] };
+
 
   const mtlk_allowance = 
         await icrc1_ledger_canister.icrc2_allowance(

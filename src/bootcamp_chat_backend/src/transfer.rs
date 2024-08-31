@@ -3,7 +3,7 @@ use std::time::Duration;
 use candid::{CandidType, Deserialize, Principal};
 use icrc_ledger_types::icrc1::account::Account;
 use icrc_ledger_types::icrc1::transfer::{BlockIndex, NumTokens, TransferArg, TransferError};
-//use icrc_ledger_types::icrc2::transfer_from::{TransferFromArgs, TransferFromError};
+use icrc_ledger_types::icrc2::transfer_from::{TransferFromArgs, TransferFromError};
 
 use serde::Serialize;
 
@@ -32,10 +32,10 @@ async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
         &args.delay_in_seconds
     );
 
-    // let secs = Duration::from_secs(args.delay_in_seconds);
-    // let amount = args.amount.clone();
-    // let to_account = args.to_account.clone();
-    // let from_account = args.from_account.clone();
+    let secs = Duration::from_secs(args.delay_in_seconds);
+    let amount = args.amount.clone();
+    let to_account = args.to_account.clone();
+    let from_account = args.from_account.clone();
 
     let my_principal_id = ic_cdk::api::id();
     
@@ -49,13 +49,15 @@ async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
 
 
 
-    let transfer_args: TransferArg = TransferArg {
+    let transfer_from_args = TransferFromArgs {
+        // the account we want to transfer tokens from (in this case we assume the caller approved the canister to spend funds on their behalf)        
+        from: args.from_account,
         // can be used to distinguish between transactions
         memo: None,
         // the amount we want to transfer
         amount: args.amount,
         // we want to transfer tokens from the default subaccount of the canister
-        from_subaccount: None,
+        spender_subaccount: None,
         // if not specified, the default fee for the canister is used
         fee: None,
         // the account we want to transfer tokens to
@@ -65,15 +67,15 @@ async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     };
 
     // 1. Asynchronously call another canister function using `ic_cdk::call`.
-    ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
+    ic_cdk::call::<(TransferFromArgs,), (Result<BlockIndex, TransferError>,)>(
         // 2. Convert a textual representation of a Principal into an actual `Principal` object. The principal is the one we specified in `dfx.json`.
         //    `expect` will panic if the conversion fails, ensuring the code does not proceed with an invalid principal.
         Principal::from_text(LEDGER_CANISTER_ID)
             .expect("Could not decode the principal."),
         // 3. Specify the method name on the target canister to be called, in this case, "icrc1_transfer".
-        "icrc1_transfer",
+        "icrc2_transfer_from",
         // 4. Provide the arguments for the call in a tuple, here `transfer_args` is encapsulated as a single-element tuple.
-        (transfer_args,),
+        (transfer_from_args,),
     )
     .await // 5. Await the completion of the asynchronous call, pausing the execution until the future is resolved.
     // 6. Apply `map_err` to transform any network or system errors encountered during the call into a more readable string format.
