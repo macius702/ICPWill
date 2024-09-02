@@ -54,7 +54,7 @@ fn add_target_BTC_address(btc_address: String) {
 
     USERS.with_borrow_mut(|users| {
         if let Some(user_data) = users.get_mut(&user) {
-            user_data.target_btc_addresses.insert(target, btc_address);
+            user_data.target_btc_address.push(btc_address);
         }
     })
 }

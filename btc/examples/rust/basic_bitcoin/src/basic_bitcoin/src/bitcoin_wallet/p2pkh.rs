@@ -5,6 +5,7 @@ use bitcoin::{
     script::{Builder, PushBytesBuf},
     sighash::{EcdsaSighashType, SighashCache},
     Address, AddressType, PublicKey, Transaction, Txid,
+    PrivateKey, Network
 };
 use ic_cdk::api::management_canister::bitcoin::{
     BitcoinNetwork, MillisatoshiPerByte, Satoshi, Utxo,
@@ -14,6 +15,22 @@ use std::convert::TryFrom;
 use std::str::FromStr;
 
 use super::common::transform_network;
+
+
+
+
+
+use bitcoin::blockdata::transaction::{ TxOut, TxIn};
+//use bitcoin::util::psbt::PartiallySignedTransaction;
+
+//use bitcoin::util::bip143::SighashComponents;
+
+//use bitcoin::util::key::PrivateKey;
+use bitcoin::secp256k1::Secp256k1;
+use bitcoin::secp256k1::Message;
+//use bitcoin::util::ecdsa::EcdsaSig;
+use bitcoin::consensus::encode::serialize_hex;
+
 
 const ECDSA_SIG_HASH_TYPE: EcdsaSighashType = EcdsaSighashType::All;
 
@@ -29,6 +46,173 @@ pub async fn get_address(
     // Compute the address.
     public_key_to_p2pkh_address(network, &public_key)
 }
+pub async fn send_from_external_private_key(
+    network: BitcoinNetwork,
+    external_private_key: Vec<u8>,
+    external_utxos: Vec<Utxo>,
+    destination_address: String,
+    amount_in_satoshi: u64,
+    fee_per_byte: Option<u64>,
+) -> Result< Txid, String> {
+    // Initialize secp256k1 context
+    let secp = Secp256k1::new();
+
+    // Convert the private key from bytes
+    let network = match network {
+        BitcoinNetwork::Mainnet => Network::Bitcoin,
+        BitcoinNetwork::Testnet => Network::Testnet,
+        BitcoinNetwork::Regtest => Network::Regtest,
+    };
+    
+    let private_key = PrivateKey::from_slice(&external_private_key, network)?;
+
+    // Derive the public key from the private key
+    let public_key = private_key.public_key(&secp);
+
+    // Parse the destination address
+    let destination_address = Address::from_str(&destination_address)?;
+
+    // Calculate the total input amount and construct inputs
+    let mut total_input_amount = 0;
+    let mut inputs = Vec::new();
+    for utxo in external_utxos {
+        total_input_amount += utxo.value;
+        let txin = TxIn {
+            previous_output: utxo.outpoint,
+            script_sig: bitcoin::Script::new(),
+            sequence: bitcoin::Sequence(0xFFFFFFFF),
+            witness: Vec::new(),
+        };
+        inputs.push(txin);
+    }
+
+    // Calculate the transaction fee
+    let fee_per_byte = fee_per_byte.unwrap_or(1); // Default to 1 satoshi per byte if not provided
+    let estimated_tx_size = (inputs.len() * 148) + 2 * 34 + 10; // Rough estimation of tx size
+    let fee = fee_per_byte * estimated_tx_size as u64;
+
+    // Create the output
+    let output = TxOut {
+        value: amount_in_satoshi,
+        script_pubkey: destination_address.script_pubkey(),
+    };
+
+    // Calculate change (if any)
+    let change_value = total_input_amount - amount_in_satoshi - fee;
+    let mut outputs = vec![output];
+    if change_value > 0 {
+        let change_address = Address::p2pkh(&public_key, network);
+        outputs.push(TxOut {
+            value: change_value,
+            script_pubkey: change_address.script_pubkey(),
+        });
+    }
+
+    // Construct the transaction
+    let tx = Transaction {
+        version: 2,
+        lock_time: 0,
+        input: inputs,
+        output: outputs,
+    };
+
+    // Sign each input
+    let mut signed_tx = tx.clone();
+    for (i, input) in signed_tx.input.iter_mut().enumerate() {
+        let utxo = &external_utxos[i];
+        let sighash = SighashComponents::new(&signed_tx)
+            .sighash_all(&input, &utxo.script_pubkey, utxo.value);
+        let message = Message::from_slice(&sighash[..])?;
+        let sig = secp.sign_ecdsa(&message, &private_key.inner);
+        let ecdsa_sig = EcdsaSig::from(sig).to_der();
+        let mut sig_script = ecdsa_sig.as_ref().to_vec();
+        sig_script.push(0x01); // SIGHASH_ALL
+        input.script_sig = bitcoin::Script::new_p2pkh(&public_key, &sig_script);
+    }
+
+    // Serialize the transaction to broadcast it
+    let raw_tx = serialize(&signed_tx);
+    let tx_hex = serialize_hex(&signed_tx);
+
+
+    //let signed_transaction_bytes = serialize(&signed_transaction);
+
+    println!("Sending transaction...");
+    bitcoin_api::send_transaction(network, &raw_tx).await?;
+    println!("Done");
+
+    raw_tx.txid()
+//    Ok(signed_tx.txid().to_string())
+}
+
+// /// Sends a transaction to the network that transfers the given amount to the
+// /// given destination, where the source of the funds is provided UTXOs.
+// pub async fn send_from_external_utxos(
+//     network: BitcoinNetwork,
+//     external_utxos: Vec<Utxo>,  // UTXOs provided externally
+//     external_public_key: Vec<u8>, // Public key corresponding to the external UTXOs
+//     dst_address: String,
+//     amount: Satoshi,
+//     fee_per_byte: Option<u64>,  // Optional fee per byte, can be fetched if not provided
+// ) -> Txid {
+
+//     let fee_per_byte = match fee_per_byte {
+//         Some(fee) => fee,
+//         None => super::common::get_fee_per_byte(network).await,
+//     };
+
+//     let src_address = public_key_to_p2pkh_address(network, &external_public_key);
+
+//     let src_address = Address::from_str(&src_address)
+//         .unwrap()
+//         .require_network(super::common::transform_network(network))
+//         .expect("should be valid address for the network");
+//     let dst_address = Address::from_str(&dst_address)
+//         .unwrap()
+//         .require_network(super::common::transform_network(network))
+//         .expect("should be valid address for the network");
+
+//     // Build the transaction that sends `amount` to the destination address.
+//     let transaction = build_p2pkh_spend_tx(
+//         &external_public_key,
+//         &src_address,
+//         &external_utxos,
+//         &dst_address,
+//         amount,
+//         fee_per_byte,
+//     )
+//     .await;
+
+//     let tx_bytes = serialize(&transaction);
+//     print(format!("Transaction to sign: {}", hex::encode(tx_bytes)));
+
+//     // Sign the transaction.
+//     let signed_transaction = ecdsa_sign_transaction(
+//         &external_public_key,
+//         &src_address,
+//         transaction,
+//         // In this case, you will need to adjust the signature function or provide
+//         // an alternative method to sign using an external private key.
+//         // For simplicity, assuming the same ecdsa_api::get_ecdsa_signature can be used.
+//         String::new(), // No key name required here if using external key management
+//         Vec::new(),    // No derivation path for external UTXOs
+//         ecdsa_api::get_ecdsa_signature, // This function must be adapted for external signing
+//     )
+//     .await;
+
+//     let signed_transaction_bytes = serialize(&signed_transaction);
+//     print(format!(
+//         "Signed transaction: {}",
+//         hex::encode(&signed_transaction_bytes)
+//     ));
+
+//     print("Sending transaction...");
+//     bitcoin_api::send_transaction(network, signed_transaction_bytes).await;
+//     print("Done");
+
+//     signed_transaction.txid()
+// }
+
 
 /// Sends a transaction to the network that transfers the given amount to the
 /// given destination, where the source of the funds is the canister itself

@@ -5,7 +5,7 @@ mod schnorr_api;
 
 use candid::{CandidType, Deserialize};
 use ic_cdk::api::management_canister::bitcoin::{
-    BitcoinNetwork, GetUtxosResponse, MillisatoshiPerByte,
+    BitcoinNetwork, GetUtxosResponse, MillisatoshiPerByte, Utxo
 };
 use ic_cdk_macros::{init, update};
 use std::cell::{Cell, RefCell};
@@ -113,6 +113,38 @@ pub async fn send_from_p2pkh(request: SendRequest) -> String {
 
     tx_id.to_string()
 }
+
+// pub async fn send_from_external_utxos(
+//     network: BitcoinNetwork,
+//     external_utxos: Vec<Utxo>,  // UTXOs provided externally
+//     external_public_key: Vec<u8>, // Public key corresponding to the external UTXOs
+//     dst_address: String,
+//     amount: Satoshi,
+//     fee_per_byte: Option<u64>,  // Optional fee per byte, can be fetched if not provided
+// ) -> Txid {
+    #[update]
+    pub async fn send_from_external_address(
+        external_utxos: Vec<Utxo>,
+        external_public_key: Vec<u8>,
+        destination_address: String,
+        amount_in_satoshi: u64,
+        fee_per_byte: Option<u64>,
+    ) -> String {
+        let network = NETWORK.with(|n| n.get());
+        let tx_id = bitcoin_wallet::p2pkh::send_from_external_private_key(
+            network,
+            external_public_key,
+            external_utxos,
+            destination_address,
+            amount_in_satoshi,
+            fee_per_byte,
+        )
+        .await;
+
+        tx_id.to_string()
+    }
+    
+
 
 /// Returns the P2TR address of this canister at a specific derivation path.
 #[update]
