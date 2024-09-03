@@ -164,7 +164,7 @@ export default {
     console.log('Is authenticated', isAuthenticated);
     if (isAuthenticated) {
       await this.handleAuthentication(authClient);
-    }
+          }
   },
 
 }
@@ -182,7 +182,7 @@ export default {
       <p>Nick: {{ userData.nickname }}</p>
       <p>Principal: {{ principal }}</p>
       <div v-if="allUsers">
-        <select v-model="targetPrincipal">
+        <select v-model="targetPrincipal" @change="pobierzChaty">
           <option disabled value="">Please select one</option>
           <option v-for="[userPrincipal, userData] in allUsers" :value="userPrincipal.toText()">{{ userData.nickname }}
           </option>
