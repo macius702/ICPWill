@@ -21,6 +21,8 @@ export default {
       newUsername: "",
       allUsers: [] as [Principal, UserData][],
       balance: null,
+      amountToSend: 0,
+      transferDelay: 0
     }
   },
   methods: {
@@ -107,13 +109,22 @@ export default {
       const { principal } = this.isUserLogged()
       const backend = this.getAuthClient();
 
-      let to_principal = Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae');
+      const targetPrincipal = this.validateTargetPrincipal()
+      let to_principal = targetPrincipal
+
+
+      //let to_principal = Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae');
+
+      //. todo validate amount to send
+      
+
+      console.log("Before transfer from", principal, "to", to_principal, "amount", this.amountToSend, "delay", this.transferDelay)
 
       let acc = { owner: to_principal, subaccount: [] };
 
       let transferArgs = {
         to_account: acc,
-        amount: 43
+        amount: this.amountToSend
       };
 
 
@@ -206,6 +217,11 @@ export default {
         <textarea v-model="newChat" placeholder="wiadomosc"></textarea><button @click="dodajChatMSG">Dodaj
           notatke</button>
       </div>
+      <label for="amountToSend">Amount to send:</label>
+      <input v-model="amountToSend" type="number" placeholder="Amount to send" />
+
+      <label for="transferDelay">Delay in seconds:</label>
+      <input v-model="transferDelay" type="number" placeholder="Delay in seconds" />
       <button @click="transfer">Transfer</button>
     </div>
   </main>
