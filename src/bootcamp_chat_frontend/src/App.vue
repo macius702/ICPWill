@@ -19,7 +19,7 @@ export default {
       targetPrincipal: "",
       userData: undefined as undefined | UserData,
       newUsername: "",
-      allUsers: [] as [Principal, UserData][]
+      balance: null,
     }
   },
   methods: {
@@ -96,6 +96,7 @@ export default {
       } else {
         this.userData = maybeUserData[0]
       }
+      //await this.fetchBalance()      
       console.log("User data", this.userData)
     },
     async getAllUsers() {
@@ -154,7 +155,12 @@ export default {
       await this.getUserData();
       await this.getAllUsers();
     },
-
+    async fetchBalance() {
+      const { principal } = this.isUserLogged()
+      const backend = this.getAuthClient();
+      let result = await backend.get_balance()
+      console.log(result)
+    },
 
   },
   async mounted() {
@@ -181,6 +187,8 @@ export default {
     <div v-if="principal && userData">
       <p>Nick: {{ userData.nickname }}</p>
       <p>Principal: {{ principal }}</p>
+      <p>Balance: {{ balance }}</p>
+
       <div v-if="allUsers">
         <select v-model="targetPrincipal" @change="pobierzChaty">
           <option disabled value="">Please select one</option>

@@ -1,3 +1,4 @@
+use candid::types::principal;
 use candid::{CandidType, Deserialize, Principal, Nat};
 use icrc_ledger_types::icrc1::account::Account;
 use icrc_ledger_types::icrc1::transfer::NumTokens;
@@ -6,21 +7,22 @@ use serde::Serialize;
 use crate::constants::LEDGER_CANISTER_ID;
 
 
-#[derive(CandidType, Deserialize, Serialize)]
-pub struct BalanceOfArgs {
-    account: Account,
-}
 
 #[ic_cdk::query]
-async fn get_balance(args: BalanceOfArgs) -> Result<NumTokens, String> {
-    ic_cdk::println!("Getting balance for account {}", &args.account);
+async fn get_balance() -> Result<NumTokens, String> {
+
+    let principal  = ic_cdk::caller();
+    //make an account oft of the caller
+    let account: Account = Account::from(principal);
+    ic_cdk::println!("Getting balance for account which is caller's {}", account);
+
 
     // Call the icrc1_balance_of method on the ledger canister
     let result: CallResult<(Result<Nat, String>,)> = ic_cdk::call(
         Principal::from_text(LEDGER_CANISTER_ID)
             .expect("Could not decode the principal."),
         "icrc1_balance_of",
-        (args.account,),  // Tuple containing the account
+        (account,),  // Tuple containing the account
     )
     .await;
 
