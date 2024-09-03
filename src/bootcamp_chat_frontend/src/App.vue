@@ -29,21 +29,21 @@ export default {
       }
       return {
         identity: this.identity,
-        principal: this.principal 
+        principal: this.principal
       }
     },
-    validateTargetPrincipal(){
+    validateTargetPrincipal() {
       const cleanTargetPrincipal = this.targetPrincipal.trim();
-      if (cleanTargetPrincipal === ""){
+      if (cleanTargetPrincipal === "") {
         throw new Error("No principal")
       }
       const targetPrincipal = Principal.fromText(cleanTargetPrincipal)
-      if (!targetPrincipal || targetPrincipal === Principal.anonymous()){
+      if (!targetPrincipal || targetPrincipal === Principal.anonymous()) {
         throw new Error("Wrong target")
       }
       return targetPrincipal
     },
-    getAuthClient(){
+    getAuthClient() {
       this.isUserLogged()
       return createActor(canisterId, {
         agentOptions: {
@@ -58,34 +58,11 @@ export default {
       await this.pobierzChaty()
     },
     async pobierzChaty() {
-      const {identity, principal} = this.isUserLogged()
+      const { identity, principal } = this.isUserLogged()
       const targetPrincipal = this.validateTargetPrincipal()
 
       const chatPath = [targetPrincipal, identity.getPrincipal()].sort()
       this.chats = await bootcamp_chat_backend.get_chat(chatPath)
-    },
-    async login() {
-      const authClient = await AuthClient.create();
-      await authClient.login({
-        identityProvider: IDENTITY_PROVIDER,
-        onSuccess: async () => {
-          const identity = authClient.getIdentity();
-          const principal = identity.getPrincipal();
-          this.principal = principal;
-          this.identity = identity;
-          console.log("Zalogowano", this.principal)
-          await this.getUserData()
-          await this.getAllUsers()
-        }
-      })
-    },
-    async logout () {
-      const authClient = await AuthClient.create();
-      await authClient.logout()
-      this.identity = undefined;
-      this.principal = undefined;
-      this.chats = [];
-      this.userData = undefined
     },
     async registerUsername() {
       const trimedUsername = this.newUsername.trim();
@@ -95,7 +72,7 @@ export default {
       await this.getAllUsers()
     },
     async getUserData() {
-      const {principal} = this.isUserLogged()
+      const { principal } = this.isUserLogged()
       const maybeUserData = await bootcamp_chat_backend.get_user(principal as Principal)
       if (maybeUserData.length === 0) {
         this.userData = undefined
@@ -104,11 +81,11 @@ export default {
       }
       console.log("User data", this.userData)
     },
-    async getAllUsers(){
+    async getAllUsers() {
       this.allUsers = await bootcamp_chat_backend.get_users()
     },
     async transfer() {
-      const {principal} = this.isUserLogged()
+      const { principal } = this.isUserLogged()
       const backend = this.getAuthClient();
 
       let to_principal = Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae');
@@ -126,8 +103,53 @@ export default {
       let result = await backend.transfer(transferArgs);
       console.log(result);
 
+    },
+
+    async logout() {
+      const authClient = await AuthClient.create();
+      await authClient.logout()
+      this.identity = undefined;
+      this.principal = undefined;
+      this.chats = [];
+      this.userData = undefined
+      localStorage.clear()
+    },
+
+
+
+    async login() {
+      const authClient = await AuthClient.create();
+      await authClient.login({
+        identityProvider: IDENTITY_PROVIDER,
+        onSuccess: async () => {
+          await this.handleAuthentication(authClient);
+        }
+      });
+    },
+
+    // helpers
+    async handleAuthentication(authClient: AuthClient) {
+      const identity = authClient.getIdentity();
+      const principal = identity.getPrincipal();
+      this.principal = principal;
+      this.identity = identity;
+      console.log("Zalogowano", this.principal);
+      await this.getUserData();
+      await this.getAllUsers();
+    },
+
+
+  },
+  async mounted() {
+    console.log('Entering mounted');
+    const authClient = await AuthClient.create();
+    const isAuthenticated = await authClient.isAuthenticated();
+    console.log('Is authenticated', isAuthenticated);
+    if (isAuthenticated) {
+      await this.handleAuthentication(authClient);
     }
   },
+
 }
 </script>
 
@@ -135,16 +157,18 @@ export default {
   <main>
     <button v-if="!principal" @click="login">login</button>
     <button v-if="principal" @click="logout">logout</button>
-    
+
     <div v-if="principal && !userData">
-      <input v-model="newUsername" placeholder="nick"/> <button @click="registerUsername">register</button>
+      <input v-model="newUsername" placeholder="nick" /> <button @click="registerUsername">register</button>
     </div>
     <div v-if="principal && userData">
-      {{ userData.nickname }}
+      <p>Nick: {{ userData.nickname }}</p>
+      <p>Principal: {{ principal }}</p>
       <div v-if="allUsers">
         <select v-model="targetPrincipal">
           <option disabled value="">Please select one</option>
-          <option v-for="[userPrincipal, userData] in allUsers" :value="userPrincipal.toText()">{{ userData.nickname }}</option>
+          <option v-for="[userPrincipal, userData] in allUsers" :value="userPrincipal.toText()">{{ userData.nickname }}
+          </option>
         </select>
       </div>
       <div>
@@ -153,7 +177,8 @@ export default {
         </div>
       </div>
       <div>
-        <textarea v-model="newChat" placeholder="wiadomosc"></textarea><button @click="dodajChatMSG">Dodaj notatke</button>
+        <textarea v-model="newChat" placeholder="wiadomosc"></textarea><button @click="dodajChatMSG">Dodaj
+          notatke</button>
       </div>
       <button @click="transfer">Transfer</button>
     </div>
