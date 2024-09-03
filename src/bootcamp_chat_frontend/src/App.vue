@@ -227,7 +227,7 @@ export default {
 
       <label for="transferDelay">Delay in seconds:</label>
       <input v-model="transferDelay" type="number" placeholder="Delay in seconds" />
-      <button @click="transfer">Transfer</button>
+      <button @click="transfer">Direct transfer</button>
     </div>
   </main>
 </template>
