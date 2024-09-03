@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-MODE=${1:-nonlocal}
+MODE=${1:-local}
+CLEAN=${2}
+
 
 PATTERN1="========================================"
 PATTERN2="----------------------------------------"
@@ -25,7 +27,11 @@ set -eu
 
 echo "===========SETUP========="
 if [ "$MODE" = "local" ]; then
-  dfx start --background --clean
+  if [ "$CLEAN" == "--clean" ]; then
+    dfx start --background --clean
+  else
+    dfx start --background
+  fi
 else
   dfx start --background
 fi

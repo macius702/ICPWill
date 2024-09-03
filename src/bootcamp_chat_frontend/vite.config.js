@@ -27,6 +27,7 @@ export default defineConfig({
       },
     },
   },
+  mode: 'development',
   plugins: [
     vue(),
     environment('all', { prefix: 'CANISTER_' }),
