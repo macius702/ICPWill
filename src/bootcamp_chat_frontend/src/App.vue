@@ -7,6 +7,8 @@ import type { Identity } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import type { UserData } from '../../declarations/bootcamp_chat_backend/bootcamp_chat_backend.did';
 
+export const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER;
+
 export default {
   data() {
     return {
@@ -65,8 +67,7 @@ export default {
     async login() {
       const authClient = await AuthClient.create();
       await authClient.login({
-        identityProvider: "https://identity.ic0.app/#authorize",
-        //identityProvider: "http://be2us-64aaa-aaaaa-qaabq-cai.localhost:4943/",
+        identityProvider: IDENTITY_PROVIDER,
         onSuccess: async () => {
           const identity = authClient.getIdentity();
           const principal = identity.getPrincipal();
@@ -116,7 +117,7 @@ export default {
 
       let transferArgs = {
         to_account: acc,
-        amount: 2
+        amount: 43
       };
 
 

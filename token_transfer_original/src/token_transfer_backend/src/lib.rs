@@ -36,7 +36,7 @@ async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
         // 2. Convert a textual representation of a Principal into an actual `Principal` object. The principal is the one we specified in `dfx.json`.
         //    `expect` will panic if the conversion fails, ensuring the code does not proceed with an invalid principal.
-        Principal::from_text("mxzaz-hqaaa-aaaar-qaada-cai")
+        Principal::from_text(LEDGER_CANISTER_ID)
             .expect("Could not decode the principal."),
         // 3. Specify the method name on the target canister to be called, in this case, "icrc1_transfer".
         "icrc1_transfer",
