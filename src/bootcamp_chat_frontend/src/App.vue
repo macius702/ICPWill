@@ -81,7 +81,7 @@ export default {
       const chats = await bootcamp_chat_backend.get_chat(chatPath)
       console.log("IN pobierzChaty Chats", chats)
       console.log("IN pobierzChaty Chats", chats.toLocaleString())
-      
+
       this.chats = chats
     },
     async registerUsername() {
@@ -99,7 +99,7 @@ export default {
       } else {
         this.userData = maybeUserData[0]
       }
-      await this.fetchBalance()      
+      await this.fetchBalance()
       console.log("User data", this.userData)
     },
     async getAllUsers() {
@@ -116,7 +116,7 @@ export default {
       //let to_principal = Principal.fromText('agt74-uhoi3-3eolc-fwiby-qcr6q-b2w7a-gcy7v-t3bpi-rpie2-6yqai-aae');
 
       //. todo validate amount to send
-      
+
 
       console.log("Before transfer from", principal, "to", to_principal, "amount", this.amountToSend, "delay", this.transferDelay)
 
@@ -171,6 +171,11 @@ export default {
       const { principal } = this.isUserLogged()
       const backend = this.getAuthClient();
       let result = await backend.get_balance()
+      if (result.Ok !== undefined) {
+        this.balance = result.Ok;
+      } else {
+        this.balance = null;
+      }
       console.log(result)
     },
 
@@ -182,7 +187,7 @@ export default {
     console.log('Is authenticated', isAuthenticated);
     if (isAuthenticated) {
       await this.handleAuthentication(authClient);
-          }
+    }
   },
 
 }
