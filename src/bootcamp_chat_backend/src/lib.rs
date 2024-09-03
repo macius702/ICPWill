@@ -4,8 +4,10 @@ use candid::Principal;
 use ic_cdk::caller;
 use user::UserData;
 
+pub mod constants;
 pub mod user;
 pub mod transfer;
+pub mod balance;
 
 thread_local! {
     static CHAT: RefCell<HashMap<[Principal; 2], Vec<String>>> = RefCell::default();

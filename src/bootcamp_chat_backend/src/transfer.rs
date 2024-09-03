@@ -5,7 +5,10 @@ use icrc_ledger_types::icrc1::transfer::{BlockIndex, NumTokens, TransferArg, Tra
 use serde::Serialize;
 
 
-const LEDGER_CANISTER_ID: &'static str = env!("LEDGER_CANISTER_ID");
+
+
+use crate::constants::LEDGER_CANISTER_ID;
+
 
 
 
@@ -22,6 +25,9 @@ async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
         &args.amount,
         &args.to_account,
     );
+
+    //mtlk todo check if caller is authenticated
+
 
     let transfer_arg = TransferArg {
         // can be used to distinguish between transactions
