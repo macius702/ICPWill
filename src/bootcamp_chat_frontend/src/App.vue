@@ -99,7 +99,7 @@ export default {
       } else {
         this.userData = maybeUserData[0]
       }
-      //await this.fetchBalance()      
+      await this.fetchBalance()      
       console.log("User data", this.userData)
     },
     async getAllUsers() {

@@ -14,5 +14,9 @@ service : {
   "get_users" : () -> (vec record { principal; UserData });
   "get_user" : (principal) -> (opt UserData);
   "transfer" : (TransferArgs) -> (Result);
-  "get_balance" : () -> (Result) query;
+
+  // mtlk todo
+  // The following method is marked as 'update' because it internally performs an inter-canister call.
+  // Consider performing the balance retrieval from the frontend?
+  "get_balance" : () -> (Result);
 };

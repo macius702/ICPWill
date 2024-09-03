@@ -8,7 +8,7 @@ use crate::constants::LEDGER_CANISTER_ID;
 
 
 
-#[ic_cdk::query]
+#[ic_cdk::update]
 async fn get_balance() -> Result<NumTokens, String> {
 
     let principal  = ic_cdk::caller();
@@ -18,26 +18,24 @@ async fn get_balance() -> Result<NumTokens, String> {
 
 
     // Call the icrc1_balance_of method on the ledger canister
-    let result: CallResult<(Result<Nat, String>,)> = ic_cdk::call(
+    let result: CallResult<(Nat,)> = ic_cdk::call(
         Principal::from_text(LEDGER_CANISTER_ID)
             .expect("Could not decode the principal."),
         "icrc1_balance_of",
-        (account,),  // Tuple containing the account
-    )
-    .await;
+        (account,),
+    ).await;
 
-    // Handle the result from the call
-    match result {
-        Ok((Ok(balance),)) => {
-            // Convert Nat to NumTokens (assuming NumTokens is a type alias for Nat)
-            Ok(balance.into())
-        },
-        Ok((Err(ledger_err),)) => Err(format!("Ledger returned an error: {}", ledger_err)),
-        Err((rejection_code, msg)) => Err(format!(
-            "Failed to call ledger canister. Rejection code: {:?}, message: {}",
-            rejection_code, msg
-        )),
-    }
+   // Handle the result from the call
+   match result {
+    Ok((balance,)) => {
+        // Convert Nat to NumTokens (assuming NumTokens is a type alias for Nat)
+        Ok(balance.into())
+    },
+    Err((rejection_code, msg)) => Err(format!(
+        "Failed to call ledger canister. Rejection code: {:?}, message: {}",
+        rejection_code, msg
+    )),
+}
 }
 
 
