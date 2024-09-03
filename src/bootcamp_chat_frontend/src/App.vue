@@ -19,6 +19,7 @@ export default {
       targetPrincipal: "",
       userData: undefined as undefined | UserData,
       newUsername: "",
+      allUsers: [] as [Principal, UserData][],
       balance: null,
     }
   },
