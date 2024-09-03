@@ -52,17 +52,34 @@ export default {
       });
     },
     async dodajChatMSG() {
+      console.log("Entering dodajChatMSG")
+
       const targetPrincipal = this.validateTargetPrincipal()
+      console.log("Target principal", targetPrincipal)
+
       const backend = this.getAuthClient();
+      console.log("Backend", backend)
+
+      console.log("Before Added chat msg")
       await backend.add_chat_msg(this.newChat, targetPrincipal)
+      console.log("After Added chat msg")
+
+      console.log("Before pobierzChaty")
       await this.pobierzChaty()
+      console.log("After pobierzChaty")
     },
     async pobierzChaty() {
       const { identity, principal } = this.isUserLogged()
       const targetPrincipal = this.validateTargetPrincipal()
 
       const chatPath = [targetPrincipal, identity.getPrincipal()].sort()
-      this.chats = await bootcamp_chat_backend.get_chat(chatPath)
+      console.log("IN pobierzChaty Chat path", chatPath)
+      console.log("IN pobierzChaty Chat path str", chatPath.toLocaleString())
+      const chats = await bootcamp_chat_backend.get_chat(chatPath)
+      console.log("IN pobierzChaty Chats", chats)
+      console.log("IN pobierzChaty Chats", chats.toLocaleString())
+      
+      this.chats = chats
     },
     async registerUsername() {
       const trimedUsername = this.newUsername.trim();
