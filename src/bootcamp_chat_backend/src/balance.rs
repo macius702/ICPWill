@@ -25,10 +25,11 @@ async fn get_balance() -> Result<NumTokens, String> {
         (account,),
     ).await;
 
-   // Handle the result from the call
+
    match result {
     Ok((balance,)) => {
         // Convert Nat to NumTokens (assuming NumTokens is a type alias for Nat)
+        ic_cdk::println!("Got balance {} for account which is caller's {}", balance, account);
         Ok(balance.into())
     },
     Err((rejection_code, msg)) => Err(format!(
