@@ -6,6 +6,7 @@ import { HttpAgent } from '@dfinity/agent';
 import type { Identity } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import type { UserData } from '../../declarations/bootcamp_chat_backend/bootcamp_chat_backend.did';
+import { computed } from 'vue';
 
 export const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER;
 
@@ -22,9 +23,34 @@ export default {
       allUsers: [] as [Principal, UserData][],
       balance: null,
       amountToSend: 0,
-      transferDelay: 0
-    }
+      transferDelay: 0,
+      beneficiaries: [],
+      executionAfterYears: 0,
+      executionAfterMonths: 0,
+      executionAfterSeconds: 0,
+
+    };
   },
+
+  computed: {      // Compute if the selected beneficiary is valid
+    isBeneficiaryValid() {
+        // Meaningful selection is anything other than the principal (self) and 'Help Line'
+
+        // mtlk todo DRY - common variable for to lines in targetUser select drop down list box 
+        const toOmit = "Please select one"; 
+        return this.targetPrincipal && this.targetPrincipal !== this.principal.toText() && this.targetPrincipal !== toOmit;
+      },
+      // Compute
+      // Compute if Save and Activate should be enabled
+      isSaveAndActivateEnabled() {
+        return (
+          this.beneficiaries.length > 0 &&
+          (this.executionAfterYears > 0 || this.executionAfterMonths > 0 || this.executionAfterSeconds > 0)
+        );
+      },
+    },
+
+
   methods: {
     isUserLogged() {
       if (!this.identity || !this.principal || this.principal === Principal.anonymous()) {
@@ -157,6 +183,50 @@ export default {
       });
     },
 
+  // Add a new beneficiary
+  addBeneficiary() {
+    //  mtlk todo don't add myself as a beneficiary
+    if (this.isBeneficiaryValid) {
+
+        const selectedUser = this.allUsers.find(
+          ([userPrincipal]) => userPrincipal.toText() === this.targetPrincipal
+        );
+        if (selectedUser) {
+          this.beneficiaries.push({
+            nickname: selectedUser[1].nickname,
+            icpAmount: 0,
+            userPrincipal: selectedUser[0], // Save the userPrincipal if needed for future transactions
+          });
+        }
+      }
+    },
+    // Remove a beneficiary from the list
+    removeBeneficiary(index) {
+      this.beneficiaries.splice(index, 1);
+    },
+
+      // Save and Activate logic
+      saveAndActivate() {
+        if (this.isSaveAndActivateEnabled) {
+          const executionTime = {
+            years: this.executionAfterYears,
+            months: this.executionAfterMonths,
+            seconds: this.executionAfterSeconds,
+          };
+          const payload = {
+            beneficiaries: this.beneficiaries.map(b => ({
+              principal: b.userPrincipal.toText(),
+              nickname: b.nickname,
+              icpAmount: b.icpAmount,
+            })),
+            executionAfter: executionTime,
+          };
+          console.log('Save and Activate triggered with payload:', payload);
+          // Add your activation logic here (API calls, etc.)
+        }
+      },
+
+
     // helpers
     async handleAuthentication(authClient: AuthClient) {
       const identity = authClient.getIdentity();
@@ -228,6 +298,39 @@ export default {
       <label for="transferDelay">Delay in seconds:</label>
       <input v-model="transferDelay" type="number" placeholder="Delay in seconds" />
       <button @click="transfer">Direct transfer</button>
+
+
+      <!-- Add beneficiary button -->
+      <div>
+        <button @click="addBeneficiary" :disabled="!isBeneficiaryValid">Add beneficiary</button>
+      </div>
+
+      <!-- Beneficiaries List -->
+      <div v-for="(beneficiary, index) in beneficiaries" :key="index" style="margin-top: 10px;">
+        <!-- Readonly selected name -->
+        <input v-model="beneficiary.nickname" readonly />
+        <!-- Input for ICP value -->
+        <input v-model="beneficiary.icpAmount" type="number" placeholder="ICP value" />
+        <!-- Remove button -->
+        <button @click="removeBeneficiary(index)">Remove</button>
+      </div>
+
+
+      <!-- Execution after inputs -->
+      <!-- TODO(mtlk) dont fill Execution after inputs initially with zeros  -->
+      <div v-if="beneficiaries.length > 0" style="margin-top: 20px;">
+        <label>Execution after:</label>
+        <input v-model="executionAfterYears" type="number" min="0" placeholder="Years" />
+        <input v-model="executionAfterMonths" type="number" min="0" placeholder="Months" />
+        <input v-model="executionAfterSeconds" type="number" min="0" placeholder="Seconds" />
+      </div>
+
+      <!-- Save and Activate button -->
+      <div style="margin-top: 20px;">
+        <button @click="saveAndActivate" :disabled="!isSaveAndActivateEnabled">Save and Activate</button>
+      </div>
+
+
     </div>
   </main>
 </template>
