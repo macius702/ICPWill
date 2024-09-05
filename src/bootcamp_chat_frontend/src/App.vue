@@ -388,7 +388,7 @@ export default {
 
       <label for="transferDelay">Delay in seconds:</label>
       <input v-model="transferDelay" type="number" placeholder="Delay in seconds" />
-      <button @click="transfer">Direct transfer</button>
+      <button @click="transfer">Direct transfer with delay</button>
 
 
       <!-- Add beneficiary button -->

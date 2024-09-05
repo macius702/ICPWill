@@ -23,18 +23,15 @@ pub struct MyTransferArgs {
 
 #[ic_cdk::update]
 async fn transfer(args: MyTransferArgs) -> Result<BlockIndex, String> {
-    let my_delay_in_seconds: u64 = 0;
     ic_cdk::println!(
         "Transferring {} tokens to account {} \nafter {} seconds",
         &args.amount,
         &args.to_account,
-        my_delay_in_seconds,
-        //&args.delay_in_seconds,
+        &args.delay_in_seconds,
         );
 
     let secs = Duration::from_secs(
-        //args.delay_in_seconds
-        my_delay_in_seconds
+        args.delay_in_seconds
     );
     let amount = args.amount.clone();
     let to_account = args.to_account.clone();
