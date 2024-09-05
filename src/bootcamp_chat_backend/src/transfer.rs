@@ -67,4 +67,4 @@ async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
 }
 
 // Enable Candid export (see https://internetcomputer.org/docs/current/developer-docs/backend/rust/generating-candid)
-ic_cdk::export_candid!();
+
