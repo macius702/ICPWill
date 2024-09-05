@@ -5,7 +5,8 @@
 type Account = record { owner : principal; subaccount : opt blob };
 type ResultNat = variant { Ok : nat; Err : text };
 type Result = variant { Ok; Err : text };
-type TransferArgs = record { to_account : Account; amount : nat };
+type myTransferArgs = record { amount : nat ; to_account : Account; 
+delay_in_seconds : nat64; };
 
 type Beneficiary = record {
   beneficiary_principal : principal;
@@ -34,7 +35,7 @@ service : {
   "register" : (text) -> ();
   "get_users" : () -> (vec record { principal; UserData });
   "get_user" : (principal) -> (opt UserData);
-  "transfer" : (TransferArgs) -> (ResultNat);
+  "transfer" : (myTransferArgs) -> (ResultNat);
 
   // mtlk todo
   // The following method is marked as 'update' because it internally performs an inter-canister call.

@@ -237,8 +237,9 @@ export default {
       let acc = { owner: to_principal, subaccount: [] };
 
       let transferArgs = {
+        amount: this.amountToSend,
         to_account: acc,
-        amount: this.amountToSend
+        delay_in_seconds: this.transferDelay,
       };
 
 
