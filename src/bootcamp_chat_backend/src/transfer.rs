@@ -16,13 +16,13 @@ use crate::constants::LEDGER_CANISTER_ID;
 
 #[derive(CandidType, Deserialize, Serialize)]
 pub struct MyTransferArgs {
-    amount: NumTokens,
-    to_account: Account,
-    delay_in_seconds: u64,
+    pub amount: NumTokens,
+    pub to_account: Account,
+    pub delay_in_seconds: u64,
 }
 
 #[ic_cdk::update]
-async fn transfer(args: MyTransferArgs) -> Result<BlockIndex, String> {
+pub async fn transfer(args: MyTransferArgs) -> Result<BlockIndex, String> {
     ic_cdk::println!(
         "Transferring {} tokens to account {} \nafter {} seconds",
         &args.amount,

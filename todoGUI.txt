@@ -1,0 +1,15 @@
+
+do dowolnego adresu wywyl - dla Bitcoina i dla ICP
+
+
+Pod Add Beneficiary jak sie tableka zaczyna to tytul - Your Will
+Dla Bitcoina tez: balance , id (principal) i w add beneficiary zeby bylo ICP i Bitcoin
+
+
+okienko delay - tam checkbox 'of inactivity'
+
+wyśiwetanie dni do startu okienko odliczające dni do Startu
+
+
+
+zmianan nazwy tylko na Start - rozdzielenie guzika Save i Execute

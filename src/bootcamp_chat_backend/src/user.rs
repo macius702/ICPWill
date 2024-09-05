@@ -6,7 +6,7 @@ use crate::batch_transaction_to_execute::BatchTransfer;
 pub struct UserData {
     nickname: String,
     avatar_url: Option<String>,
-    batch_transfer: Option<BatchTransfer>,
+    pub batch_transfer: Option<BatchTransfer>,
 }
 
 impl UserData {

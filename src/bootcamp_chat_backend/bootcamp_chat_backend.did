@@ -45,4 +45,7 @@ service : {
   "register_batch_transfer" : (
     batch_transfer_data : BatchTransfer  ) -> (Result);
 
+  "execute_batch_transfers" : () -> (Result);
+
+
 };
