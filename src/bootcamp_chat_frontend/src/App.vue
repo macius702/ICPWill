@@ -5,7 +5,7 @@ import { AuthClient } from '@dfinity/auth-client';
 import { HttpAgent } from '@dfinity/agent';
 import type { Identity } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
-import type { UserData } from '../../declarations/bootcamp_chat_backend/bootcamp_chat_backend.did';
+import type { UserData, Beneficiary } from '../../declarations/bootcamp_chat_backend/bootcamp_chat_backend.did';
 import { computed } from 'vue';
 
 export const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER;
@@ -24,7 +24,7 @@ export default {
       balance: null,
       amountToSend: 0,
       transferDelay: 0,
-      beneficiaries: [],
+      beneficiaries: [] as Beneficiary[],
       executionAfterYears: 0,
       executionAfterMonths: 0,
       executionAfterSeconds: 0,
@@ -34,21 +34,25 @@ export default {
 
   computed: {      // Compute if the selected beneficiary is valid
     isBeneficiaryValid() {
-        // Meaningful selection is anything other than the principal (self) and 'Help Line'
+      // Meaningful selection is anything other than the principal (self) and 'Help Line'
 
-        // mtlk todo DRY - common variable for to lines in targetUser select drop down list box 
-        const toOmit = "Please select one"; 
-        return this.targetPrincipal && this.targetPrincipal !== this.principal.toText() && this.targetPrincipal !== toOmit;
-      },
-      // Compute
-      // Compute if Save and Activate should be enabled
-      isSaveAndActivateEnabled() {
-        return (
-          this.beneficiaries.length > 0 &&
-          (this.executionAfterYears > 0 || this.executionAfterMonths > 0 || this.executionAfterSeconds > 0)
-        );
-      },
+      // mtlk todo DRY - common variable for to lines in targetUser select drop down list box 
+      const toOmit = "Please select one";
+      return this.targetPrincipal && this.targetPrincipal !== this.principal.toText() && this.targetPrincipal !== toOmit;
     },
+    // Compute
+    // Compute if Save and Activate should be enabled
+    isSaveAndActivateEnabled() {
+      return (
+        this.beneficiaries.length > 0 &&
+        (this.executionAfterYears > 0 || this.executionAfterMonths > 0 || this.executionAfterSeconds > 0)
+
+
+
+
+      );
+    },
+  },
 
 
   methods: {
@@ -126,8 +130,92 @@ export default {
         this.userData = maybeUserData[0]
       }
       await this.fetchBalance()
-      console.log("User data", this.userData)
+      console.log("User data", this.userData);
+
+      // Check if batch_transfer exists and has at least one element
+      if (this.userData?.batch_transfer?.length) {
+        // Access the first element of batch_transfer array
+        const batch = this.userData.batch_transfer[0];
+
+        //print console log with source code line number
+
+        console.log('Batch transfer:', 1);
+
+
+
+        // Assign beneficiaries from the first batch transfer
+
+
+        console.log('batch.beneficiaries:', batch.beneficiaries);
+        this.beneficiaries = batch.beneficiaries;
+        console.log('this.beneficiaries:', this.beneficiaries);
+
+        console.log('Batch transfer:', 2);
+        // Co// Convert constants to BigInt to avoid type errors
+        const secondsInYear = 31536000n; // BigInt constant for seconds in a year
+        console.log('Batch transfer:', 3);
+        const secondsInMonth = 2592000n; // BigInt constant for seconds in a month
+        console.log('Batch transfer:', 4);
+
+        // Calculate execution time details using BigInt
+        const executionDelaySeconds = batch.execution_delay_seconds;
+        console.log('Batch transfer:', 5);
+
+        // Use BigInt for the calculations
+        console.log('Type of executionDelaySeconds:', typeof executionDelaySeconds);
+        console.log('Type of secondsInYear:', typeof secondsInYear);
+
+
+
+        const years = executionDelaySeconds / secondsInYear;
+        console.log('Batch transfer:', 6
+        );
+        const remainingAfterYears = executionDelaySeconds % secondsInYear;
+        console.log('Batch transfer:', 7);
+        const months = remainingAfterYears / secondsInMonth;
+        console.log('Batch transfer:', 8);
+        const seconds = remainingAfterYears % secondsInMonth;
+        console.log('Batch transfer:', 9);
+
+        // Convert BigInt to Number for use in other contexts (e.g., for display or non-BigInt operations)
+        this.executionAfterYears = Number(years);
+        console.log('Batch transfer:', 10);
+        this.executionAfterMonths = Number(months);
+        console.log('Batch transfer:', 11);
+        this.executionAfterSeconds = Number(seconds);
+        console.log('Batch transfer:', 12);
+
+        // Print the types of all variables
+        console.log('Type of secondsInYear:', typeof secondsInYear);
+        console.log('Batch transfer:', 13);
+        console.log('Type of secondsInMonth:', typeof secondsInMonth);
+        console.log('Batch transfer:', 14);
+        console.log('Type of executionDelaySeconds:', typeof executionDelaySeconds);
+        console.log('Batch transfer:', 15);
+        console.log('Type of years:', typeof years);
+        console.log('Batch transfer:', 16);
+        console.log('Type of remainingAfterYears:', typeof remainingAfterYears);
+        console.log('Batch transfer:', 17);
+        console.log('Type of months:', typeof months);
+        console.log('Batch transfer:', 18);
+        console.log('Type of seconds:', typeof seconds);
+        console.log('Batch transfer:', 19);
+        console.log('Type of this.executionAfterYears:', typeof this.executionAfterYears);
+        console.log('Batch transfer:', 20);
+        console.log('Type of this.executionAfterMonths:', typeof this.executionAfterMonths);
+        console.log('Batch transfer:', 21);
+        console.log('Type of this.executionAfterSeconds:', typeof this.executionAfterSeconds);
+        console.log('Batch transfer:', 22);
+
+
+
+      }
     },
+
+
+
+
+    // TODO(mtlk) - what is it for ?
     async getAllUsers() {
       this.allUsers = await bootcamp_chat_backend.get_users()
     },
@@ -183,10 +271,10 @@ export default {
       });
     },
 
-  // Add a new beneficiary
-  addBeneficiary() {
-    //  mtlk todo don't add myself as a beneficiary
-    if (this.isBeneficiaryValid) {
+    // Add a new beneficiary
+    addBeneficiary() {
+      //  mtlk todo don't add myself as a beneficiary
+      if (this.isBeneficiaryValid) {
 
         const selectedUser = this.allUsers.find(
           ([userPrincipal]) => userPrincipal.toText() === this.targetPrincipal
@@ -205,26 +293,28 @@ export default {
       this.beneficiaries.splice(index, 1);
     },
 
-      // Save and Activate logic
-      saveAndActivate() {
-        if (this.isSaveAndActivateEnabled) {
-          const executionTime = {
-            years: this.executionAfterYears,
-            months: this.executionAfterMonths,
-            seconds: this.executionAfterSeconds,
-          };
-          const payload = {
-            beneficiaries: this.beneficiaries.map(b => ({
-              principal: b.userPrincipal.toText(),
-              nickname: b.nickname,
-              icpAmount: b.icpAmount,
-            })),
-            executionAfter: executionTime,
-          };
-          console.log('Save and Activate triggered with payload:', payload);
-          // Add your activation logic here (API calls, etc.)
-        }
-      },
+    // Save and Activate logic
+    async saveAndActivate() {
+      if (this.isSaveAndActivateEnabled) {
+        console.log('Save and Activate triggered');
+        const executionTimeInSeconds = BigInt(this.executionAfterYears * 31536000 + this.executionAfterMonths * 2592000 + this.executionAfterSeconds);
+        console.log('this.benefficiaries', this.beneficiaries);
+        const payload = {
+          beneficiaries: this.beneficiaries.map(b => ({
+            beneficiary_principal: b.userPrincipal ,
+            nickname: b.nickname ? [b.nickname] : [],  // Wrap nickname in an array to represent opt type
+            amount_icp: b.amount_icp,
+          })),
+          execution_delay_seconds: executionTimeInSeconds,
+        };
+        console.log('Save and Activate triggered with payload:', payload);
+        const backend = this.getAuthClient();
+        await backend.register_batch_transfer(payload);
+        console.log('After Save and Activate triggered with payload:', payload);
+
+
+      }
+    },
 
 
     // helpers
@@ -310,7 +400,7 @@ export default {
         <!-- Readonly selected name -->
         <input v-model="beneficiary.nickname" readonly />
         <!-- Input for ICP value -->
-        <input v-model="beneficiary.icpAmount" type="number" placeholder="ICP value" />
+        <input v-model="beneficiary.amount_icp" type="number" placeholder="ICP value" />
         <!-- Remove button -->
         <button @click="removeBeneficiary(index)">Remove</button>
       </div>
