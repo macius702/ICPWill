@@ -59,17 +59,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bootcamp_chat_backend"
-version = "0.1.0"
-dependencies = [
- "candid",
- "ic-cdk",
- "ic-cdk-timers",
- "icrc-ledger-types",
- "serde",
-]
-
-[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -356,6 +345,17 @@ dependencies = [
  "serde",
  "sha2",
  "thiserror",
+]
+
+[[package]]
+name = "icp_will_backend"
+version = "0.1.0"
+dependencies = [
+ "candid",
+ "ic-cdk",
+ "ic-cdk-timers",
+ "icrc-ledger-types",
+ "serde",
 ]
 
 [[package]]

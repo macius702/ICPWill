@@ -1,8 +1,8 @@
 {
   "canisters": {
-    "bootcamp_chat_backend": {
-      "candid": "src/bootcamp_chat_backend/bootcamp_chat_backend.did",
-      "package": "bootcamp_chat_backend",
+    "icp_will_backend": {
+      "candid": "src/icp_will_backend/icp_will_backend.did",
+      "package": "icp_will_backend",
       "type": "rust"
     },
     "icrc1_ledger_canister": {
@@ -22,16 +22,11 @@
       "type": "custom",
       "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm.gz"
     },
-    "bootcamp_chat_frontend": {
-      "dependencies": [
-        "bootcamp_chat_backend",
-        "internet_identity"
-      ],
-      "source": [
-        "src/bootcamp_chat_frontend/dist"
-      ],
+    "icp_will_frontend": {
+      "dependencies": ["icp_will_backend", "internet_identity"],
+      "source": ["src/icp_will_frontend/dist"],
       "type": "assets",
-      "workspace": "bootcamp_chat_frontend"
+      "workspace": "icp_will_frontend"
     }
   },
   "defaults": {

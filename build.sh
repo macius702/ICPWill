@@ -82,7 +82,7 @@ if [ "$MODE" == "local" ]; then
             owner = principal \"bd3sg-teaaa-aaaaa-qaaba-cai\";
           };
           12_000_000_000;  // Set the initial balance for this principal
-        };        
+        };
       };
       archive_options = record {
         num_blocks_to_archive = 1000;
@@ -98,17 +98,19 @@ if [ "$MODE" == "local" ]; then
 
 fi
 
+# generate typescript types for rust backend
+dfx generate icp_will_backend
 
 # npm install
-dfx deploy $PLAYGROUND bootcamp_chat_backend
+dfx deploy $PLAYGROUND icp_will_backend
 
-export BACKEND_CANISTER_ID=$(dfx canister $PLAYGROUND id bootcamp_chat_backend)
+export BACKEND_CANISTER_ID=$(dfx canister $PLAYGROUND id icp_will_backend)
 
 echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 
 
-dfx deploy $PLAYGROUND bootcamp_chat_frontend
-#fx deploy $PLAYGROUND bootcamp_chat_frontend
+dfx deploy $PLAYGROUND icp_will_frontend
+#fx deploy $PLAYGROUND icp_will_frontend
 
 echo DONE.
 

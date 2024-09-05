@@ -1,5 +1,5 @@
 [package]
-name = "bootcamp_chat_backend"
+name = "icp_will_backend"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,6 +11,6 @@ crate-type = ["cdylib"]
 [dependencies]
 candid = "0.10"
 ic-cdk = "0.13"
-ic-cdk-timers = "0.7" # Feel free to remove this dependency if you don't need timers
+ic-cdk-timers = "0.7"       # Feel free to remove this dependency if you don't need timers
 icrc-ledger-types = "0.1.5"
 serde = "1.0.197"
