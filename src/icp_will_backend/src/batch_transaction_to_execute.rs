@@ -9,14 +9,14 @@ use icrc_ledger_types::icrc1::account::Account;
 use crate::transfer::transfer;
 
 
-#[derive(Clone, CandidType, Deserialize)]
+#[derive(Clone, CandidType, Deserialize, Debug)]
 pub struct Beneficiary {
     pub beneficiary_principal: Principal,
-    pub nickname: Option<String>,
+    pub nickname: String,
     pub amount_icp: u64,
 }
 
-#[derive(Clone, CandidType, Deserialize)]
+#[derive(Clone, CandidType, Deserialize, Debug)]
 pub struct BatchTransfer {
     pub beneficiaries: Vec<Beneficiary>,
     pub execution_delay_seconds: u64,
@@ -53,14 +53,11 @@ async fn batch_transfer(batch: BatchTransfer) -> Result<(), String> {
         };
 
         match transfer(transfer_args).await {
-            Ok(block_index) => {
-                // Log or handle successful transfer
-                ic_cdk::println!("Transfer to {} succeeded, BlockIndex: {}", beneficiary.nickname.as_deref().unwrap_or("Unknown"), block_index);
+            Ok(_) => {
+                ic_cdk::println!("Batch transfer to {} successful", beneficiary.beneficiary_principal);
             },
             Err(e) => {
-                // Handle transfer failure
-                ic_cdk::println!("Transfer to {} failed: {}", beneficiary.nickname.as_deref().unwrap_or("Unknown"), e);
-                return Err(format!("Failed to transfer to {}: {}", beneficiary.nickname.as_deref().unwrap_or("Unknown"), e));
+                ic_cdk::println!("Batch transfer to {} failed: {}", beneficiary.beneficiary_principal, e);
             }
         }
     }
@@ -70,9 +67,9 @@ async fn batch_transfer(batch: BatchTransfer) -> Result<(), String> {
 
 #[ic_cdk::update]
 // mtlk genereally we should not react to errors. resulting in partially non successfull batch transfer
-// we will repeat repeat the remainging transfers in the next time, according to the repeat ratio then fallback recipient
-async fn execute_batch_transfer() -> Result<(), String> {
-    ic_cdk::println!("Entering execute_batch_transfer" );
+// we will repeat repeat the remainging transfers the next time, according to the repeat ratio then fallback recipient
+async fn execute_batch_transfers() -> Result<(), String> {
+    ic_cdk::println!("Entering execute_batch_transfers" );
     let user = caller();
 
     if user == Principal::anonymous() {
@@ -84,9 +81,10 @@ async fn execute_batch_transfer() -> Result<(), String> {
         Ok::<_, &'static str>(user_data.batch_transfer.clone().ok_or("No batch transfer data found")?)
     })?;
     
+    ic_cdk::println!("Executing batch transfer: batch_transfer_data {:?}", batch_transfer_data);
 
 
-    batch_transfer(batch_transfer_data).await;
+    let _ = batch_transfer(batch_transfer_data).await;
     Ok(())
 }
 

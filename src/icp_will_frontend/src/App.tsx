@@ -182,23 +182,34 @@ const App: React.FC = () => {
     setBeneficiaries(beneficiaries.filter((_, i) => i !== index))
   }
 
-  const saveAndActivate = () => {
+
+
+
+
+  const saveAndActivate = async () => {
     if (isSaveAndActivateEnabled) {
-      const executionTime = {
-        years: executionAfterYears,
-        months: executionAfterMonths,
-        seconds: executionAfterSeconds,
-      }
-      const payload = {
-        beneficiaries: beneficiaries.map(b => ({
-          principal: b.userPrincipal.toText(),
-          nickname: b.nickname,
-          icpAmount: b.icpAmount,
+        console.log('Save and Activate triggered');
+        const executionTimeInSeconds = BigInt(executionAfterYears * 31536000 + executionAfterMonths * 2592000 + executionAfterSeconds);
+        console.log('this.benefficiaries', beneficiaries);
+        const payload = {
+          beneficiaries: beneficiaries.map(b => ({
+             beneficiary_principal: b.userPrincipal,
+             nickname: b.nickname ? b.nickname : "",
+             amount_icp: BigInt(b.icpAmount),
+          // 
         })),
-        executionAfter: executionTime,
-      }
-      console.log('Save and Activate triggered with payload:', payload)
-      // Add your activation logic here (API calls, etc.)
+          execution_delay_seconds: executionTimeInSeconds,
+        };
+        console.log('Save and Activate triggered with payload:', payload);
+        const backend = getAuthClient();
+         await backend.register_batch_transfer(payload);
+        console.log('After Save and Activate triggered with payload:', payload);
+
+
+      //await backend.execute_batch_transfers();
+      
+
+      ;
     }
   }
 

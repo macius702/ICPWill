@@ -4,7 +4,7 @@ type Result = variant { Ok; Err : text };
 
 type Beneficiary = record {
   beneficiary_principal : principal;
-  nickname : opt text;
+  nickname : text;
   amount_icp : nat64;
 };
 
