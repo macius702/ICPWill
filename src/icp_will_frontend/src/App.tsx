@@ -113,7 +113,9 @@ const App: React.FC = () => {
         owner: target,
         subaccount: [] // This should be compatible with the expected type
       },
-      amount: BigInt(amountToSend) // Convert to BigInt if the backend expects it
+      amount: BigInt(amountToSend), // Convert to BigInt if the backend expects it
+      delay_in_seconds: BigInt(transferDelay)
+
     };
 
     let result = await backend.transfer(transferArgs);

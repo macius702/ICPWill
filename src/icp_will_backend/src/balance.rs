@@ -1,9 +1,7 @@
-use candid::types::principal;
-use candid::{CandidType, Deserialize, Principal, Nat};
+use candid::{Principal, Nat};
 use icrc_ledger_types::icrc1::account::Account;
 use icrc_ledger_types::icrc1::transfer::NumTokens;
 use ic_cdk::api::call::CallResult;
-use serde::Serialize;
 use crate::constants::LEDGER_CANISTER_ID;
 
 

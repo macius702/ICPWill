@@ -1,11 +1,31 @@
+type Account = record { owner : principal; subaccount : opt blob };
+type ResultNat = variant { Ok : nat; Err : text };
+type Result = variant { Ok; Err : text };
+
+type Beneficiary = record {
+  beneficiary_principal : principal;
+  nickname : opt text;
+  amount_icp : nat64;
+};
+
+type BatchTransfer = record {
+  beneficiaries : vec Beneficiary;
+  execution_delay_seconds : nat64;
+};
+
 type UserData = record {
   nickname : text;
   avatar_url : opt text;
+  batch_transfer : opt BatchTransfer;
 };
 
-type Account = record { owner : principal; subaccount : opt blob };
-type Result = variant { Ok : nat; Err : text };
-type TransferArgs = record { to_account : Account; amount : nat };
+//type TransferArgs = record { to_account : Account; amount : nat };
+
+type TransferArgs = record {
+  amount : nat;
+  to_account : Account;
+  delay_in_seconds : nat64;
+};
 
 service : {
   "get_chat" : (vec principal) -> (opt vec text) query;
@@ -13,10 +33,17 @@ service : {
   "register" : (text) -> ();
   "get_users" : () -> (vec record { principal; UserData });
   "get_user" : (principal) -> (opt UserData);
-  "transfer" : (TransferArgs) -> (Result);
+  "transfer" : (TransferArgs) -> (ResultNat);
 
   // mtlk todo
   // The following method is marked as 'update' because it internally performs an inter-canister call.
   // Consider performing the balance retrieval from the frontend?
-  "get_balance" : () -> (Result);
+  "get_balance" : () -> (ResultNat);
+
+  "register_batch_transfer" : (
+    batch_transfer_data : BatchTransfer
+  ) -> (Result);
+
+  "execute_batch_transfers" : () -> (Result);
+
 };

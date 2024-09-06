@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+nvm use 20
+npm i 
+
 MODE=${1:-local}
 CLEAN=${2}
 

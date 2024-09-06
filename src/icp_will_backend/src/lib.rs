@@ -6,6 +6,7 @@ use user::UserData;
 
 pub mod constants;
 pub mod user;
+pub mod batch_transaction_to_execute;
 pub mod transfer;
 pub mod balance;
 
