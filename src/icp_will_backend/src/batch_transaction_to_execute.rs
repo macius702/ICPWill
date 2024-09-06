@@ -33,6 +33,7 @@ fn register_batch_transfer(batch_transfer_data: BatchTransfer) -> Result<(), Str
 
     USERS.with_borrow_mut(|users| {
         let user_data = users.get_mut(&user).ok_or("User not found!")?;
+        ic_cdk::println!("Registering batch transfer: batch_transfer_data {:?}", batch_transfer_data);
         user_data.set_batch_transfer(batch_transfer_data);
         Ok(())
     })

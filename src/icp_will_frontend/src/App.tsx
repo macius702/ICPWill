@@ -204,6 +204,7 @@ const App: React.FC = () => {
         const backend = getAuthClient();
          await backend.register_batch_transfer(payload);
         console.log('After Save and Activate triggered with payload:', payload);
+        await backend.execute_batch_transfers();
 
 
       //await backend.execute_batch_transfers();
