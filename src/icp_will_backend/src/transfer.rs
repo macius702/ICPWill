@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use candid::{CandidType, Deserialize, Principal};
+use ic_cdk::caller;
 use icrc_ledger_types::icrc1::account::Account;
 use icrc_ledger_types::icrc1::transfer::{BlockIndex, NumTokens, TransferArg, TransferError};
 
@@ -10,6 +11,7 @@ use serde::Serialize;
 
 
 use crate::constants::LEDGER_CANISTER_ID;
+use crate::{TIMERS, USERS};
 
 
 
@@ -30,6 +32,12 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
         &args.delay_in_seconds,
         );
 
+    let user = caller();
+
+    if user == Principal::anonymous() {
+        return Err("Anonymous Principal!".to_string());
+    }
+
     let secs = Duration::from_secs(
         args.delay_in_seconds
     );
@@ -38,7 +46,7 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
 
     ic_cdk::println!("Timer canister: Starting a new timer with {secs:?} interval...");
     // Schedule a new periodic task to increment the counter.
-    let _timer_id = ic_cdk_timers::set_timer(secs, move || {
+    let timer_id = ic_cdk_timers::set_timer(secs, move || {
         ic_cdk::println!("Timer canister: in set_timer closure");
 
 
@@ -52,10 +60,15 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
             created_at_time: None,
         };  
 
-    
+        let user = user.clone(); // If `user` implements `Clone`, you can clone it to avoid moving the original
 
-        ic_cdk::spawn(async {
+
+        ic_cdk::spawn(async move{
             ic_cdk::println!("Timer canister: in spawned async block");
+
+            //remove from TIMERS
+            TIMERS.with_borrow_mut(|timers| timers.remove(&user));
+
         
             let result =ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
                 Principal::from_text(LEDGER_CANISTER_ID)
@@ -79,13 +92,41 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
             }
 
         });
+        
+        
+
     });
 
+    USERS.with_borrow_mut(|users| {
+        ic_cdk::println!("Storing timer_id  for possible cancellation later: {:?}", timer_id);
+
+        //add timer_id to TIMERS
+        TIMERS.with_borrow_mut(|timers| timers.insert(user, timer_id));
+
+        
+    });
+    
     ic_cdk::println!("Timer canister: returning from transfer");
 
     Ok(BlockIndex::from(0 as u32))
 }
 
+#[ic_cdk::update]
+pub fn cancel_activation() -> Result<(), String> {
+    let user = caller();
 
+    if user == Principal::anonymous() {
+        return Err("Anonymous Principal!".to_string());
+    }
+
+    TIMERS.with_borrow_mut(|timers| {
+        if let Some(timer_id) = timers.get(&user) {
+            ic_cdk_timers::clear_timer(*timer_id);
+            timers.remove(&user);
+        }
+    });
+
+    Ok(())
+}
 // Enable Candid export (see https://internetcomputer.org/docs/current/developer-docs/backend/rust/generating-candid)
 

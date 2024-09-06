@@ -46,4 +46,7 @@ service : {
 
   "execute_batch_transfers" : () -> (Result);
 
+
+  "cancel_activation": () -> (Result);
+
 };
