@@ -3,7 +3,8 @@
 nvm use 20
 npm i 
 
-dfx identity use Matiki
+dfx identity new Alice || true
+
 
 MODE=${1:-local}
 CLEAN=${2}
