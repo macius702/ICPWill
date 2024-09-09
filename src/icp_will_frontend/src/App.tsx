@@ -3,7 +3,7 @@ import { AuthClient } from '@dfinity/auth-client'
 import { Actor, Identity } from '@dfinity/agent'
 import { Principal } from '@dfinity/principal'
 import { icp_will_backend, canisterId, createActor } from '../../declarations/icp_will_backend'
-import {  idlFactory as icrc1_ledger_canister_Idl } from '../../declarations/icrc1_ledger_canister'
+import { idlFactory as icrc1_ledger_canister_Idl } from '../../declarations/icrc1_ledger_canister'
 import type {
   TransferArgs,
   UserData,
@@ -27,7 +27,7 @@ import { CheckedState } from '@radix-ui/react-checkbox'
 
 import { createAgent } from "@dfinity/utils";
 import { LedgerCanister } from "@dfinity/ledger-icp";
-import {QueryParams} from "@dfinity/utils";
+import { QueryParams } from "@dfinity/utils";
 
 interface Beneficiary {
   nickname: string
@@ -36,6 +36,8 @@ interface Beneficiary {
 }
 
 const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER
+const AGENT_HOST = import.meta.env.VITE_AGENT_HOST
+const LEDGER_CANISTER_ID = import.meta.env.VITE_LEDGER_CANISTER_ID
 
 const App: React.FC = () => {
   const [newChat, setNewChat] = useState<string>('')
@@ -133,138 +135,146 @@ const App: React.FC = () => {
 
 
 
-  //   // echo "\
-  //   // (
-  //   //     record {
-  //   //         to = record {
-  //   //             owner = principal \"$1\";
-  //   //             subaccount = null;
-  //   //         };
-  //   //         fee = null;
-  //   //         memo = null;
-  //   //         from_subaccount = null;
-  //   //         created_at_time = null;
-  //   //         amount = 50_000 : nat;
-  //   //     },
-  //   // )" > /tmp/argument.txt
-    
-  //   // dfx canister call mxzaz-hqaaa-aaaar-qaada-cai icrc1_transfer --argument-file /tmp/argument.txt
-  //   // the above in javascript using @dfinity/agent
+    //   // echo "\
+    //   // (
+    //   //     record {
+    //   //         to = record {
+    //   //             owner = principal \"$1\";
+    //   //             subaccount = null;
+    //   //         };
+    //   //         fee = null;
+    //   //         memo = null;
+    //   //         from_subaccount = null;
+    //   //         created_at_time = null;
+    //   //         amount = 50_000 : nat;
+    //   //     },
+    //   // )" > /tmp/argument.txt
 
-  //   const actor = createActor('mxzaz-hqaaa-aaaar-qaada-cai)';
-  //   let result =ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
-  //     Principal::from_text(LEDGER_CANISTER_ID)
-  //         .expect("Could not decode the principal."),
-  //     "icrc1_transfer",
-  //     (transfer_args,),
-  // )    
-  //   const result0 = await actor.icrc1_transfer({
-  //       to: {
-  //           owner: Principal.fromText('ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe'),
-  //           subaccount: [],
-  //       },
-  //       fee: null,
-  //       memo: null,
-  //       from_subaccount: null,
-  //       created_at_time: null,
-  //       amount: BigInt(3141),
-  //   });
-  //   console.log(result0);
+    //   // dfx canister call mxzaz-hqaaa-aaaar-qaada-cai icrc1_transfer --argument-file /tmp/argument.txt
+    //   // the above in javascript using @dfinity/agent
 
-        if (!identity) {
-          throw new Error('Identity is undefined');
+    //   const actor = createActor('mxzaz-hqaaa-aaaar-qaada-cai)';
+    //   let result =ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
+    //     Principal::from_text(LEDGER_CANISTER_ID)
+    //         .expect("Could not decode the principal."),
+    //     "icrc1_transfer",
+    //     (transfer_args,),
+    // )    
+    //   const result0 = await actor.icrc1_transfer({
+    //       to: {
+    //           owner: Principal.fromText('ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe'),
+    //           subaccount: [],
+    //       },
+    //       fee: null,
+    //       memo: null,
+    //       from_subaccount: null,
+    //       created_at_time: null,
+    //       amount: BigInt(3141),
+    //   });
+    //   console.log(result0);
+
+    if (!identity) {
+      throw new Error('Identity is undefined');
+    }
+
+    console.log('---------------->Before createAgent')
+    const agent = await createAgent({
+      identity,
+      host: AGENT_HOST,
+      fetchRootKey: true,
+    });
+
+    console.log('After createAgent')
+
+
+    const myledger = Actor.createActor(icrc1_ledger_canister_Idl, {
+      agent,
+      canisterId: Principal.fromText(LEDGER_CANISTER_ID)
+    });
+
+    async function getBalance(label: string) {
+      allUsers.map(async ([userPrincipal, userData]) => 
+      {
+          const balance = await myledger.icrc1_balance_of({
+            owner: userPrincipal,
+            subaccount: [],
+          });
+          console.log(label, userData.nickname, balance, userPrincipal.toText() )
         }
-  
-      console.log('---------------->Before createAgent')
-      const agent = await createAgent({
-        identity,
-        host: 'http://127.0.0.1:4943',
-        fetchRootKey: true,
-      });
-
-      console.log('After createAgent')
-
-
-      const myledger = Actor.createActor(icrc1_ledger_canister_Idl, {
-        agent,
-        canisterId: Principal.fromText('mxzaz-hqaaa-aaaar-qaada-cai')
-      });      
-
-      async function getBalance(label : string, principal: string) {
-        const balance = await myledger.icrc1_balance_of({
-          owner: Principal.fromText(principal),
-          subaccount: [],
-        });
-      
-        console.log(label, balance);
-        return balance;
-      }
-      
-    
-      console.log('After createActor')
-
-      await getBalance('balance_before', 'ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe')
-      await getBalance('balance_before', 'a74gi-xhxmx-uspip-otz6t-bqin4-iakq3-ruvw5-n5p3a-aagtg-hcxxz-vae')
-
-
-      const transfer_result =  await myledger.icrc1_transfer({
-        from_subaccount: [],
-        to: {
-          owner: Principal.fromText('ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe'),
-          subaccount: [],
-        },
-        amount: BigInt(3141),
-        fee: [],
-        memo: [new Uint8Array([(111222333 >> 24) & 0xFF, (111222333 >> 16) & 0xFF, (111222333 >> 8) & 0xFF, 111222333 & 0xFF])],
-        created_at_time: [],
-      });
-
-      console.log('transfer_result', transfer_result)
-
-      await getBalance('balance_after', 'ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe')
-      await getBalance('balance_after', 'a74gi-xhxmx-uspip-otz6t-bqin4-iakq3-ruvw5-n5p3a-aagtg-hcxxz-vae')
-
-      console.log('<----------------------') 
-
-
-
-
-
-
-
-
-    console.log('transfer')
-
-    const { principal } = isUserLogged()
-    console.log('principal', principal)
-
-    const backend = getAuthClient()
-    console.log('backend', backend)
-
-    let target;
-    if (overrideTarget) {
-      target = Principal.fromText(overridePrincipal);
-    }
-    else {
-      target = validateTargetPrincipal()
+      )
     }
 
-    console.log('target', target)
+    function getLastPrincipal() {
+      return allUsers[allUsers.length - 1][0].toText()
+    }
 
-    const transferArgs: TransferArgs = {
-      to_account: {
-        owner: target,
-        subaccount: [], // This should be compatible with the expected type
+
+    console.log('After createActor')
+
+    await getBalance('balance_before')
+
+
+    const lastPrincipal = getLastPrincipal()
+
+    const transfer_result = await myledger.icrc1_transfer({
+      from_subaccount: [],
+      to: {
+        owner: Principal.fromText(lastPrincipal),
+        subaccount: [],
       },
-      amount: BigInt(amountToSend), // Convert to BigInt if the backend expects it
-      delay_in_seconds: BigInt(transferDelay)
+      amount: BigInt(3141),
+      fee: [],
+      memo: [new Uint8Array([(111222333 >> 24) & 0xFF, (111222333 >> 16) & 0xFF, (111222333 >> 8) & 0xFF, 111222333 & 0xFF])],
+      created_at_time: [],
+    });
 
-    };
+    console.log('transfer_result', transfer_result)
 
-    console.log('transferArgs', transferArgs)
+    await getBalance('balance_after')
 
-    let result = await backend.transfer(transferArgs)
-    console.log(result)
+    console.log('<----------------------')
+
+
+
+
+
+
+    if (0) {
+
+      console.log('-------------------->transfer')
+
+      const { principal } = isUserLogged()
+      console.log('principal', principal)
+
+      const backend = getAuthClient()
+      console.log('backend', backend)
+
+      let target;
+      if (overrideTarget) {
+        target = Principal.fromText(overridePrincipal);
+      }
+      else {
+        target = validateTargetPrincipal()
+      }
+
+      console.log('target', target)
+
+      const transferArgs: TransferArgs = {
+        to_account: {
+          owner: target,
+          subaccount: [], // This should be compatible with the expected type
+        },
+        amount: BigInt(amountToSend), // Convert to BigInt if the backend expects it
+        delay_in_seconds: BigInt(transferDelay)
+
+      };
+
+      console.log('transferArgs', transferArgs)
+
+      let result = await backend.transfer(transferArgs)
+      console.log(result)
+      console.log('after transfer<--------------------')
+    }
   }
 
   const logout = async () => {

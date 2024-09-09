@@ -51,17 +51,19 @@ POP="\e[0m"
 
 
 if [ "$MODE" == "local" ]; then
-    export LEDGER_CANISTER_ID=mxzaz-hqaaa-aaaar-qaada-cai
+    export VITE_LEDGER_CANISTER_ID=mxzaz-hqaaa-aaaar-qaada-cai
     export LEDGER=icrc1_ledger_canister
     export VITE_IDENTITY_PROVIDER=http://br5f7-7uaaa-aaaaa-qaaca-cai.localhost:4943/
     export NETWORK=
     export PLAYGROUND=
+    export VITE_AGENT_HOST=http://127.0.0.1:4943
 else
-    export LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
+    export VITE_LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
     export LEDGER=$LEDGER_CANISTER_ID
     export VITE_IDENTITY_PROVIDER=https://identity.ic0.app/#authorize
     export NETWORK=--ic
     export PLAYGROUND=--ic
+    export VITE_AGENT_HOST=https://ic0.app
 fi
 
 
