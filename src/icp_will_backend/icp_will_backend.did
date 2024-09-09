@@ -19,12 +19,12 @@ type UserData = record {
   batch_transfer : opt BatchTransfer;
 };
 
-//type TransferArgs = record { to_account : Account; amount : nat };
 
 type TransferArgs = record {
   amount : nat;
   to_account : Account;
   delay_in_seconds : nat64;
+  from_account: Account
 };
 
 service : {

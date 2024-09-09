@@ -41,7 +41,7 @@ fn register_batch_transfer(batch_transfer_data: BatchTransfer) -> Result<(), Str
 
 
 
-async fn batch_transfer(batch: BatchTransfer) -> Result<(), String> {
+async fn batch_transfer(caller : &Principal, batch: BatchTransfer) -> Result<(), String> {
     for beneficiary in batch.beneficiaries.iter() {
         let account = Account {
             owner: beneficiary.beneficiary_principal,
@@ -51,7 +51,12 @@ async fn batch_transfer(batch: BatchTransfer) -> Result<(), String> {
             amount: NumTokens::from(beneficiary.amount_icp),
             to_account: account,
             delay_in_seconds: batch.execution_delay_seconds,
+            from_account: Account { 
+                owner: *caller,   // Construct an Account using the caller Principal
+                subaccount: None,
+            }
         };
+
 
         match transfer(transfer_args).await {
             Ok(_) => {
@@ -85,7 +90,7 @@ async fn execute_batch_transfers() -> Result<(), String> {
     ic_cdk::println!("Executing batch transfer: batch_transfer_data {:?}", batch_transfer_data);
 
 
-    let _ = batch_transfer(batch_transfer_data).await;
+    let _ = batch_transfer(&user, batch_transfer_data).await;
     Ok(())
 }
 

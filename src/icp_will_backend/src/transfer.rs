@@ -3,8 +3,8 @@ use std::time::Duration;
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::{caller, id};
 use icrc_ledger_types::icrc1::account::Account;
-use icrc_ledger_types::icrc1::transfer::{BlockIndex, NumTokens, TransferArg, TransferError};
-
+use icrc_ledger_types::icrc1::transfer::{BlockIndex, NumTokens};
+use icrc_ledger_types::icrc2::transfer_from::{TransferFromArgs, TransferFromError};
 use serde::Serialize;
 
 
@@ -21,15 +21,17 @@ pub struct TransferArgs {
     pub amount: NumTokens,
     pub to_account: Account,
     pub delay_in_seconds: u64,
+    pub from_account: Account,
 }
 
 #[ic_cdk::update]
 pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     ic_cdk::println!(
-        "Transferring {} tokens to account {} \nafter {} seconds",
+        "Transferring {} tokens to account {} \nafter {} seconds from account {}",
         &args.amount,
         &args.to_account,
         &args.delay_in_seconds,
+        &args.from_account,
         );
 
 
@@ -57,14 +59,32 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
         ic_cdk::println!("Timer canister: in set_timer closure");
 
 
-        let transfer_args = TransferArg {
-            memo: None,
-            amount: amount.clone(),
+            // export interface TransferFromArgs {
+            //     'to' : Account,
+            //     'fee' : [] | [Tokens],
+            //     'spender_subaccount' : [] | [Subaccount],
+            //     'from' : Account,
+            //     'memo' : [] | [Uint8Array | number[]],
+            //     'created_at_time' : [] | [Timestamp],
+            //     'amount' : Tokens,
+            //   }
+            //TransferFromError
+        
+        ic_cdk::println!("Transferring from:  {}\nto: {}", user.to_text(), to_account.to_string());
 
-            from_subaccount: None,
-            fee: None,
+
+
+        let transfer_args = TransferFromArgs {
             to: to_account.clone(),
+            fee: None,
+            spender_subaccount: None,
+            from: Account { 
+                owner: user,
+                subaccount: None, 
+            },
+            memo: None,
             created_at_time: None,
+            amount: amount.clone(),
         };  
 
         let user = user.clone(); // If `user` implements `Clone`, you can clone it to avoid moving the original
@@ -76,11 +96,11 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
             //remove from TIMERS
             TIMERS.with_borrow_mut(|timers| timers.remove(&user));
 
-        
-            let result =ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
+
+            let result =ic_cdk::call::<(TransferFromArgs,), (Result<BlockIndex, TransferFromError>,)>(
                 Principal::from_text(LEDGER_CANISTER_ID)
                     .expect("Could not decode the principal."),
-                "icrc1_transfer",
+                "icrc2_transfer_from",
                 (transfer_args,),
             )
             .await
@@ -104,7 +124,7 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
 
     });
 
-    USERS.with_borrow_mut(|users| {
+    USERS.with_borrow_mut(|_users| {
         ic_cdk::println!("Storing timer_id  for possible cancellation later: {:?}", timer_id);
 
         //add timer_id to TIMERS

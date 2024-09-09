@@ -211,6 +211,7 @@ const App: React.FC = () => {
 
     console.log('After createActor')
 
+    await getBalance('balance_before')
 
     console.log('Approve before')
 
@@ -241,7 +242,7 @@ const App: React.FC = () => {
       memo: [new Uint8Array([(223322 >> 24) & 0xFF, (223322 >> 16) & 0xFF, (223322 >> 8) & 0xFF, 223322 & 0xFF])],
       from_subaccount: [],
       created_at_time: [],
-      amount: BigInt(2000),
+      amount: BigInt(amountToSend+11000),
       expected_allowance: [],
       expires_at: [],
       spender: {
@@ -304,7 +305,7 @@ const App: React.FC = () => {
 
 
 
-    if (0) {
+    if (1) {
 
       console.log('-------------------->transfer')
 
@@ -330,13 +331,20 @@ const App: React.FC = () => {
           subaccount: [], // This should be compatible with the expected type
         },
         amount: BigInt(amountToSend), // Convert to BigInt if the backend expects it
-        delay_in_seconds: BigInt(transferDelay)
+        delay_in_seconds: BigInt(transferDelay),
+        from_account: {
+          owner: principal,
+          subaccount: [],
+        },
 
       };
 
       console.log('transferArgs', transferArgs)
 
       let result = await backend.transfer(transferArgs)
+
+      await getBalance('balance_AFTER')
+
       console.log(result)
       console.log('after transfer<--------------------')
     }
