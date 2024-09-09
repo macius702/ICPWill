@@ -16,6 +16,7 @@
     "src/icp_will_frontend"
   ],
   "dependencies": {
-    "@dfinity/agent": "^2.0.0"
+    "@dfinity/agent": "^2.0.0",
+    "@dfinity/ledger-icp": "^2.5.0"
   }
 }

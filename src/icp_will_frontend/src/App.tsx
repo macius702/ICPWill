@@ -23,6 +23,11 @@ import Layout from './components/ui/layout'
 import { Checkbox } from './components/ui/checkbox'
 import { CheckedState } from '@radix-ui/react-checkbox'
 
+
+import { createAgent } from "@dfinity/utils";
+import { LedgerCanister } from "@dfinity/ledger-icp";
+import {QueryParams} from "@dfinity/utils";
+
 interface Beneficiary {
   nickname: string
   icpAmount: number
@@ -30,6 +35,9 @@ interface Beneficiary {
 }
 
 const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER
+
+let actor = null;
+
 
 const App: React.FC = () => {
   const [newChat, setNewChat] = useState<string>('')
@@ -124,6 +132,87 @@ const App: React.FC = () => {
   }
 
   const transfer = async () => {
+
+
+
+  //   // echo "\
+  //   // (
+  //   //     record {
+  //   //         to = record {
+  //   //             owner = principal \"$1\";
+  //   //             subaccount = null;
+  //   //         };
+  //   //         fee = null;
+  //   //         memo = null;
+  //   //         from_subaccount = null;
+  //   //         created_at_time = null;
+  //   //         amount = 50_000 : nat;
+  //   //     },
+  //   // )" > /tmp/argument.txt
+    
+  //   // dfx canister call mxzaz-hqaaa-aaaar-qaada-cai icrc1_transfer --argument-file /tmp/argument.txt
+  //   // the above in javascript using @dfinity/agent
+
+  //   const actor = createActor('mxzaz-hqaaa-aaaar-qaada-cai)';
+  //   let result =ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
+  //     Principal::from_text(LEDGER_CANISTER_ID)
+  //         .expect("Could not decode the principal."),
+  //     "icrc1_transfer",
+  //     (transfer_args,),
+  // )    
+  //   const result0 = await actor.icrc1_transfer({
+  //       to: {
+  //           owner: Principal.fromText('ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe'),
+  //           subaccount: [],
+  //       },
+  //       fee: null,
+  //       memo: null,
+  //       from_subaccount: null,
+  //       created_at_time: null,
+  //       amount: BigInt(3141),
+  //   });
+  //   console.log(result0);
+
+        if (!identity) {
+          throw new Error('Identity is undefined');
+        }
+  
+      console.log('Before createAgent')
+      const agent = await createAgent({
+        identity,
+        host: 'http://127.0.0.1:4943',
+        fetchRootKey: true,
+      });
+
+      console.log('After createAgent')
+
+      // Create a LedgerCanister actor
+      console.log('Before create LedgerCanister')
+      
+      const { metadata } = LedgerCanister.create({
+        agent,
+        canisterId: Principal.fromText('mxzaz-hqaaa-aaaar-qaada-cai'),
+      });
+
+      console.log('After create LedgerCanister')
+      console.log('metadata', metadata)
+      
+      // Define params
+      const params: QueryParams = {
+        // Fill in the properties of QueryParams here...
+      };      
+      console.log('params', params)
+      console.log('Before metadata(params)')
+      const data = await metadata(params);
+      console.log('After metadata(params)')
+
+      console.log('data', data);
+
+
+      
+
+    
+
     console.log('transfer')
 
     const { principal } = isUserLogged()
@@ -177,6 +266,15 @@ const App: React.FC = () => {
       },
     })
   }
+
+
+  const test  = async() =>{
+    actor = createActor(canisterId);
+    const balance = await actor.get_balance()
+    console.log('result', balance)
+  }
+
+
 
   const addBeneficiary = () => {
     if (isBeneficiaryValid) {
@@ -271,7 +369,10 @@ const App: React.FC = () => {
     <Layout
       navItems={[
         !principal ? (
-          <Button onClick={login}>login</Button>
+          <div className="flex flex-col space-y-2">
+            <Button onClick={login}>login</Button>
+            <Button onClick={test}>Test</Button>
+          </div>
         ) : (
           <Button onClick={logout}>logout</Button>
         ),
