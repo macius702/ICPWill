@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use candid::{CandidType, Deserialize, Principal};
-use ic_cdk::caller;
+use ic_cdk::{caller, id};
 use icrc_ledger_types::icrc1::account::Account;
 use icrc_ledger_types::icrc1::transfer::{BlockIndex, NumTokens, TransferArg, TransferError};
 
@@ -32,7 +32,14 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
         &args.delay_in_seconds,
         );
 
-    let user = caller();
+
+
+    let user = ic_cdk::caller();
+
+    ic_cdk::println!("User is {:#?}", user.to_text());
+
+    ic_cdk::println!("This id: {:#?}", id().to_text());
+
 
     if user == Principal::anonymous() {
         return Err("Anonymous Principal!".to_string());

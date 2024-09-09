@@ -3,16 +3,18 @@
 nvm use 20
 npm i 
 
+dfx identity use Matiki
+
 MODE=${1:-local}
 CLEAN=${2}
 
 
 PATTERN1="========================================"
 PATTERN2="----------------------------------------"
-if [ "$MODE" = "local" ]; then
-  echo -e "${PATTERN1}\nBuilding in local mode\n${PATTERN1}"
-else
+if [ "$MODE" = "nonlocal" ]; then
   echo -e "${PATTERN2}\nBuilding in non-local mode\n${PATTERN2}"
+else
+  echo -e "${PATTERN1}\nBuilding in local mode\n${PATTERN1}"
 fi
 
 
