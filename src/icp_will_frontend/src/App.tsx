@@ -193,14 +193,13 @@ const App: React.FC = () => {
     });
 
     async function getBalance(label: string) {
-      allUsers.map(async ([userPrincipal, userData]) => 
-      {
-          const balance = await myledger.icrc1_balance_of({
-            owner: userPrincipal,
-            subaccount: [],
-          });
-          console.log(label, userData.nickname, balance, userPrincipal.toText() )
-        }
+      allUsers.map(async ([userPrincipal, userData]) => {
+        const balance = await myledger.icrc1_balance_of({
+          owner: userPrincipal,
+          subaccount: [],
+        });
+        console.log(label, userData.nickname, balance, userPrincipal.toText())
+      }
       )
     }
 
@@ -230,7 +229,7 @@ const App: React.FC = () => {
     // { 'Err' : ApproveError };
     //'icrc2_approve' : ActorMethod<[ApproveArgs], ApproveResult>,
 
-    if(principal === undefined) {
+    if (principal === undefined) {
       throw new Error('principal is undefined')
     }
 
@@ -242,7 +241,7 @@ const App: React.FC = () => {
       memo: [new Uint8Array([(223322 >> 24) & 0xFF, (223322 >> 16) & 0xFF, (223322 >> 8) & 0xFF, 223322 & 0xFF])],
       from_subaccount: [],
       created_at_time: [],
-      amount: BigInt(amountToSend+11000),
+      amount: BigInt(amountToSend + 11000),//todo
       expected_allowance: [],
       expires_at: [],
       spender: {
@@ -253,9 +252,9 @@ const App: React.FC = () => {
 
     console.log('approve_result', approve_result)
 
-     console.log('Approve after')
+    console.log('Approve after')
 
-     console.log('Allowance before')
+    console.log('Allowance before')
 
     // export interface AllowanceArgs { 'account' : Account, 'spender' : Account }
     // export interface Allowance {
@@ -279,28 +278,28 @@ const App: React.FC = () => {
     console.log('Allowance after<----------------------------')
 
 
-    if(0) {
-    await getBalance('balance_before')
+    if (0) {
+      await getBalance('balance_before')
 
-    const transfer_result = await myledger.icrc1_transfer({
-      from_subaccount: [],
-      to: {
-        owner: Principal.fromText(getLastPrincipal()),
-        subaccount: [],
-      },
-      amount: BigInt(3141),
-      fee: [],
-      memo: [new Uint8Array([(111222333 >> 24) & 0xFF, (111222333 >> 16) & 0xFF, (111222333 >> 8) & 0xFF, 111222333 & 0xFF])],
-      created_at_time: [],
-    });
+      const transfer_result = await myledger.icrc1_transfer({
+        from_subaccount: [],
+        to: {
+          owner: Principal.fromText(getLastPrincipal()),
+          subaccount: [],
+        },
+        amount: BigInt(3141),
+        fee: [],
+        memo: [new Uint8Array([(111222333 >> 24) & 0xFF, (111222333 >> 16) & 0xFF, (111222333 >> 8) & 0xFF, 111222333 & 0xFF])],
+        created_at_time: [],
+      });
 
-    console.log('transfer_result', transfer_result)
+      console.log('transfer_result', transfer_result)
 
-    await getBalance('balance_after')
+      await getBalance('balance_after')
 
-    console.log('<----------------------')
+      console.log('<----------------------')
 
-  }
+    }
 
 
 
@@ -394,7 +393,62 @@ const App: React.FC = () => {
 
 
 
+  const setupAllowancesForBatchTransfer = async () => {
 
+    // TODO(mtlk) take these values from ledger:
+    const transactionFee = 10000;
+    const approvalFee = 10000;
+    const overalltransactionCost = transactionFee * beneficiaries.length + approvalFee;
+
+    let assetsSum = 0
+    for (let i = 0; i < beneficiaries.length; i++) {
+      assetsSum += beneficiaries[i].icpAmount
+    }
+
+    const overallSum = assetsSum + overalltransactionCost
+
+
+
+    if (principal === undefined) {
+      throw new Error('principal is undefined')
+    }
+    if (identity === undefined) {
+      throw new Error('identity is undefined')
+    }
+
+    const agent = await createAgent({
+      identity,
+      host: AGENT_HOST,
+      fetchRootKey: true,
+    });
+
+    const myledger = Actor.createActor(icrc1_ledger_canister_Idl, {
+      agent,
+      canisterId: Principal.fromText(LEDGER_CANISTER_ID)
+    });
+
+    const theSpender = Principal.fromText(canisterId)
+    console.log('Spender: ', theSpender.toText())
+
+    const approve_result = await myledger.icrc2_approve({
+      fee: [],
+      memo: [new Uint8Array([(223322 >> 24) & 0xFF, (223322 >> 16) & 0xFF, (223322 >> 8) & 0xFF, 223322 & 0xFF])],
+      from_subaccount: [],
+      created_at_time: [],
+      amount: BigInt(overallSum),
+      expected_allowance: [],
+      expires_at: [],
+      spender: {
+        owner: theSpender,
+        subaccount: [],
+      },
+    });
+
+    console.log('batch_approve_result', approve_result)
+
+
+
+  }
 
   const saveAndActivate = async () => {
     if (isSaveAndActivateEnabled) {
@@ -414,6 +468,9 @@ const App: React.FC = () => {
       const backend = getAuthClient();
       await backend.register_batch_transfer(payload);
       console.log('After Save and Activate triggered with payload:', payload);
+
+      setupAllowancesForBatchTransfer()
+
       await backend.execute_batch_transfers();
 
 

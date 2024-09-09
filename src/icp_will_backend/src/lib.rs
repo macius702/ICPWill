@@ -15,6 +15,7 @@ thread_local! {
     static CHAT: RefCell<HashMap<[Principal; 2], Vec<String>>> = RefCell::default();
     static USERS: RefCell<HashMap<Principal, UserData>> = RefCell::default();
     static TIMERS: RefCell<HashMap<Principal, TimerId>> = RefCell::default();
+    static BATCH_TIMERS: RefCell<HashMap<Principal, TimerId>> = RefCell::default();
 }
 
 #[ic_cdk::update]

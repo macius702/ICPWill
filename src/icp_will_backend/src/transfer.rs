@@ -56,74 +56,14 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     ic_cdk::println!("Timer canister: Starting a new timer with {secs:?} interval...");
     // Schedule a new periodic task to increment the counter.
     let timer_id = ic_cdk_timers::set_timer(secs, move || {
-        ic_cdk::println!("Timer canister: in set_timer closure");
-
-
-            // export interface TransferFromArgs {
-            //     'to' : Account,
-            //     'fee' : [] | [Tokens],
-            //     'spender_subaccount' : [] | [Subaccount],
-            //     'from' : Account,
-            //     'memo' : [] | [Uint8Array | number[]],
-            //     'created_at_time' : [] | [Timestamp],
-            //     'amount' : Tokens,
-            //   }
-            //TransferFromError
-        
-        ic_cdk::println!("Transferring from:  {}\nto: {}", user.to_text(), to_account.to_string());
-
-
-
-        let transfer_args = TransferFromArgs {
-            to: to_account.clone(),
-            fee: None,
-            spender_subaccount: None,
-            from: Account { 
-                owner: user,
-                subaccount: None, 
-            },
-            memo: None,
-            created_at_time: None,
-            amount: amount.clone(),
-        };  
-
-        let user = user.clone(); // If `user` implements `Clone`, you can clone it to avoid moving the original
-
-
-        ic_cdk::spawn(async move{
-            ic_cdk::println!("Timer canister: in spawned async block");
-
-            //remove from TIMERS
-            TIMERS.with_borrow_mut(|timers| timers.remove(&user));
-
-
-            let result =ic_cdk::call::<(TransferFromArgs,), (Result<BlockIndex, TransferFromError>,)>(
-                Principal::from_text(LEDGER_CANISTER_ID)
-                    .expect("Could not decode the principal."),
-                "icrc2_transfer_from",
-                (transfer_args,),
-            )
-            .await
-            .map_err(|e| format!("failed to call ledger: {:?}", e))
-            .and_then(|response| response.0.map_err(|e| format!("ledger transfer error {:?}", e)));
-        
-            ic_cdk::println!("Timer canister: in spawned async block after call");
-    
-            match result {
-                Ok(block_index) => {
-                    ic_cdk::println!("Transfer successful. Block index: {}", block_index);
-                }
-                Err(e) => {
-                    ic_cdk::println!("Transfer failed: {:?}", e);
-                }
-            }
-
+        let user_clone = user.clone();
+        let to_account_clone = to_account.clone();
+        let amount_clone = amount.clone();
+        ic_cdk::spawn(async move {
+            handle_timer_event(user_clone, to_account_clone, amount_clone).await;
         });
-        
-        
-
     });
-
+    
     USERS.with_borrow_mut(|_users| {
         ic_cdk::println!("Storing timer_id  for possible cancellation later: {:?}", timer_id);
 
@@ -155,5 +95,54 @@ pub fn cancel_activation() -> Result<(), String> {
 
     Ok(())
 }
+
+
+pub async fn handle_timer_event(user: Principal, to_account: Account, amount: NumTokens) {
+    ic_cdk::println!("Timer canister: in set_timer closure");
+
+    let transfer_args = TransferFromArgs {
+        to: to_account.clone(),
+        fee: None,
+        spender_subaccount: None,
+        from: Account {
+            owner: user,
+            subaccount: None,
+        },
+        memo: None,
+        created_at_time: None,
+        amount: amount.clone(),
+    };
+
+    let user = user.clone();
+
+    ic_cdk::spawn(async move {
+        ic_cdk::println!("Timer canister: in spawned async block");
+
+        // remove from TIMERS
+        TIMERS.with_borrow_mut(|timers| timers.remove(&user));
+
+        let result = ic_cdk::call::<(TransferFromArgs,), (Result<BlockIndex, TransferFromError>,)>(
+            Principal::from_text(LEDGER_CANISTER_ID)
+                .expect("Could not decode the principal."),
+            "icrc2_transfer_from",
+            (transfer_args,),
+        )
+        .await
+        .map_err(|e| format!("failed to call ledger: {:?}", e))
+        .and_then(|response| response.0.map_err(|e| format!("ledger transfer error {:?}", e)));
+
+        ic_cdk::println!("Timer canister: in spawned async block after call");
+
+        match result {
+            Ok(block_index) => {
+                ic_cdk::println!("Transfer successful. Block index: {}", block_index);
+            }
+            Err(e) => {
+                ic_cdk::println!("Transfer failed: {:?}", e);
+            }
+        }
+    });
+}
+
 // Enable Candid export (see https://internetcomputer.org/docs/current/developer-docs/backend/rust/generating-candid)
 
