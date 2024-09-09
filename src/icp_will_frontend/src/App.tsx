@@ -456,29 +456,27 @@ const App: React.FC = () => {
                     placeholder="Delay in seconds"
                   />
 
-                  <div style={{ marginBottom: '10px' }}> {/* Adding some bottom margin for spacing */}
-                    <Label htmlFor="overrideTarget">Override target principal:</Label>
+                  <div className="flex items-center mb-2">
+                    <Label htmlFor="overrideTarget" className="mr-2 flex items-center">Override target principal</Label>
                     <input
                       type="checkbox"
                       id="overrideTarget"
                       checked={overrideTarget}
                       onChange={(e) => setOverrideTarget(e.target.checked)}
-                      style={{ marginLeft: '10px' }} // Adds space between label and checkbox
+                      className="mr-2"
                     />
-                  </div>
-                  {overrideTarget && (
-                    <div style={{ marginTop: '10px' }}> {/* Adding top margin to separate from the checkbox */}
-                      <Label htmlFor="overridePrincipal">Overriding with principal:</Label>
+                    <div className={`flex items-center ${overrideTarget ? '' : 'opacity-0'}`}>
+                      <Label htmlFor="overridePrincipal" className="mr-2">Overriding with principal:</Label>
                       <input
                         type="text"
                         id="overridePrincipal"
                         value={overridePrincipal}
                         onChange={(e) => setOverridePrincipal(e.target.value)}
-                        style={{ marginLeft: '10px', border: '1px solid #ccc', display: 'block', marginBottom: '10px' }} // Ensures input appears on a new line and adds space
-
+                        className="block border border-gray-300 mb-2"
+                        disabled={!overrideTarget}
                       />
                     </div>
-                  )}
+                  </div>
 
                   <Button onClick={transfer}>Direct transfer</Button>
                 </>
