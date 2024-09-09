@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { AuthClient } from '@dfinity/auth-client'
-import { Identity } from '@dfinity/agent'
+import { Actor, Identity } from '@dfinity/agent'
 import { Principal } from '@dfinity/principal'
 import { icp_will_backend, canisterId, createActor } from '../../declarations/icp_will_backend'
+import {  idlFactory as icrc1_ledger_canister_Idl } from '../../declarations/icrc1_ledger_canister'
 import type {
   TransferArgs,
   UserData,
@@ -174,7 +175,7 @@ const App: React.FC = () => {
           throw new Error('Identity is undefined');
         }
   
-      console.log('Before createAgent')
+      console.log('---------------->Before createAgent')
       const agent = await createAgent({
         identity,
         host: 'http://127.0.0.1:4943',
@@ -183,32 +184,54 @@ const App: React.FC = () => {
 
       console.log('After createAgent')
 
-      // Create a LedgerCanister actor
-      console.log('Before create LedgerCanister')
-      
-      const { metadata } = LedgerCanister.create({
+
+      const myledger = Actor.createActor(icrc1_ledger_canister_Idl, {
         agent,
-        canisterId: Principal.fromText('mxzaz-hqaaa-aaaar-qaada-cai'),
+        canisterId: Principal.fromText('mxzaz-hqaaa-aaaar-qaada-cai')
+      });      
+
+      async function getBalance(label : string, principal: string) {
+        const balance = await myledger.icrc1_balance_of({
+          owner: Principal.fromText(principal),
+          subaccount: [],
+        });
+      
+        console.log(label, balance);
+        return balance;
+      }
+      
+    
+      console.log('After createActor')
+
+      await getBalance('balance_before', 'ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe')
+      await getBalance('balance_before', 'a74gi-xhxmx-uspip-otz6t-bqin4-iakq3-ruvw5-n5p3a-aagtg-hcxxz-vae')
+
+
+      const transfer_result =  await myledger.icrc1_transfer({
+        from_subaccount: [],
+        to: {
+          owner: Principal.fromText('ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe'),
+          subaccount: [],
+        },
+        amount: BigInt(3141),
+        fee: [],
+        memo: [new Uint8Array([(111222333 >> 24) & 0xFF, (111222333 >> 16) & 0xFF, (111222333 >> 8) & 0xFF, 111222333 & 0xFF])],
+        created_at_time: [],
       });
 
-      console.log('After create LedgerCanister')
-      console.log('metadata', metadata)
-      
-      // Define params
-      const params: QueryParams = {
-        // Fill in the properties of QueryParams here...
-      };      
-      console.log('params', params)
-      console.log('Before metadata(params)')
-      const data = await metadata(params);
-      console.log('After metadata(params)')
+      console.log('transfer_result', transfer_result)
 
-      console.log('data', data);
+      await getBalance('balance_after', 'ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe')
+      await getBalance('balance_after', 'a74gi-xhxmx-uspip-otz6t-bqin4-iakq3-ruvw5-n5p3a-aagtg-hcxxz-vae')
+
+      console.log('<----------------------') 
 
 
-      
 
-    
+
+
+
+
 
     console.log('transfer')
 
