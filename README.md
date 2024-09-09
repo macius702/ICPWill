@@ -60,7 +60,7 @@ Your crypto will not be lost forever!
 - **Beneficiary Controller:** A person (a lawyer, a DAO) can be made the controller of the canister with assets or information.
 
 
-
+*Post-hackaton fixes in 'fixes' branch*
 
 
 
