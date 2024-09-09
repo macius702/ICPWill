@@ -36,9 +36,6 @@ interface Beneficiary {
 
 const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER
 
-let actor = null;
-
-
 const App: React.FC = () => {
   const [newChat, setNewChat] = useState<string>('')
   const [chats, setChats] = useState<string[][]>([])
@@ -267,15 +264,6 @@ const App: React.FC = () => {
     })
   }
 
-
-  const test  = async() =>{
-    actor = createActor(canisterId);
-    const balance = await actor.get_balance()
-    console.log('result', balance)
-  }
-
-
-
   const addBeneficiary = () => {
     if (isBeneficiaryValid) {
       const selectedUser = allUsers.find(
@@ -369,10 +357,7 @@ const App: React.FC = () => {
     <Layout
       navItems={[
         !principal ? (
-          <div className="flex flex-col space-y-2">
-            <Button onClick={login}>login</Button>
-            <Button onClick={test}>Test</Button>
-          </div>
+          <Button onClick={login}>login</Button>
         ) : (
           <Button onClick={logout}>logout</Button>
         ),
