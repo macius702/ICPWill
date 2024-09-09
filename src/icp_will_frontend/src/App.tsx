@@ -49,6 +49,8 @@ const App: React.FC = () => {
   const [executionAfterSeconds, setExecutionAfterSeconds] = useState<number>(0)
   const [showChat, setShowChat] = useState<CheckedState>(false)
   const [showDirectTransfer, setShowDirectTransfer] = useState<CheckedState>(false)
+  const [overrideTarget, setOverrideTarget] = useState(false);
+  const [overridePrincipal, setOverridePrincipal] = useState('');
 
   const isBeneficiaryValid =
     targetPrincipal &&
@@ -122,9 +124,23 @@ const App: React.FC = () => {
   }
 
   const transfer = async () => {
+    console.log('transfer')
+
     const { principal } = isUserLogged()
+    console.log('principal', principal)
+
     const backend = getAuthClient()
-    const target = validateTargetPrincipal()
+    console.log('backend', backend)
+
+    let target;
+    if (overrideTarget) {
+      target = Principal.fromText(overridePrincipal);
+    }
+    else {
+      target = validateTargetPrincipal()
+    }
+
+    console.log('target', target)
 
     const transferArgs: TransferArgs = {
       to_account: {
@@ -135,6 +151,8 @@ const App: React.FC = () => {
       delay_in_seconds: BigInt(transferDelay)
 
     };
+
+    console.log('transferArgs', transferArgs)
 
     let result = await backend.transfer(transferArgs)
     console.log(result)
@@ -188,27 +206,27 @@ const App: React.FC = () => {
 
   const saveAndActivate = async () => {
     if (isSaveAndActivateEnabled) {
-        console.log('Save and Activate triggered');
-        const executionTimeInSeconds = BigInt(executionAfterYears * 31536000 + executionAfterMonths * 2592000 + executionAfterSeconds);
-        console.log('this.benefficiaries', beneficiaries);
-        const payload = {
-          beneficiaries: beneficiaries.map(b => ({
-             beneficiary_principal: b.userPrincipal,
-             nickname: b.nickname ? b.nickname : "",
-             amount_icp: BigInt(b.icpAmount),
+      console.log('Save and Activate triggered');
+      const executionTimeInSeconds = BigInt(executionAfterYears * 31536000 + executionAfterMonths * 2592000 + executionAfterSeconds);
+      console.log('this.benefficiaries', beneficiaries);
+      const payload = {
+        beneficiaries: beneficiaries.map(b => ({
+          beneficiary_principal: b.userPrincipal,
+          nickname: b.nickname ? b.nickname : "",
+          amount_icp: BigInt(b.icpAmount),
           // 
         })),
-          execution_delay_seconds: executionTimeInSeconds,
-        };
-        console.log('Save and Activate triggered with payload:', payload);
-        const backend = getAuthClient();
-         await backend.register_batch_transfer(payload);
-        console.log('After Save and Activate triggered with payload:', payload);
-        await backend.execute_batch_transfers();
+        execution_delay_seconds: executionTimeInSeconds,
+      };
+      console.log('Save and Activate triggered with payload:', payload);
+      const backend = getAuthClient();
+      await backend.register_batch_transfer(payload);
+      console.log('After Save and Activate triggered with payload:', payload);
+      await backend.execute_batch_transfers();
 
 
       //await backend.execute_batch_transfers();
-      
+
 
       ;
     }
@@ -245,6 +263,7 @@ const App: React.FC = () => {
         await handleAuthentication(authClient)
       }
     }
+    console.log('mounted effect');
     init()
   }, [])
 
@@ -436,6 +455,19 @@ const App: React.FC = () => {
                     onChange={e => setTransferDelay(Number(e.target.value))}
                     placeholder="Delay in seconds"
                   />
+
+                  <div>
+                    <Label
+                      htmlFor="overrideTarget">Override target principal:</Label>
+                    <input type="checkbox" id="overrideTarget" checked={overrideTarget} onChange={(e) => setOverrideTarget(e.target.checked)} />
+                    {overrideTarget && (
+                      <>
+                        <Label htmlFor="overridePrincipal">Overriding with principal:</Label>
+                        <input type="text" id="overridePrincipal" value={overridePrincipal} onChange={(e) => setOverridePrincipal(e.target.value)} />
+                      </>
+                    )}
+                  </div>
+
                   <Button onClick={transfer}>Direct transfer</Button>
                 </>
               )}
