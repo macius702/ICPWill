@@ -211,15 +211,80 @@ const App: React.FC = () => {
 
     console.log('After createActor')
 
+
+    console.log('Approve before')
+
+
+    // export interface ApproveArgs {
+    //   'fee' : [] | [bigint],
+    //   'memo' : [] | [Uint8Array | number[]],
+    //   'from_subaccount' : [] | [Uint8Array | number[]],
+    //   'created_at_time' : [] | [bigint],
+    //   'amount' : bigint,
+    //   'expected_allowance' : [] | [bigint],
+    //   'expires_at' : [] | [bigint],
+    //   'spender' : Account,
+    // }
+    // export type ApproveResult = { 'Ok' : bigint } |
+    // { 'Err' : ApproveError };
+    //'icrc2_approve' : ActorMethod<[ApproveArgs], ApproveResult>,
+
+    if(principal === undefined) {
+      throw new Error('principal is undefined')
+    }
+
+    const theSpender = Principal.fromText(canisterId)
+    console.log('Spender: ', theSpender.toText())
+
+    const approve_result = await myledger.icrc2_approve({
+      fee: [],
+      memo: [new Uint8Array([(223322 >> 24) & 0xFF, (223322 >> 16) & 0xFF, (223322 >> 8) & 0xFF, 223322 & 0xFF])],
+      from_subaccount: [],
+      created_at_time: [],
+      amount: BigInt(2000),
+      expected_allowance: [],
+      expires_at: [],
+      spender: {
+        owner: theSpender,
+        subaccount: [],
+      },
+    });
+
+    console.log('approve_result', approve_result)
+
+     console.log('Approve after')
+
+     console.log('Allowance before')
+
+    // export interface AllowanceArgs { 'account' : Account, 'spender' : Account }
+    // export interface Allowance {
+    //   'allowance' : bigint,
+    //   'expires_at' : [] | [bigint],
+    // }
+    // 'icrc2_allowance' : ActorMethod<[AllowanceArgs], Allowance>,
+
+    const allowance_result = await myledger.icrc2_allowance({
+      account: {
+        owner: principal,
+        subaccount: [],
+      },
+      spender: {
+        owner: theSpender,
+        subaccount: [],
+      },
+    });
+
+    console.log('allowance_result', allowance_result)
+    console.log('Allowance after<----------------------------')
+
+
+    if(0) {
     await getBalance('balance_before')
-
-
-    const lastPrincipal = getLastPrincipal()
 
     const transfer_result = await myledger.icrc1_transfer({
       from_subaccount: [],
       to: {
-        owner: Principal.fromText(lastPrincipal),
+        owner: Principal.fromText(getLastPrincipal()),
         subaccount: [],
       },
       amount: BigInt(3141),
@@ -234,7 +299,7 @@ const App: React.FC = () => {
 
     console.log('<----------------------')
 
-
+  }
 
 
 
