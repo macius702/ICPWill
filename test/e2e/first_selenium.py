@@ -8,27 +8,40 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
+
 def run():
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
 
+
     url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
 
-    a = 100
+    screen_width = 1920
+    screen_height = 1200
+
+    # Calculate window width (each window takes 1/3 of the screen width)
+    window_width = screen_width // 3
+    window_height = screen_height  # Use full screen height for each window
+
+    x_position = 0
+    y_position = 0
 
     for driver in drivers:
         driver.get(url)
-        driver.set_window_position(a,a)
-        a += 300
+        # Set window size and position
+        driver.set_window_position(x_position, y_position)
+        driver.set_window_size(window_width, window_height)
+        # Move the x position for the next window
+        x_position += window_width
 
-    t = Testo(drivers)
+    t = Test(drivers)
     t.loginAll()
     t.goOn()
 
+
 nicknames = ["A1", "B2", "C3"]
 
-class Testo:
-
+class Test:
     def __init__(self, drivers):
         self.drivers = drivers
 
@@ -137,11 +150,13 @@ def create_driver():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     return driver
 
+from screeninfo import get_monitors
+def get_all_monitors_resolution():
+    monitors = get_monitors()
+    for monitor in monitors:
+        print(f"Monitor: {monitor.name}, Width: {monitor.width}, Height: {monitor.height}, x: {monitor.x}, y: {monitor.y}")
 
-
-
-
-
+get_all_monitors_resolution()
 
 
 if __name__ == "__main__":
