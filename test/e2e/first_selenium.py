@@ -8,6 +8,84 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
+def run():
+    # Open 3 isolated Chrome windows
+    drivers = [create_driver() for _ in range(3)]
+
+    url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
+
+    a = 100
+
+    for driver in drivers:
+        driver.get(url)
+        driver.set_window_position(a,a)
+        a += 300
+
+    t = Testo(drivers)
+    t.loginAll()
+    t.goOn()
+
+nicknames = ["A1", "B2", "C3"]
+
+class Testo:
+
+    def __init__(self, drivers):
+        self.drivers = drivers
+
+    def loginAll(self):
+        for i, driver in enumerate(self.drivers):
+            login_button = driver.find_element(By.XPATH, "//button[text()='login']")
+            login_button.click()
+            time.sleep(1)
+
+            original_tab = driver.current_window_handle
+            window_handles = driver.window_handles
+            # Switch to the new tab (the last handle in the list)
+            driver.switch_to.window(window_handles[-1])    
+
+            # We are in the II login Page
+            use_existing_button = driver.find_element(By.ID, "loginButton")
+            use_existing_button.click()            
+
+            input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
+
+            identity_anchor=10000 + i
+            input_field.send_keys(str(identity_anchor))
+            
+
+            continue_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
+            )
+            continue_button.click()
+
+            # Switch to the home page
+            driver.switch_to.window(original_tab)
+            # We are back in the original page, let the II tab do it's job
+            
+
+        #####################################################
+    def goOn(self):
+        for i, driver in enumerate(self.drivers):
+            nick_input_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
+            )
+            nick_input_field.send_keys(nicknames[i])
+            register_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[text()='register']"))
+            )
+            register_button.click()
+
+            # We must  wait for Balance to appear
+            time.sleep(10)
+
+            # Wait until the <p> element with "Balance" is present
+            balance_element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Balance:')]"))
+            )
+
+            balance_text = balance_element.text
+            balance_number = balance_text.split(":")[1].strip()
+            print(f"Balance: {balance_number}")    
 
 def get_xpath(element: WebElement) -> str:
     tag = element.tag_name
@@ -22,6 +100,7 @@ def get_xpath(element: WebElement) -> str:
             break
     xpath = get_xpath(parent)
     return f"{xpath}/{tag}[{index}]"
+
 
 def print_elements(driver):
     elements = driver.find_elements(By.XPATH, "//*")  # This will get all elements
@@ -58,97 +137,12 @@ def create_driver():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     return driver
 
-# Open 3 isolated Chrome windows
-drivers = [create_driver() for _ in range(3)]
-
-url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
-
-a = 100
-
-for driver in drivers:
-    driver.get(url)
-    driver.set_window_position(a,a)
-    a += 300
-
-# driver = drivers[0]
-
-# elements = driver.find_elements(By.XPATH, "//*")  # This will get all elements
-
-
-
-# for element in elements:
-#     try:
-#         xpath = get_xpath(element)
-#         print(f"Element XPath: {xpath}")
-#     except Exception as e:
-#         print(f"Error retrieving XPath: {e}")
 
 
 
 
-# Fill in the nickname in each browser instance
-nicknames = ["A1", "B2", "C3"]
-
-
-class Testo:
-    def loginAll(self):
-        for i, driver in enumerate(drivers):
-            login_button = driver.find_element(By.XPATH, "//button[text()='login']")
-            login_button.click()
-            time.sleep(1)
-
-            original_tab = driver.current_window_handle
-            window_handles = driver.window_handles
-            # Switch to the new tab (the last handle in the list)
-            driver.switch_to.window(window_handles[-1])    
-
-            # We are in the II login Page
-            use_existing_button = driver.find_element(By.ID, "loginButton")
-            use_existing_button.click()            
-
-            input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
-
-            identity_anchor=10000 + i
-            input_field.send_keys(str(identity_anchor))
-            
-
-            continue_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
-            )
-            continue_button.click()
-
-            # Switch to the home page
-            driver.switch_to.window(original_tab)
-            # We are back in the original page, let the II tab do it's job
-            
-
-        #####################################################
-    def goOn(self):
-        for i, driver in enumerate(drivers):
-            nick_input_field = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
-            )
-            nick_input_field.send_keys(nicknames[i])
-            register_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[text()='register']"))
-            )
-            register_button.click()
-
-            # We must  wait for Balance to appear
-            time.sleep(10)
-
-            # Wait until the <p> element with "Balance" is present
-            balance_element = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Balance:')]"))
-            )
-
-            balance_text = balance_element.text
-            balance_number = balance_text.split(":")[1].strip()
-            print(f"Balance: {balance_number}")    
 
 
 
-t = Testo()
-t.loginAll()
-t.goOn()
-
+if __name__ == "__main__":
+    run()
