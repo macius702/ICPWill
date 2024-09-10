@@ -4,6 +4,8 @@ import { Actor, Identity } from '@dfinity/agent'
 import { Principal } from '@dfinity/principal'
 import { icp_will_backend, canisterId, createActor } from '../../declarations/icp_will_backend'
 import { idlFactory as icrc1_ledger_canister_Idl } from '../../declarations/icrc1_ledger_canister'
+import { Tokens }                                  from '../../declarations/icrc1_ledger_canister/icrc1_ledger_canister.did';
+
 import type {
   TransferArgs,
   UserData,
@@ -395,18 +397,6 @@ const App: React.FC = () => {
 
   const setupAllowancesForBatchTransfer = async () => {
 
-    // TODO(mtlk) take these values from ledger:
-    const transactionFee = 10000;
-    const approvalFee = 10000;
-    const overalltransactionCost = transactionFee * beneficiaries.length + approvalFee;
-
-    let assetsSum = 0
-    for (let i = 0; i < beneficiaries.length; i++) {
-      assetsSum += beneficiaries[i].icpAmount
-    }
-
-    const overallSum = assetsSum + overalltransactionCost
-
 
 
     if (principal === undefined) {
@@ -426,6 +416,22 @@ const App: React.FC = () => {
       agent,
       canisterId: Principal.fromText(LEDGER_CANISTER_ID)
     });
+
+    const feeFromLedger = await myledger.icrc1_fee() as Tokens; // TODO(mtlk) - why the Tokens type is not available here out of the box ? I need to specifically import it
+
+    const transactionFee = feeFromLedger;
+    const approvalFee = feeFromLedger;
+    const overalltransactionCost = transactionFee * BigInt(beneficiaries.length) + approvalFee;
+
+    let assetsSum = 0
+    for (let i = 0; i < beneficiaries.length; i++) {
+      assetsSum += beneficiaries[i].icpAmount
+    }
+
+    const overallSum = BigInt(assetsSum) + overalltransactionCost
+
+
+
 
     const theSpender = Principal.fromText(canisterId)
     console.log('Spender: ', theSpender.toText())
