@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { AuthClient } from '@dfinity/auth-client'
-import { Actor, Identity } from '@dfinity/agent'
+import { Actor, HttpAgent, Identity } from '@dfinity/agent'
 import { Principal } from '@dfinity/principal'
 import { icp_will_backend, canisterId, createActor } from '../../declarations/icp_will_backend'
 import { idlFactory as icrc1_ledger_canister_Idl } from '../../declarations/icrc1_ledger_canister'
@@ -27,7 +27,6 @@ import { Checkbox } from './components/ui/checkbox'
 import { CheckedState } from '@radix-ui/react-checkbox'
 
 import { createAgent } from "@dfinity/utils";
-
 
 interface Beneficiary {
   nickname: string
@@ -131,126 +130,76 @@ const App: React.FC = () => {
     setAllUsers(users)
   }
 
+
   const transfer = async () => {
+    try {
+      if (!identity) throw new Error('Identity is undefined');
 
-    if (!identity) {
-      throw new Error('Identity is undefined');
-    }
+      const backend = getAuthClient();
+      console.log('backend', backend);
 
-    const backend = getAuthClient()
-    console.log('backend', backend)
+      const target = overrideTarget ? Principal.fromText(overridePrincipal) : validateTargetPrincipal();
+      console.log('target', target);
 
-    let target;
-    if (overrideTarget) {
-      target = Principal.fromText(overridePrincipal);
-    }
-    else {
-      target = validateTargetPrincipal()
-    }
-    console.log('target', target)
+      const { principal } = isUserLogged();
+      if (!principal) throw new Error('Principal is undefined');
+      console.log('principal', principal);
 
-    const { principal } = isUserLogged()
-    console.log('principal', principal)
-    if (principal === undefined) {
-      throw new Error('principal is undefined')
-    }
+      const agent = await createAgentWithHost(identity);
+      const myledger = createLedgerActor(agent);
 
-    console.log('---------------->Before createAgent')
-    const agent = await createAgent({
-      identity,
-      host: AGENT_HOST,
-      fetchRootKey: true,
-    });
-    console.log('After createAgent')
-
-
-
-    
-    const myledger = Actor.createActor(icrc1_ledger_canister_Idl, {
-      agent,
-      canisterId: Principal.fromText(LEDGER_CANISTER_ID)
-    });
-    console.log('After createActor')
-
-    async function getBalance(label: string) {
-      allUsers.map(async ([userPrincipal, userData]) => {
-        const balance = await myledger.icrc1_balance_of({
-          owner: userPrincipal,
-          subaccount: [],
-        });
-        console.log(label, userData.nickname, balance, userPrincipal.toText())
+      async function getBalance(label: string) {
+        await Promise.all(
+          allUsers.map(async ([userPrincipal, userData]) => {
+            const balance = await myledger.icrc1_balance_of({ owner: userPrincipal, subaccount: [] });
+            console.log(label, userData.nickname, balance, userPrincipal.toText());
+          })
+        );
       }
-      )
+
+      await getBalance('balance_before');
+
+      const theSpender = Principal.fromText(canisterId);
+      console.log('Spender: ', theSpender.toText());
+
+      const feeFromLedger = await myledger.icrc1_fee() as Tokens;// TODO(mtlk) why Tokens not imported automatically
+
+      const approveResult = await myledger.icrc2_approve({
+        fee: [],
+        memo: [],
+        from_subaccount: [],
+        created_at_time: [],
+        amount: BigInt(amountToSend) + feeFromLedger,
+        spender: { owner: theSpender, subaccount: [] },
+      });
+
+      console.log('approve_result', approveResult);
+
+      const allowanceResult = await myledger.icrc2_allowance({
+        account: { owner: principal, subaccount: [] },
+        spender: { owner: theSpender, subaccount: [] },
+      });
+
+      console.log('allowance_result', allowanceResult);
+
+      const transferArgs: TransferArgs = {
+        to_account: { owner: target, subaccount: [] },
+        amount: BigInt(amountToSend),
+        delay_in_seconds: BigInt(transferDelay),
+        from_account: { owner: principal, subaccount: [] },
+      };
+
+      const result = await backend.transfer(transferArgs);
+      await getBalance('balance_after');
+      console.log(result);
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error during transfer:', error.message);
+      } else {
+        console.error('Unknown error during transfer:', error);
+      }
     }
-
-    function getLastPrincipal() {
-      return allUsers[allUsers.length - 1][0].toText()
-    }
-
-    await getBalance('balance_before')
-
-
-    const theSpender = Principal.fromText(canisterId)
-    console.log('Spender: ', theSpender.toText())
-
-    console.log('Approve before')
-    const approve_result = await myledger.icrc2_approve({
-      fee: [],
-      memo: [new Uint8Array([(223322 >> 24) & 0xFF, (223322 >> 16) & 0xFF, (223322 >> 8) & 0xFF, 223322 & 0xFF])],
-      from_subaccount: [],
-      created_at_time: [],
-      amount: BigInt(amountToSend + 11000),//todo
-      expected_allowance: [],
-      expires_at: [],
-      spender: {
-        owner: theSpender,
-        subaccount: [],
-      },
-    });
-    console.log('approve_result', approve_result)
-    console.log('Approve after')
-
-    console.log('Allowance before')
-    const allowance_result = await myledger.icrc2_allowance({
-      account: {
-        owner: principal,
-        subaccount: [],
-      },
-      spender: {
-        owner: theSpender,
-        subaccount: [],
-      },
-    });
-    console.log('allowance_result', allowance_result)
-    console.log('Allowance after<----------------------------')
-
-    
-
-    console.log('-------------------->transfer')
-
-
-
-
-    const transferArgs: TransferArgs = {
-      to_account: {
-        owner: target,
-        subaccount: [], // This should be compatible with the expected type
-      },
-      amount: BigInt(amountToSend), // Convert to BigInt if the backend expects it
-      delay_in_seconds: BigInt(transferDelay),
-      from_account: {
-        owner: principal,
-        subaccount: [],
-      },
-
-    };
-    console.log('transferArgs', transferArgs)
-
-    let result = await backend.transfer(transferArgs)
-
-    await getBalance('balance_AFTER')
-    console.log(result)
-    console.log('after transfer<--------------------')
   }
 
   const logout = async () => {
@@ -298,65 +247,45 @@ const App: React.FC = () => {
 
 
   const setupAllowancesForBatchTransfer = async () => {
+    try {
+      if (!principal || !identity) throw new Error('Principal or Identity is undefined');
 
+      const agent = await createAgentWithHost(identity);
+      const myledger = createLedgerActor(agent);
 
+      const feeFromLedger = await myledger.icrc1_fee() as Tokens;
+      const overallTransactionCost = feeFromLedger * BigInt(beneficiaries.length) + feeFromLedger;
 
-    if (principal === undefined) {
-      throw new Error('principal is undefined')
+      const assetsSum = beneficiaries.reduce((sum, { icpAmount }) => sum + icpAmount, 0);
+      const overallSum = BigInt(assetsSum) + overallTransactionCost;
+
+      const theSpender = Principal.fromText(canisterId);
+      console.log('Spender: ', theSpender.toText());
+
+      const approveResult = await myledger.icrc2_approve({
+        fee: [],
+
+        memo: [],
+
+        from_subaccount: [],
+        created_at_time: [],
+        amount: overallSum,
+        expected_allowance : [],
+        expires_at : [],
+        spender: { owner: theSpender, subaccount: [] },
+      });
+
+      console.log('batch_approve_result', approveResult);
+
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error during transfer:', error.message);
+      } else {
+        console.error('Unknown error during transfer:', error);
+      }
     }
-    if (identity === undefined) {
-      throw new Error('identity is undefined')
-    }
+  };
 
-    const agent = await createAgent({
-      identity,
-      host: AGENT_HOST,
-      fetchRootKey: true,
-    });
-
-    const myledger = Actor.createActor(icrc1_ledger_canister_Idl, {
-      agent,
-      canisterId: Principal.fromText(LEDGER_CANISTER_ID)
-    });
-
-    const feeFromLedger = await myledger.icrc1_fee() as Tokens; // TODO(mtlk) - why the Tokens type is not available here out of the box ? I need to specifically import it
-
-    const transactionFee = feeFromLedger;
-    const approvalFee = feeFromLedger;
-    const overalltransactionCost = transactionFee * BigInt(beneficiaries.length) + approvalFee;
-
-    let assetsSum = 0
-    for (let i = 0; i < beneficiaries.length; i++) {
-      assetsSum += beneficiaries[i].icpAmount
-    }
-
-    const overallSum = BigInt(assetsSum) + overalltransactionCost
-
-
-
-
-    const theSpender = Principal.fromText(canisterId)
-    console.log('Spender: ', theSpender.toText())
-
-    const approve_result = await myledger.icrc2_approve({
-      fee: [],
-      memo: [new Uint8Array([(223322 >> 24) & 0xFF, (223322 >> 16) & 0xFF, (223322 >> 8) & 0xFF, 223322 & 0xFF])],
-      from_subaccount: [],
-      created_at_time: [],
-      amount: BigInt(overallSum),
-      expected_allowance: [],
-      expires_at: [],
-      spender: {
-        owner: theSpender,
-        subaccount: [],
-      },
-    });
-
-    console.log('batch_approve_result', approve_result)
-
-
-
-  }
 
   const saveAndActivate = async () => {
     if (isSaveAndActivateEnabled) {
@@ -409,6 +338,22 @@ const App: React.FC = () => {
       setBalance(null)
     }
     console.log(result)
+  }
+  // Helper function to create an agent
+  async function createAgentWithHost(identity: Identity) {
+    return await createAgent({
+      identity,
+      host: AGENT_HOST,
+      fetchRootKey: true,// TODO(mtlk) make it false in mainnet
+    });
+  }
+
+  // Helper function to create an actor
+  function createLedgerActor(agent: HttpAgent) {
+    return Actor.createActor(icrc1_ledger_canister_Idl, {
+      agent,
+      canisterId: Principal.fromText(LEDGER_CANISTER_ID),
+    });
   }
 
   useEffect(() => {
