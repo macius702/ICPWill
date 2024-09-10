@@ -5,10 +5,9 @@ use std::time::Duration;
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::caller;
 use crate::{BATCH_TIMERS, USERS};
-use crate::transfer::{handle_timer_event, TransferArgs};
+use crate::transfer::handle_timer_event;
 use icrc_ledger_types::icrc1::transfer::NumTokens;
 use icrc_ledger_types::icrc1::account::Account;
-use crate::transfer::transfer;
 
 
 #[derive(Clone, CandidType, Deserialize, Debug)]
