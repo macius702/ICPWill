@@ -4,7 +4,7 @@ import { Actor, Identity } from '@dfinity/agent'
 import { Principal } from '@dfinity/principal'
 import { icp_will_backend, canisterId, createActor } from '../../declarations/icp_will_backend'
 import { idlFactory as icrc1_ledger_canister_Idl } from '../../declarations/icrc1_ledger_canister'
-import { Tokens }                                  from '../../declarations/icrc1_ledger_canister/icrc1_ledger_canister.did';
+import { Tokens } from '../../declarations/icrc1_ledger_canister/icrc1_ledger_canister.did';
 
 import type {
   TransferArgs,
@@ -133,48 +133,26 @@ const App: React.FC = () => {
 
   const transfer = async () => {
 
-
-
-    //   // echo "\
-    //   // (
-    //   //     record {
-    //   //         to = record {
-    //   //             owner = principal \"$1\";
-    //   //             subaccount = null;
-    //   //         };
-    //   //         fee = null;
-    //   //         memo = null;
-    //   //         from_subaccount = null;
-    //   //         created_at_time = null;
-    //   //         amount = 50_000 : nat;
-    //   //     },
-    //   // )" > /tmp/argument.txt
-
-    //   // dfx canister call mxzaz-hqaaa-aaaar-qaada-cai icrc1_transfer --argument-file /tmp/argument.txt
-    //   // the above in javascript using @dfinity/agent
-
-    //   const actor = createActor('mxzaz-hqaaa-aaaar-qaada-cai)';
-    //   let result =ic_cdk::call::<(TransferArg,), (Result<BlockIndex, TransferError>,)>(
-    //     Principal::from_text(LEDGER_CANISTER_ID)
-    //         .expect("Could not decode the principal."),
-    //     "icrc1_transfer",
-    //     (transfer_args,),
-    // )    
-    //   const result0 = await actor.icrc1_transfer({
-    //       to: {
-    //           owner: Principal.fromText('ewhsr-pb6m2-qq363-4wlco-2fq2s-uhlfq-io57v-5oiko-bciwd-2nift-yqe'),
-    //           subaccount: [],
-    //       },
-    //       fee: null,
-    //       memo: null,
-    //       from_subaccount: null,
-    //       created_at_time: null,
-    //       amount: BigInt(3141),
-    //   });
-    //   console.log(result0);
-
     if (!identity) {
       throw new Error('Identity is undefined');
+    }
+
+    const backend = getAuthClient()
+    console.log('backend', backend)
+
+    let target;
+    if (overrideTarget) {
+      target = Principal.fromText(overridePrincipal);
+    }
+    else {
+      target = validateTargetPrincipal()
+    }
+    console.log('target', target)
+
+    const { principal } = isUserLogged()
+    console.log('principal', principal)
+    if (principal === undefined) {
+      throw new Error('principal is undefined')
     }
 
     console.log('---------------->Before createAgent')
@@ -183,14 +161,16 @@ const App: React.FC = () => {
       host: AGENT_HOST,
       fetchRootKey: true,
     });
-
     console.log('After createAgent')
 
 
+
+    
     const myledger = Actor.createActor(icrc1_ledger_canister_Idl, {
       agent,
       canisterId: Principal.fromText(LEDGER_CANISTER_ID)
     });
+    console.log('After createActor')
 
     async function getBalance(label: string) {
       allUsers.map(async ([userPrincipal, userData]) => {
@@ -207,35 +187,13 @@ const App: React.FC = () => {
       return allUsers[allUsers.length - 1][0].toText()
     }
 
-
-    console.log('After createActor')
-
     await getBalance('balance_before')
 
-    console.log('Approve before')
-
-
-    // export interface ApproveArgs {
-    //   'fee' : [] | [bigint],
-    //   'memo' : [] | [Uint8Array | number[]],
-    //   'from_subaccount' : [] | [Uint8Array | number[]],
-    //   'created_at_time' : [] | [bigint],
-    //   'amount' : bigint,
-    //   'expected_allowance' : [] | [bigint],
-    //   'expires_at' : [] | [bigint],
-    //   'spender' : Account,
-    // }
-    // export type ApproveResult = { 'Ok' : bigint } |
-    // { 'Err' : ApproveError };
-    //'icrc2_approve' : ActorMethod<[ApproveArgs], ApproveResult>,
-
-    if (principal === undefined) {
-      throw new Error('principal is undefined')
-    }
 
     const theSpender = Principal.fromText(canisterId)
     console.log('Spender: ', theSpender.toText())
 
+    console.log('Approve before')
     const approve_result = await myledger.icrc2_approve({
       fee: [],
       memo: [new Uint8Array([(223322 >> 24) & 0xFF, (223322 >> 16) & 0xFF, (223322 >> 8) & 0xFF, 223322 & 0xFF])],
@@ -249,20 +207,10 @@ const App: React.FC = () => {
         subaccount: [],
       },
     });
-
     console.log('approve_result', approve_result)
-
     console.log('Approve after')
 
     console.log('Allowance before')
-
-    // export interface AllowanceArgs { 'account' : Account, 'spender' : Account }
-    // export interface Allowance {
-    //   'allowance' : bigint,
-    //   'expires_at' : [] | [bigint],
-    // }
-    // 'icrc2_allowance' : ActorMethod<[AllowanceArgs], Allowance>,
-
     const allowance_result = await myledger.icrc2_allowance({
       account: {
         owner: principal,
@@ -273,80 +221,36 @@ const App: React.FC = () => {
         subaccount: [],
       },
     });
-
     console.log('allowance_result', allowance_result)
     console.log('Allowance after<----------------------------')
 
+    
 
-    if (0) {
-      await getBalance('balance_before')
-
-      const transfer_result = await myledger.icrc1_transfer({
-        from_subaccount: [],
-        to: {
-          owner: Principal.fromText(getLastPrincipal()),
-          subaccount: [],
-        },
-        amount: BigInt(3141),
-        fee: [],
-        memo: [new Uint8Array([(111222333 >> 24) & 0xFF, (111222333 >> 16) & 0xFF, (111222333 >> 8) & 0xFF, 111222333 & 0xFF])],
-        created_at_time: [],
-      });
-
-      console.log('transfer_result', transfer_result)
-
-      await getBalance('balance_after')
-
-      console.log('<----------------------')
-
-    }
+    console.log('-------------------->transfer')
 
 
 
 
-    if (1) {
+    const transferArgs: TransferArgs = {
+      to_account: {
+        owner: target,
+        subaccount: [], // This should be compatible with the expected type
+      },
+      amount: BigInt(amountToSend), // Convert to BigInt if the backend expects it
+      delay_in_seconds: BigInt(transferDelay),
+      from_account: {
+        owner: principal,
+        subaccount: [],
+      },
 
-      console.log('-------------------->transfer')
+    };
+    console.log('transferArgs', transferArgs)
 
-      const { principal } = isUserLogged()
-      console.log('principal', principal)
+    let result = await backend.transfer(transferArgs)
 
-      const backend = getAuthClient()
-      console.log('backend', backend)
-
-      let target;
-      if (overrideTarget) {
-        target = Principal.fromText(overridePrincipal);
-      }
-      else {
-        target = validateTargetPrincipal()
-      }
-
-      console.log('target', target)
-
-      const transferArgs: TransferArgs = {
-        to_account: {
-          owner: target,
-          subaccount: [], // This should be compatible with the expected type
-        },
-        amount: BigInt(amountToSend), // Convert to BigInt if the backend expects it
-        delay_in_seconds: BigInt(transferDelay),
-        from_account: {
-          owner: principal,
-          subaccount: [],
-        },
-
-      };
-
-      console.log('transferArgs', transferArgs)
-
-      let result = await backend.transfer(transferArgs)
-
-      await getBalance('balance_AFTER')
-
-      console.log(result)
-      console.log('after transfer<--------------------')
-    }
+    await getBalance('balance_AFTER')
+    console.log(result)
+    console.log('after transfer<--------------------')
   }
 
   const logout = async () => {
