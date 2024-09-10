@@ -1,18 +1,12 @@
-# vim test.py
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-
-from selenium.webdriver.remote.webelement import WebElement  # Import WebElement
-
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-
-from selenium.webdriver.common.by import By  # Ensure this import is present
-
 import time
-
-from selenium.webdriver.support.ui import WebDriverWait  # Import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC  # Import expected conditions
 
 
 def get_xpath(element: WebElement) -> str:
@@ -95,101 +89,66 @@ for driver in drivers:
 # Fill in the nickname in each browser instance
 nicknames = ["A1", "B2", "C3"]
 
-for i, driver in enumerate(drivers):
-    # if i != 0:
-    #     continue
 
-    # nickname_input = driver.find_element(By.NAME, "Login")  # Change the selector if needed
-    # nickname_input.send_keys(nicknames[i])
-    login_button = driver.find_element(By.XPATH, "//button[text()='login']")
-    login_button.click()
-    time.sleep(5)
+class Testo:
+    def loginAll(self):
+        for i, driver in enumerate(drivers):
+            login_button = driver.find_element(By.XPATH, "//button[text()='login']")
+            login_button.click()
+            time.sleep(1)
 
+            original_tab = driver.current_window_handle
+            window_handles = driver.window_handles
+            # Switch to the new tab (the last handle in the list)
+            driver.switch_to.window(window_handles[-1])    
 
-    original_tab = driver.current_window_handle
-    # Get the window handles (list of tabs/windows)
-    window_handles = driver.window_handles
+            # We are in the II login Page
+            use_existing_button = driver.find_element(By.ID, "loginButton")
+            use_existing_button.click()            
 
-    # Switch to the new tab (the last handle in the list)
-    driver.switch_to.window(window_handles[-1])    
+            input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
 
+            identity_anchor=10000 + i
+            input_field.send_keys(str(identity_anchor))
+            
 
+            continue_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
+            )
+            continue_button.click()
 
-    use_existing_button = driver.find_element(By.ID, "loginButton")
-    use_existing_button.click()            
+            # Switch to the home page
+            driver.switch_to.window(original_tab)
+            # We are back in the original page, let the II tab do it's job
+            
 
+        #####################################################
+    def goOn(self):
+        for i, driver in enumerate(drivers):
+            nick_input_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
+            )
+            nick_input_field.send_keys(nicknames[i])
+            register_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[text()='register']"))
+            )
+            register_button.click()
 
+            # We must  wait for Balance to appear
+            time.sleep(10)
 
-    input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
+            # Wait until the <p> element with "Balance" is present
+            balance_element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Balance:')]"))
+            )
 
-    # Send the key '10000' to the input field
-    identity_anchor=10000 + i
-    input_field.send_keys(str(identity_anchor))
-    time.sleep(5)
-
-    continue_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
-    )
-
-    # Click the button
-    continue_button.click()
-    driver.switch_to.window(original_tab)
-
-    time.sleep(5 )
-
-
-        # print_elements(driver)
-    nick_input_field = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
-    )
-    nick_input_field.send_keys(nicknames[i])
-
-    register_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//button[text()='register']"))
-    )
-
-    # Click the button
-    register_button.click()
-
-
-    time.sleep(10 )
-
-    # Wait until the <p> element with "Balance" is present
-    balance_element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Balance:')]"))
-    )
-
-    # Extract the full text from the <p> element
-    balance_text = balance_element.text
-
-
-    # Extract the number from the text (e.g., "Balance: 136550" -> 136550)
-    balance_number = balance_text.split(":")[1].strip()
-
-    # Print the balance number
-    print(f"Balance: {balance_number}")    
-
-
-    time.sleep(5 )
+            balance_text = balance_element.text
+            balance_number = balance_text.split(":")[1].strip()
+            print(f"Balance: {balance_number}")    
 
 
 
-time.sleep(30)
+t = Testo()
+t.loginAll()
+t.goOn()
 
-# # # Fill out additional fields in the first browser window
-# # first_driver = drivers[0]
-# # first_input = first_driver.find_element(By.NAME, "field1")  # Change as needed
-# # first_input.send_keys("value for first field")
-# # # Continue filling out more fields as required
-
-# # # Wait for 10 seconds
-# # time.sleep(10)
-
-# # # Check the displayed value in all three windows
-# # for i, driver in enumerate(drivers):
-# #     displayed_value = driver.find_element(By.ID, "displayed_value")  # Adjust selector
-# #     print(f"Displayed value in window {i + 1}: {displayed_value.text}")
-
-# # # Close all drivers
-# # for driver in drivers:
-# #     driver.quit()
