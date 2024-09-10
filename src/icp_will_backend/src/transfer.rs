@@ -11,7 +11,7 @@ use serde::Serialize;
 
 
 use crate::constants::LEDGER_CANISTER_ID;
-use crate::{TIMERS, USERS};
+use crate::{BATCH_TIMERS, TIMERS, USERS};
 
 
 
@@ -78,6 +78,8 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     Ok(BlockIndex::from(0 as u32))
 }
 
+
+// TODO(mtlk) implement a button in gui and test
 #[ic_cdk::update]
 pub fn cancel_activation() -> Result<(), String> {
     let user = caller();
@@ -90,6 +92,26 @@ pub fn cancel_activation() -> Result<(), String> {
         if let Some(timer_id) = timers.get(&user) {
             ic_cdk_timers::clear_timer(*timer_id);
             timers.remove(&user);
+        }
+    });
+
+    Ok(())
+}
+
+
+// TODO(mtlk) implement a button in gui and test
+#[ic_cdk::update]
+pub fn cancel_batch_activation() -> Result<(), String> {
+    let user = caller();
+
+    if user == Principal::anonymous() {
+        return Err("Anonymous Principal!".to_string());
+    }
+
+    BATCH_TIMERS.with_borrow_mut(|batch_timers| {
+        if let Some(timer_id) = batch_timers.get(&user) {
+            ic_cdk_timers::clear_timer(*timer_id);
+            batch_timers.remove(&user);
         }
     });
 

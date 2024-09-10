@@ -55,6 +55,15 @@ async fn batch_transfer_timer_handler(caller : &Principal, batch: BatchTransfer)
                
         handle_timer_event(*caller, to_account, amount).await;
     }
+
+    // Remove the timer once the batch transfer completes
+    BATCH_TIMERS.with_borrow_mut(|timers| {
+        if timers.remove(caller).is_some() {
+            ic_cdk::println!("Successfully removed BATCH_TIMER for user: {}", caller.to_text());
+        } else {
+            ic_cdk::println!("No active BATCH_TIMER found for user: {}", caller.to_text());
+        }
+    });        
     Ok(())
 }
 
