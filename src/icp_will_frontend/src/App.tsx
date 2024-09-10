@@ -26,10 +26,8 @@ import Layout from './components/ui/layout'
 import { Checkbox } from './components/ui/checkbox'
 import { CheckedState } from '@radix-ui/react-checkbox'
 
-
 import { createAgent } from "@dfinity/utils";
-import { LedgerCanister } from "@dfinity/ledger-icp";
-import { QueryParams } from "@dfinity/utils";
+
 
 interface Beneficiary {
   nickname: string
