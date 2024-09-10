@@ -36,7 +36,8 @@ def run():
 
     t = Test(drivers)
     t.loginAll()
-    t.goOn()
+    t.registerUser()
+    t.readBalances()
 
 
 nicknames = ["A1", "B2", "C3"]
@@ -77,7 +78,7 @@ class Test:
             
 
         #####################################################
-    def goOn(self):
+    def registerUser(self):
         for i, driver in enumerate(self.drivers):
             nick_input_field = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
@@ -87,9 +88,11 @@ class Test:
                 EC.element_to_be_clickable((By.XPATH, "//button[text()='register']"))
             )
             register_button.click()
-
-            # We must  wait for Balance to appear
-            time.sleep(10)
+    
+    def readBalances(self):
+        # We must  wait for Balance to appear
+        time.sleep(10)
+        for i, driver in enumerate(self.drivers):
 
             # Wait until the <p> element with "Balance" is present
             balance_element = WebDriverWait(driver, 10).until(
