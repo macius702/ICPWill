@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 
+#source ~/.nvm/nvm.sh
+
+# from my bash src
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 nvm use 20
 npm i 
+
 
 dfx identity new Alice || true
 
