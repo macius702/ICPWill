@@ -59,23 +59,23 @@ def run():
         
     def inheritance_report(expected1, got1, expected2, got2, approval_fee, transaction_fee_per_beneficiary, total_transaction_fees, inheritance_paid, total_expenses ):
         report = f"""
-    Inheritance Report:
+        Inheritance Report:
 
-    1st Beneficiary:
-    - Expected Inheritance: {expected1}
-    - Actual Inheritance: {got1}
+        1st Beneficiary:
+        - Expected Inheritance:   {expected1:>10}
+        - Actual Inheritance:     {got1:>10}
 
-    2nd Beneficiary:
-    - Expected Inheritance: {expected2}
-    - Actual Inheritance: {got2}
+        2nd Beneficiary:
+        - Expected Inheritance:   {expected2:>10}
+        - Actual Inheritance:     {got2:>10}
 
-    Testator's Expenses:
-    - Approval Fee: {approval_fee}
-    - Transaction Fee per Beneficiary: {transaction_fee_per_beneficiary} (Total: {total_transaction_fees})
-    - Inheritance Paid: {inheritance_paid}
-    - Total Expenses: {total_expenses}
-    """
-        return report    
+        Testator's Expenses:
+        - Approval Fee:           {approval_fee:>10}
+        - Total Transaction Fees: {total_transaction_fees:>10} (Fee per Beneficiary: {transaction_fee_per_beneficiary:>10})
+        - Inheritance Paid:       {inheritance_paid:>10}
+        - Total Expenses:         {total_expenses:>10}
+        """
+        return report
     
     fee = 10_000
     testatorExpenses = fee + fee *2 + inheritance[1] + inheritance[2]
