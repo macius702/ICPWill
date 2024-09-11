@@ -45,30 +45,63 @@ def run():
 
     
     t.setupAndRunInheritance()
-    
+
     time.sleep(10)
-    
     t.refreshAll()
-    
-    time.sleep(10)
     
     t.registerUser()
 
-    time.sleep(10)
     
     final_balances = t.readBalances()
     
     firstBeneficiaryExpectedBalance = inheritance[1] + initial_balances[1]
     
-    assert(firstBeneficiaryExpectedBalance == final_balances[1])
-    
-    secondBeneficiaryExpectedBalance = inheritance[2] + initial_balances[2]
-    assert(secondBeneficiaryExpectedBalance == final_balances[2])
+        
+    def inheritance_report(expected1, got1, expected2, got2, approval_fee, transaction_fee_per_beneficiary, total_transaction_fees, inheritance_paid, total_expenses ):
+        report = f"""
+    Inheritance Report:
+
+    1st Beneficiary:
+    - Expected Inheritance: {expected1}
+    - Actual Inheritance: {got1}
+
+    2nd Beneficiary:
+    - Expected Inheritance: {expected2}
+    - Actual Inheritance: {got2}
+
+    Testator's Expenses:
+    - Approval Fee: {approval_fee}
+    - Transaction Fee per Beneficiary: {transaction_fee_per_beneficiary} (Total: {total_transaction_fees})
+    - Inheritance Paid: {inheritance_paid}
+    - Total Expenses: {total_expenses}
+    """
+        return report    
     
     fee = 10_000
     testatorExpenses = fee + fee *2 + inheritance[1] + inheritance[2]
+    firstBeneficiaryExpectedBalance = inheritance[1] + initial_balances[1]
+    secondBeneficiaryExpectedBalance = inheritance[2] + initial_balances[2]
+
+    print(inheritance_report(
+        inheritance[1],
+        final_balances[1]-initial_balances[1],
+        inheritance[2],
+        final_balances[2]-initial_balances[2],
+        fee,
+        fee,
+        fee * 2,
+        inheritance[1] + inheritance[2],
+        testatorExpenses))
     
+    # setup RED color in case of asserts
+    print(Fore.RED)
     assert(final_balances[0] + testatorExpenses , final_balances[0])
+    
+    assert(firstBeneficiaryExpectedBalance == final_balances[1])
+    
+    assert(secondBeneficiaryExpectedBalance == final_balances[2])
+    
+    
     
 
     print(Fore.GREEN + 'Test passed' + Style.RESET_ALL)    
