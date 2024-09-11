@@ -62,18 +62,18 @@ def run():
         Inheritance Report:
 
         1st Beneficiary:
-        - Expected Inheritance:   {expected1:>10}
-        - Actual Inheritance:     {got1:>10}
+        - Expected Inheritance:   {expected1:>10,}
+        - Actual Inheritance:     {got1:>10,}
 
         2nd Beneficiary:
-        - Expected Inheritance:   {expected2:>10}
-        - Actual Inheritance:     {got2:>10}
+        - Expected Inheritance:   {expected2:>10,}
+        - Actual Inheritance:     {got2:>10,}
 
         Testator's Expenses:
-        - Approval Fee:           {approval_fee:>10}
-        - Total Transaction Fees: {total_transaction_fees:>10} (Fee per Beneficiary: {transaction_fee_per_beneficiary:>10})
-        - Inheritance Paid:       {inheritance_paid:>10}
-        - Total Expenses:         {total_expenses:>10}
+        - Approval Fee:           {approval_fee:>10,}
+        - Total Transaction Fees: {total_transaction_fees:>10,} (Fee per Beneficiary: {transaction_fee_per_beneficiary:>10,})
+        - Inheritance Paid:       {inheritance_paid:>10,}
+        - Total Expenses:         {total_expenses:>10,}
         """
         return report
     
