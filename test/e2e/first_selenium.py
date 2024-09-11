@@ -39,12 +39,18 @@ def run():
     t.registerUser()
     t.readBalances()
 
+    
+    t.setupAndRunInheritance()
+
+    time.sleep(600)
+
 
 nicknames = ["A1", "B2", "C3"]
 
 class Test:
     def __init__(self, drivers):
         self.drivers = drivers
+        self.testator = self.drivers[0]
 
     def loginAll(self):
         for i, driver in enumerate(self.drivers):
@@ -91,6 +97,7 @@ class Test:
     
     def readBalances(self):
         # We must  wait for Balance to appear
+        print('Entering readBalances')
         time.sleep(10)
         for i, driver in enumerate(self.drivers):
 
@@ -101,7 +108,92 @@ class Test:
 
             balance_text = balance_element.text
             balance_number = balance_text.split(":")[1].strip()
-            print(f"Balance: {balance_number}")    
+            print(f"Balance: {balance_number}")
+
+
+    def setupAndRunInheritance(self):
+        print('Entering setupAndRunInheritance')
+        # Wait for the combobox button to be clickable and click it to open the dropdown
+        combobox_button = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[@role='combobox']"))
+        )
+        combobox_button.click()
+
+        # Wait for the B2 option to appear in the dropdown and click it
+        b2_option = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[text()='B2']"))
+        )
+        b2_option.click()
+
+        add_beneficiary_button = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Add beneficiary']"))
+        )
+        
+        add_beneficiary_button.click()            
+        
+        # Wait for the ICP input field to be present
+        icp_input_field = WebDriverWait(self.testator, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//input[@placeholder='ICP value']"))
+        )
+
+        icp_input_field.send_keys("13000")        
+        
+        ### Select C3
+        
+        combobox_button = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[@role='combobox']"))
+        )
+        combobox_button.click()
+
+        # Wait for the B2 option to appear in the dropdown and click it
+        c3_option = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//span[text()='C3']"))
+        )
+        c3_option.click()
+
+        add_beneficiary_button = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Add beneficiary']"))
+        )
+        
+        add_beneficiary_button.click()            
+
+
+#################
+
+        row_with_input = WebDriverWait(self.testator, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//tr[contains(@class, 'bg-gray-50') and .//input[@value='C3']]"))
+        )
+        
+        icp_input_field = row_with_input.find_element(By.XPATH, ".//input[@placeholder='ICP value']")
+        
+        
+        
+
+
+        
+        icp_input_field.send_keys("14000")        
+        
+        
+#################
+
+
+        seconds_input_field = WebDriverWait(self.testator, 10).until(
+                    EC.presence_of_element_located((By.ID, "seconds"))
+                )
+        seconds_input_field.send_keys("4")
+        
+        save_activate_button = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Save and Activate']"))
+        )
+        save_activate_button.click()        
+        
+
+        
+        
+        
+        
+
+
 
 def get_xpath(element: WebElement) -> str:
     tag = element.tag_name
