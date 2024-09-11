@@ -20,7 +20,7 @@ echo "\
         memo = null;
         from_subaccount = null;
         created_at_time = null;
-        amount = 50_000 : nat;
+        amount = 10_000_000 : nat;
     },
 )" > /tmp/argument.txt
 
