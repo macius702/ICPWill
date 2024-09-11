@@ -42,7 +42,7 @@ def run():
     
     t.setupAndRunInheritance()
 
-    time.sleep(600)
+    time.sleep(60)
 
 
 nicknames = ["A1", "B2", "C3"]
