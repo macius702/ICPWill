@@ -7,7 +7,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+from colorama import Fore, Style
 
+
+nicknames = ["A1", "B2", "C3"]
+inheritance = [ 0, 13000, 14000]
 
 def run():
     # Open 3 isolated Chrome windows
@@ -37,21 +41,52 @@ def run():
     t = Test(drivers)
     t.loginAll()
     t.registerUser()
-    t.readBalances()
+    initial_balances = t.readBalances()
 
     
     t.setupAndRunInheritance()
+    
+    time.sleep(10)
+    
+    t.refreshAll()
+    
+    time.sleep(10)
+    
+    t.registerUser()
 
-    time.sleep(60)
+    time.sleep(10)
+    
+    final_balances = t.readBalances()
+    
+    firstBeneficiaryExpectedBalance = inheritance[1] + initial_balances[1]
+    
+    assert(firstBeneficiaryExpectedBalance == final_balances[1])
+    
+    secondBeneficiaryExpectedBalance = inheritance[2] + initial_balances[2]
+    assert(secondBeneficiaryExpectedBalance == final_balances[2])
+    
+    fee = 10_000
+    testatorExpenses = fee + fee *2 + inheritance[1] + inheritance[2]
+    
+    assert(final_balances[0] + testatorExpenses , final_balances[0])
+    
+
+    print(Fore.GREEN + 'Test passed' + Style.RESET_ALL)    
+    
+    #time.sleep(600)
 
 
-nicknames = ["A1", "B2", "C3"]
 
 class Test:
     def __init__(self, drivers):
         self.drivers = drivers
         self.testator = self.drivers[0]
 
+    def refreshAll(self):
+        for i, driver in enumerate(self.drivers):
+            driver.refresh()
+            
+        
     def loginAll(self):
         for i, driver in enumerate(self.drivers):
             login_button = driver.find_element(By.XPATH, "//button[text()='login']")
@@ -84,6 +119,11 @@ class Test:
             
 
         #####################################################
+    def logoutAll(self):
+        for i, driver in enumerate(self.drivers):
+            logout_button = driver.find_element(By.XPATH, "//button[contains(text(), 'logout')]")
+            logout_button.click()
+        
     def registerUser(self):
         for i, driver in enumerate(self.drivers):
             nick_input_field = WebDriverWait(driver, 10).until(
@@ -99,6 +139,7 @@ class Test:
         # We must  wait for Balance to appear
         print('Entering readBalances')
         time.sleep(10)
+        balances = []
         for i, driver in enumerate(self.drivers):
 
             # Wait until the <p> element with "Balance" is present
@@ -109,6 +150,8 @@ class Test:
             balance_text = balance_element.text
             balance_number = balance_text.split(":")[1].strip()
             print(f"Balance: {balance_number}")
+            balances.append(int(balance_number))
+        return balances
 
 
     def setupAndRunInheritance(self):
@@ -136,7 +179,7 @@ class Test:
             EC.presence_of_element_located((By.XPATH, "//input[@placeholder='ICP value']"))
         )
 
-        icp_input_field.send_keys("13000")        
+        icp_input_field.send_keys(str(inheritance[1]))
         
         ### Select C3
         
@@ -170,8 +213,8 @@ class Test:
         
 
 
+        icp_input_field.send_keys(str(inheritance[2]))
         
-        icp_input_field.send_keys("14000")        
         
         
 #################
