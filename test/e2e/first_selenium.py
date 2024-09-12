@@ -22,7 +22,6 @@ def run():
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
 
-
     url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
 
     screen_width = 1920
@@ -30,7 +29,7 @@ def run():
 
     # Calculate window width (each window takes 1/3 of the screen width)
     window_width = screen_width // 3
-    window_height = screen_height -200  # Use full screen height for each window
+    window_height = screen_height - 200  # Use full screen height for each window
 
     x_position = 0
     y_position = 0
@@ -43,21 +42,20 @@ def run():
         # Move the x position for the next window
         x_position += window_width
 
-    t = Test(drivers)
-    t.loginAll()
-    t.registerUser()
-    initial_balances = t.readBalances()
+    # Pass nicknames and inheritance to the Test class instance
+    t = Test(drivers, nicknames, inheritance)
+    t.login_all()
+    t.register_user()
+    initial_balances = t.read_balances()
 
-    
-    t.setupAndRunInheritance()
+    t.setup_and_run_inheritance()
 
     time.sleep(10)
-    t.refreshAll()
-    
-    t.registerUser()
+    t.refresh_all()
 
-    
-    final_balances = t.readBalances()
+    t.register_user()
+
+    final_balances = t.read_balances()
     
     firstBeneficiaryExpectedBalance = inheritance[1] + initial_balances[1]
     
@@ -116,161 +114,114 @@ def run():
 
 
 class Test:
-    def __init__(self, drivers):
+    def __init__(self, drivers, nicknames, inheritance):
         self.drivers = drivers
         self.testator = self.drivers[0]
+        self.nicknames = nicknames
+        self.inheritance = inheritance
 
-    def refreshAll(self):
-        for i, driver in enumerate(self.drivers):
+    def refresh_all(self):
+        for driver in self.drivers:
             driver.refresh()
-            
-        
-    def loginAll(self):
+    
+    def switch_to_last_tab(self, driver):
+        driver.switch_to.window(driver.window_handles[-1])
+    
+    def switch_back_to_original_tab(self, driver, original_tab):
+        driver.switch_to.window(original_tab)
+    
+    def click_button_by_text(self, driver, button_text):
+        button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, f"//button[text()='{button_text}']"))
+        )
+        button.click()
+    
+    def login_all(self):
         for i, driver in enumerate(self.drivers):
             login_button = driver.find_element(By.XPATH, "//button[text()='login']")
             login_button.click()
             time.sleep(1)
-
+            
             original_tab = driver.current_window_handle
-            window_handles = driver.window_handles
-            # Switch to the new tab (the last handle in the list)
-            driver.switch_to.window(window_handles[-1])    
-
+            self.switch_to_last_tab(driver)
+            
             # We are in the II login Page
             use_existing_button = driver.find_element(By.ID, "loginButton")
-            use_existing_button.click()            
-
+            use_existing_button.click()      
+                        
             input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
-
-            identity_anchor=10000 + i
+            identity_anchor = 10000 + i
             input_field.send_keys(str(identity_anchor))
-            
 
             continue_button = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
             )
             continue_button.click()
 
-            # Switch to the home page
-            driver.switch_to.window(original_tab)
-            # We are back in the original page, let the II tab do it's job
-            
+            self.switch_back_to_original_tab(driver, original_tab)
 
-        #####################################################
-    def logoutAll(self):
-        for i, driver in enumerate(self.drivers):
+    def logout_all(self):
+        for driver in self.drivers:
             logout_button = driver.find_element(By.XPATH, "//button[contains(text(), 'logout')]")
             logout_button.click()
-        
-    def registerUser(self):
+
+    def register_user(self):
         for i, driver in enumerate(self.drivers):
             nick_input_field = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
             )
             nick_input_field.send_keys(nicknames[i])
-            register_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[text()='register']"))
-            )
-            register_button.click()
-    
-    def readBalances(self):
-        # We must  wait for Balance to appear
+            self.click_button_by_text(driver, 'register')
+
+    def read_balances(self):
         print('Entering readBalances')
         time.sleep(10)
         balances = []
-        for i, driver in enumerate(self.drivers):
-
-            # Wait until the <p> element with "Balance" is present
+        for driver in self.drivers:
             balance_element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Balance:')]"))
             )
-
-            balance_text = balance_element.text
-            balance_number = balance_text.split(":")[1].strip()
-            print(f"Balance: {balance_number}")
-            balances.append(int(balance_number))
+            balance_text = balance_element.text.split(":")[1].strip()
+            print(f"Balance: {balance_text}")
+            balances.append(int(balance_text))
         return balances
 
-
-    def setupAndRunInheritance(self):
+    def setup_and_run_inheritance(self):
         print('Entering setupAndRunInheritance')
-        # Wait for the combobox button to be clickable and click it to open the dropdown
+        self.select_combobox_option('B2')
+        self.add_beneficiary_and_enter_icp('B2', inheritance[1])
+
+        self.select_combobox_option('C3')
+        self.add_beneficiary_and_enter_icp('C3', inheritance[2])
+
+        self.enter_seconds_and_activate("4")
+
+    def select_combobox_option(self, option_text):
         combobox_button = WebDriverWait(self.testator, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//button[@role='combobox']"))
         )
         combobox_button.click()
 
-        # Wait for the B2 option to appear in the dropdown and click it
-        b2_option = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//span[text()='B2']"))
+        option = WebDriverWait(self.testator, 10).until(
+            EC.element_to_be_clickable((By.XPATH, f"//span[text()='{option_text}']"))
         )
-        b2_option.click()
+        option.click()
 
-        add_beneficiary_button = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[text()='Add beneficiary']"))
-        )
+    def add_beneficiary_and_enter_icp(self, nick, icp_value):
+        self.click_button_by_text(self.testator, 'Add beneficiary')
         
-        add_beneficiary_button.click()            
-        
-        # Wait for the ICP input field to be present
-        icp_input_field = WebDriverWait(self.testator, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//input[@placeholder='ICP value']"))
-        )
-
-        icp_input_field.send_keys(str(inheritance[1]))
-        
-        ### Select C3
-        
-        combobox_button = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@role='combobox']"))
-        )
-        combobox_button.click()
-
-        # Wait for the B2 option to appear in the dropdown and click it
-        c3_option = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//span[text()='C3']"))
-        )
-        c3_option.click()
-
-        add_beneficiary_button = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[text()='Add beneficiary']"))
-        )
-        
-        add_beneficiary_button.click()            
-
-
-#################
-
-        row_with_input = WebDriverWait(self.testator, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//tr[contains(@class, 'bg-gray-50') and .//input[@value='C3']]"))
-        )
-        
+        row_with_input = WebDriverWait(self.testator, 10).until(EC.presence_of_element_located((By.XPATH, f"//tr[.//input[@value='{nick}']]")))
         icp_input_field = row_with_input.find_element(By.XPATH, ".//input[@placeholder='ICP value']")
-        
-        
-        
+        icp_input_field.send_keys(str(icp_value))
 
-
-        icp_input_field.send_keys(str(inheritance[2]))
-        
-        
-        
-#################
-
-
+    def enter_seconds_and_activate(self, seconds):
         seconds_input_field = WebDriverWait(self.testator, 10).until(
-                    EC.presence_of_element_located((By.ID, "seconds"))
-                )
-        seconds_input_field.send_keys("4")
-        
-        save_activate_button = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[text()='Save and Activate']"))
+            EC.presence_of_element_located((By.ID, "seconds"))
         )
-        save_activate_button.click()        
-        
+        seconds_input_field.send_keys(seconds)
 
-        
-        
+        self.click_button_by_text(self.testator, 'Save and Activate')
+
         
         
 
