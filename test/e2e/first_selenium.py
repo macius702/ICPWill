@@ -1,3 +1,5 @@
+
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -5,7 +7,10 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+
+# using Selenium Manager before running this script:
+# ./venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --driver=chromedriver
+
 import time
 from colorama import Fore, Style
 
@@ -25,7 +30,7 @@ def run():
 
     # Calculate window width (each window takes 1/3 of the screen width)
     window_width = screen_width // 3
-    window_height = screen_height  # Use full screen height for each window
+    window_height = screen_height -200  # Use full screen height for each window
 
     x_position = 0
     y_position = 0
@@ -95,14 +100,14 @@ def run():
     
     # setup RED color in case of asserts
     print(Fore.RED)
-    assert(final_balances[0] + testatorExpenses , final_balances[0])
+    
+    assert(initial_balances[0] - testatorExpenses == final_balances[0])
     
     assert(firstBeneficiaryExpectedBalance == final_balances[1])
     
     assert(secondBeneficiaryExpectedBalance == final_balances[2])
-    
-    
-    
+
+    print(Style.RESET_ALL)    
 
     print(Fore.GREEN + 'Test passed' + Style.RESET_ALL)    
     
@@ -318,7 +323,7 @@ def create_driver():
     # options.add_argument('--headless')
     # options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome()    
     return driver
 
 from screeninfo import get_monitors

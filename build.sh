@@ -127,7 +127,7 @@ echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 dfx deploy $PLAYGROUND icp_will_frontend
 #fx deploy $PLAYGROUND icp_will_frontend
 
-python3.10 ./test/e2e/first_selenium.py # python3 collision with python3.8 that is needed to launch gnome-terminal
+python3 test/e2e/first_selenium.py 
 
 echo DONE.
 
