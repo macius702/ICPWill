@@ -8,3 +8,9 @@ license
 
 
 print  get_transactions : (GetTransactionsRequest) -> (GetTransactionsResponse) query; after approve, trransfer - after everything that returns BlockIndex
+
+  // mtlk todo
+  // The following method is marked as 'update' because it internally performs an inter-canister call.
+  // Consider performing the balance retrieval from the frontend?
+  "get_balance" : () -> (ResultNat);
+
