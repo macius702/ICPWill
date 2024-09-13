@@ -37,6 +37,7 @@ interface Beneficiary {
 const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER
 const AGENT_HOST = import.meta.env.VITE_AGENT_HOST
 const LEDGER_CANISTER_ID = import.meta.env.VITE_LEDGER_CANISTER_ID
+const NETWORK = import.meta.env.VITE_NETWORK
 
 const App: React.FC = () => {
   const [newChat, setNewChat] = useState<string>('')
@@ -341,10 +342,12 @@ const App: React.FC = () => {
   }
   // Helper function to create an agent
   async function createAgentWithHost(identity: Identity) {
+    const fetchRootKey = NETWORK !== '--ic';
+    console.log('fetchRootKey: ', fetchRootKey)
     return await createAgent({
       identity,
       host: AGENT_HOST,
-      fetchRootKey: true,// TODO(mtlk) make it false in mainnet
+      fetchRootKey: fetchRootKey,
     });
   }
 
