@@ -35,14 +35,21 @@ WORKDIR /home/developer
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/home/developer/.cargo/bin:${PATH}"
 
-# Instalacja Node.js i npm jako superuser
-USER root
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y nodejs
+# Instalacja nvm (Node Version Manager) jako użytkownik 'developer'
+USER developer
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash \
+    && export NVM_DIR="$HOME/.nvm" \
+    && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
+    && nvm install 16.13.0 \
+    && nvm use 16.13.0
+
+# Dodajemy nvm do ścieżki
+ENV NVM_DIR="/home/developer/.nvm"
+ENV NODE_VERSION="16.13.0"
+ENV PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"
 
 # Instalacja DFX SDK jako użytkownik 'developer'
 ENV DFXVM_INIT_YES=true
-USER developer
 RUN curl -o- https://internetcomputer.org/install.sh | bash
 ENV PATH="/home/developer/bin:${PATH}"
 
