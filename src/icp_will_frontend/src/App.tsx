@@ -171,6 +171,8 @@ const App: React.FC = () => {
         from_subaccount: [],
         created_at_time: [],
         amount: BigInt(amountToSend) + feeFromLedger,
+        expected_allowance : [],
+        expires_at : [],
         spender: { owner: theSpender, subaccount: [] },
       });
 
