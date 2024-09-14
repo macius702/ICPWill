@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 from colorama import Fore, Style
 
-
+mode_is_local = True
 nicknames = ["A1", "B2", "C3"]
 inheritance = [ 0, 13000, 14000]
 
@@ -22,7 +22,10 @@ def run():
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
 
-    url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
+    if mode_is_local:
+        url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
+    else:
+        url = "https://d627x-vyaaa-aaaan-qmvva-cai.icp0.io/"
 
     screen_width = 1920
     screen_height = 1200
@@ -44,7 +47,13 @@ def run():
 
     # Pass nicknames and inheritance to the Test class instance
     t = Test(drivers, nicknames, inheritance)
-    t.login_all()
+
+    if mode_is_local:
+        t.login_all()
+    else:
+        # manual login
+        input("Press Enter to continue...")
+
     t.register_user()
     initial_balances = t.read_balances()
 
@@ -175,7 +184,10 @@ class Test:
 
     def read_balances(self):
         print('Entering readBalances')
-        time.sleep(10)
+        if mode_is_local:
+            time.sleep(10)
+        else:
+            time.sleep(30)
         balances = []
         for driver in self.drivers:
             balance_element = WebDriverWait(driver, 10).until(
