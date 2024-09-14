@@ -10,7 +10,7 @@ nvm use 20
 npm i 
 
 
-dfx identity new Alice || true
+dfx identity new Alice  --storage-mode=plaintext
 
 
 MODE=${1:-local}
@@ -24,6 +24,11 @@ if [ "$MODE" = "nonlocal" ]; then
 else
   echo -e "${PATTERN1}\nBuilding in local mode\n${PATTERN1}"
 fi
+
+
+DFX_HOST=${DFX_HOST:-127.0.0.1}
+DFX_PORT=${DFX_PORT:-4943}
+
 
 
 # Run dfx stop in the background
@@ -41,12 +46,12 @@ set -eu
 echo "===========SETUP========="
 if [ "$MODE" = "local" ]; then
   if [ "$CLEAN" == "--clean" ]; then
-    dfx start --background --clean
+    dfx start --background --clean --host "$DFX_HOST:$DFX_PORT"
   else
-    dfx start --background
+    dfx start --background --host "$DFX_HOST:$DFX_PORT"
   fi
 else
-  dfx start --background
+  dfx start --background --host "$DFX_HOST:$DFX_PORT"
 fi
 
 sleep 5
@@ -125,9 +130,10 @@ echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 
 
 dfx deploy $PLAYGROUND icp_will_frontend
-#fx deploy $PLAYGROUND icp_will_frontend
 
-python3 test/e2e/first_selenium.py 
+
+python3 test/e2e/create_internet_identity.py
+# python3 test/e2e/first_selenium.py
 
 echo DONE.
 
