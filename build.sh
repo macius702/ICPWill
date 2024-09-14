@@ -67,11 +67,11 @@ if [ "$MODE" == "local" ]; then
     export VITE_AGENT_HOST=http://127.0.0.1:4943
 else
     export VITE_LEDGER_CANISTER_ID=ryjl3-tyaaa-aaaaa-aaaba-cai
-    export LEDGER=$LEDGER_CANISTER_ID
+    export LEDGER=$VITE_LEDGER_CANISTER_ID
     export VITE_IDENTITY_PROVIDER=https://identity.ic0.app/#authorize
     export VITE_NETWORK=--ic
     export PLAYGROUND=--ic
-    export VITE_AGENT_HOST=https://ic0.app
+    export VITE_AGENT_HOST=https://icp0.io
 fi
 
 
