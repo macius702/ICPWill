@@ -289,11 +289,14 @@ def create_driver():
     driver = webdriver.Chrome()    
     return driver
 
-from screeninfo import get_monitors
+from screeninfo import get_monitors, ScreenInfoError
 def get_all_monitors_resolution():
-    monitors = get_monitors()
-    for monitor in monitors:
-        print(f"Monitor: {monitor.name}, Width: {monitor.width}, Height: {monitor.height}, x: {monitor.x}, y: {monitor.y}")
+    try:
+        monitors = get_monitors()
+        for monitor in monitors:
+            print(f"Monitor {monitor.name}: {monitor.width}x{monitor.height}")
+    except ScreenInfoError:
+        print("No monitors found or screen enumeration is not available.")
 
 get_all_monitors_resolution()
 
