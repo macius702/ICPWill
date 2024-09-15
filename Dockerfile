@@ -1,4 +1,3 @@
-
 # docker:
 #  po clone
 # docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t my_dfx_rust_npm_image .
@@ -26,8 +25,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip3 install selenium colorama screeninfo
 
-
-
 # Dodanie użytkownika 'developer' o tym samym UID i GID co użytkownik na hoście
 ARG USER_ID
 ARG GROUP_ID
@@ -48,13 +45,16 @@ USER developer
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash \
     && export NVM_DIR="$HOME/.nvm" \
     && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
-    && nvm install 20.0.0 \
-    && nvm use 20.0.0
+    && nvm install 20.9.0 \
+    && nvm use 20.9.0
 
 # Dodajemy nvm do ścieżki
 ENV NVM_DIR="/home/developer/.nvm"
-ENV NODE_VERSION="20.0.0"
+ENV NODE_VERSION="20.9.0"
 ENV PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"
+
+# Instalacja najnowszej wersji npm
+RUN npm install -g npm@10.8.3  # Update npm to the latest version
 
 # Instalacja DFX SDK jako użytkownik 'developer'
 ENV DFXVM_INIT_YES=true
@@ -63,7 +63,6 @@ ENV PATH="/home/developer/bin:${PATH}"
 
 # Ustawienie katalogu roboczego
 WORKDIR /app
-
 
 # Komenda domyślna
 CMD [ "bash" ]
