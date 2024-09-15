@@ -7,11 +7,14 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+
 
 # using Selenium Manager before running this script:
 # ./venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --driver=chromedriver
 
 import time
+import subprocess
 from colorama import Fore, Style
 
 mode_is_local = True
@@ -47,22 +50,39 @@ def run():
 
     # Pass nicknames and inheritance to the Test class instance
     t = Test(drivers, nicknames, inheritance)
+    
+    if mode_is_local:
+        t.login_all((0,))
+        try:
+            t.register_user((0,))
+        except TimeoutException as e:
+            print(f"Caught exception: {e}")
+            print(f"Exception type: {type(e)}")            
+            t.first_time_test_run = True
+                
+        # except TimeoutException:
+        #     t.first_time_test_run = True
+            
 
     if mode_is_local:
-        t.login_all()
+        t.login_all((0,1,2))
     else:
         # manual login
         input("Press Enter to continue...")
 
-    t.register_user()
+    t.register_user((0,1,2))
+    
+    if t.first_time_test_run:
+        t.feedTestator()
+
     initial_balances = t.read_balances()
 
     t.setup_and_run_inheritance()
 
-    time.sleep(10)
+    time.sleep(20)
     t.refresh_all()
 
-    t.register_user()
+    t.register_user((0,1,2))
 
     final_balances = t.read_balances()
     
@@ -128,6 +148,7 @@ class Test:
         self.testator = self.drivers[0]
         self.nicknames = nicknames
         self.inheritance = inheritance
+        self.first_time_test_run = False
 
     def refresh_all(self):
         for driver in self.drivers:
@@ -145,42 +166,52 @@ class Test:
         )
         button.click()
     
-    def login_all(self):
+    def login_all(self, who):
         for i, driver in enumerate(self.drivers):
-            login_button = driver.find_element(By.XPATH, "//button[text()='login']")
-            login_button.click()
-            time.sleep(1)
-            
-            original_tab = driver.current_window_handle
-            self.switch_to_last_tab(driver)
-            
-            # We are in the II login Page
-            use_existing_button = driver.find_element(By.ID, "loginButton")
-            use_existing_button.click()      
-                        
-            input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
-            identity_anchor = 10000 + i
-            input_field.send_keys(str(identity_anchor))
+            if i in who:
+                login_button = driver.find_element(By.XPATH, "//button[text()='login']")
+                login_button.click()
+                time.sleep(1)
+                
+                original_tab = driver.current_window_handle
+                self.switch_to_last_tab(driver)
+                
+                # We are in the II login Page
+                use_existing_button = driver.find_element(By.ID, "loginButton")
+                use_existing_button.click()      
+                
 
-            continue_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
-            )
-            continue_button.click()
+                if self.first_time_test_run:
+                    self.create_identity(driver)
+                else:
+                    input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
+                    identity_anchor = 10000 + i
+                    input_field.send_keys(str(identity_anchor))
 
-            self.switch_back_to_original_tab(driver, original_tab)
+                    continue_button = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
+                    )
+                    continue_button.click()
+
+                self.switch_back_to_original_tab(driver, original_tab)
+            
+            
+            
 
     def logout_all(self):
         for driver in self.drivers:
             logout_button = driver.find_element(By.XPATH, "//button[contains(text(), 'logout')]")
             logout_button.click()
 
-    def register_user(self):
+    def register_user(self, who):
         for i, driver in enumerate(self.drivers):
-            nick_input_field = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
-            )
-            nick_input_field.send_keys(nicknames[i])
-            self.click_button_by_text(driver, 'register')
+            if i in who:
+                nick_input_field = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
+                )
+                nick_input_field.send_keys(nicknames[i])
+                self.click_button_by_text(driver, 'register')
+                
 
     def read_balances(self):
         print('Entering readBalances')
@@ -234,8 +265,79 @@ class Test:
 
         self.click_button_by_text(self.testator, 'Save and Activate')
 
+            
+            
+    def create_identity(self, driver):
+        # wait = WebDriverWait(driver, 10)
+        # more_options_button = wait.until(EC.element_to_be_clickable((
+        #     By.XPATH, "//button[@data-role='more-options' and contains(text(), 'More options')]"
+        # )))
+        # more_options_button.click()
+        
+        wait = WebDriverWait(driver, 10)
+        register_button = wait.until(EC.element_to_be_clickable((By.ID, "registerButton")))
+        register_button.click()    
+        
+        # print_elements(driver)
+
         
         
+        wait = WebDriverWait(driver, 10)
+        # passkey_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Create Passkey')]")))
+        self.click_button_by_text(driver, 'Create Passkey')
+        # passkey_button = wait.until(EC.element_to_be_clickable((
+        #     By.XPATH, "//button[@data-action='construct-identity' and contains(text(), 'Create Passkey')]"
+        # )))
+    #     create_passkey_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Create Passkey')]")))
+
+
+    #    <button data-action="construct-identity" class="c-button l-stack">
+    #       <!--?lit$979677746$-->Create Passkey
+    #     </button>
+            
+        # passkey_button.click()
+        
+        wait = WebDriverWait(driver, 10)
+        captcha_input = wait.until(EC.element_to_be_clickable((By.ID, "captchaInput")))
+        captcha_input.send_keys('a')    
+        
+        wait = WebDriverWait(driver, 10)
+        confirm_register_button = wait.until(EC.element_to_be_clickable((By.ID, "confirmRegisterButton")))
+        confirm_register_button.click()    
+            
+        wait = WebDriverWait(driver, 10)
+        continue_button = wait.until(EC.element_to_be_clickable((By.ID, "displayUserContinue")))
+        continue_button.click()    
+                
+    def feedTestator(self):
+
+        # feed the testator
+        # print_elements(self.testator)
+        # grab the principal to feed
+        
+        # Wait for the element that contains "Principal:" to be present
+        wait = WebDriverWait(self.testator, 10)
+        principal_element = wait.until(EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Principal:')]")))
+
+        # Extract the full text and get the value after "Principal:"
+        principal_text = principal_element.text
+        principal_value = principal_text.split("Principal:")[1].strip()
+
+        # Print the extracted principal value
+        print("Principal value:", principal_value)                
+        
+        subprocess.call(["./feed_local.sh", principal_value])
+            
+        self.refresh_all()
+
+        self.register_user((0,1,2))
+            
+                    
+                                    
+        time.sleep(20)
+                
+            
+            
 
 
 
