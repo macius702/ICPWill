@@ -41,12 +41,12 @@ set -eu
 echo "===========SETUP========="
 if [ "$MODE" = "local" ]; then
   if [ "$CLEAN" == "--clean" ]; then
-    dfx start --background --clean
+    dfx start --background --clean --host "$DFX_HOST:$DFX_PORT"
   else
-    dfx start --background
+    dfx start --background --host "$DFX_HOST:$DFX_PORT"
   fi
 else
-  dfx start --background
+  dfx start --background --host "$DFX_HOST:$DFX_PORT"
 fi
 
 sleep 5

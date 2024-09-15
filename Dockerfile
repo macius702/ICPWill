@@ -3,6 +3,8 @@
 # docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t my_dfx_rust_npm_image .
 # docker run -it -v $PWD:/app -p 4943:4943 my_dfx_rust_npm_image
 
+# https://github.com/cryptoisgood/wdfx/blob/master/docker/Dockerfile   try it ?
+
 # Wybór obrazu bazowego Ubuntu
 FROM ubuntu:20.04
 
@@ -60,6 +62,10 @@ RUN npm install -g npm@10.8.3  # Update npm to the latest version
 ENV DFXVM_INIT_YES=true
 RUN curl -o- https://internetcomputer.org/install.sh | bash
 ENV PATH="/home/developer/bin:${PATH}"
+
+# Ustawienie zmiennych środowiskowych DFX
+ENV DFX_HOST=0.0.0.0
+ENV DFX_PORT=4943
 
 # Ustawienie katalogu roboczego
 WORKDIR /app
