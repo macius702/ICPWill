@@ -55,23 +55,33 @@ def run():
         t.login_all((0,))
         try:
             t.register_user((0,))
+            time.sleep(5)
+            
         except TimeoutException as e:
             print(f"Caught exception: {e}")
             print(f"Exception type: {type(e)}")            
             t.first_time_test_run = True
+            time.sleep(5)
+            
                 
         # except TimeoutException:
         #     t.first_time_test_run = True
             
 
     if mode_is_local:
-        t.login_all((0,1,2))
+        if t.first_time_test_run:
+            t.login_all((0,1,2))
+        else:
+            t.login_all((1,2))
     else:
         # manual login
         input("Press Enter to continue...")
 
-    t.register_user((0,1,2))
-    
+    if t.first_time_test_run:
+        t.register_user((0,1,2))
+    else:
+        t.register_user((1,2))
+        
     if t.first_time_test_run:
         t.feedTestator()
 
