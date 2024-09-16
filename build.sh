@@ -26,6 +26,11 @@ else
 fi
 
 
+DFX_HOST=${DFX_HOST:-127.0.0.1}
+DFX_PORT=${DFX_PORT:-4943}
+
+
+
 # Run dfx stop in the background
 dfx stop &
 # Get the PID of the last background command
