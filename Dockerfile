@@ -28,6 +28,12 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Google Chrome
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    sh -c 'echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" \
+    >> /etc/apt/sources.list.d/google-chrome.list' && \
+    apt-get update && apt-get install -y google-chrome-stable
+
 # Install Python packages (ensure Selenium is 4.6.0 or newer)
 RUN pip3 install selenium>=4.6.0 colorama screeninfo
 
@@ -70,18 +76,6 @@ ENV PATH="/home/developer/bin:${PATH}"
 # Set DFX environment variables
 ENV DFX_HOST=0.0.0.0
 ENV DFX_PORT=4943
-
-# Switch to root user to install Google Chrome
-USER root
-
-# Install Google Chrome
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" \
-    >> /etc/apt/sources.list.d/google-chrome.list' && \
-    apt-get update && apt-get install -y google-chrome-stable
-
-# Switch back to 'developer' user
-USER developer
 
 # Set working directory
 WORKDIR /app
