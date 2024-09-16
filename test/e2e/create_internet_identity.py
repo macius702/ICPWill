@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
+import sys
 
 def run():
     driver = create_driver()
@@ -25,12 +26,24 @@ def run():
     # Click the button
     button.click()
     
-    print_elements(driver)
-    # print(driver.page_source)  # Print the HTML content of the page.
+    print_elements(driver, file_path='elements.txt')
+    with open('page01.html', 'w', encoding='utf-8') as f:
+        f.write(driver.page_source)    
+    
+    use_existing_button = driver.find_element(By.ID, "registerButton")
+    use_existing_button.click()      
+    
+    # Wait until the button is clickable and then click it
+    button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-action='construct-identity']"))
+    )
+    button.click()    
     
     
-    # use_existing_button = driver.find_element(By.ID, "loginButton")
-    # use_existing_button.click()      
+    
+
+    with open('page02.html', 'w', encoding='utf-8') as f:
+        f.write(driver.page_source)    
 
 
 def get_xpath(element: WebElement) -> str:
@@ -48,13 +61,15 @@ def get_xpath(element: WebElement) -> str:
     return f"{xpath}/{tag}[{index}]"
 
 
-def print_elements(driver):
+
+
+def print_elements(driver, file_path=None):
     elements = driver.find_elements(By.XPATH, "//*")  # This will get all elements
-    for element in elements:
+
+    def print_element_details(element, output_file):
         try:
             # Get XPath for the element
             xpath = get_xpath(element)
-
             # Get element tag name, ID, class, and text content
             tag_name = element.tag_name
             element_id = element.get_attribute("id")
@@ -62,18 +77,25 @@ def print_elements(driver):
             element_text = element.text
             element_placeholder = element.get_attribute("placeholder")  # Get the placeholder attribute
 
-
             # Print the details
-            print(f"Element XPath: {xpath}")
-            print(f"Tag Name: {tag_name}")
-            print(f"ID: {element_id}")
-            print(f"Class: {element_class}")
-            print(f"Text: {element_text}")
-            print(f"Placeholder: {element_placeholder}")  # Print the placeholder
-            print("-" * 50)
-
+            print(f"Element XPath: {xpath}", file=output_file)
+            print(f"Tag Name: {tag_name}", file=output_file)
+            print(f"ID: {element_id}", file=output_file)
+            print(f"Class: {element_class}", file=output_file)
+            print(f"Text: {element_text}", file=output_file)
+            print(f"Placeholder: {element_placeholder}", file=output_file)  # Print the placeholder
+            print("-" * 50, file=output_file)
         except Exception as e:
-            print(f"Error retrieving element details: {e}")
+            print(f"Error retrieving element details: {e}", file=output_file)
+
+    output_file = sys.stdout  # Default to standard output
+    if file_path:
+        with open(file_path, 'w', encoding='utf-8') as output_file:
+            for element in elements:
+                print_element_details(element, output_file)
+    else:
+        for element in elements:
+            print_element_details(element, output_file)
 
     
 def create_driver():
