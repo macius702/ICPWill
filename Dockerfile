@@ -5,13 +5,14 @@
 
 # https://github.com/cryptoisgood/wdfx/blob/master/docker/Dockerfile   try it ?
 
-# Wybór obrazu bazowego Ubuntu
+
+# Use Ubuntu 20.04 as the base image
 FROM ubuntu:20.04
 
-# Ustawienie zmiennych środowiskowych
+# Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Aktualizacja systemu i instalacja zależności
+# Update system and install dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     libunwind8 \
@@ -23,52 +24,67 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     python3 python3-pip \
+    wget \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install selenium colorama screeninfo
+# Install Python packages (ensure Selenium is 4.6.0 or newer)
+RUN pip3 install selenium>=4.6.0 colorama screeninfo
 
-# Dodanie użytkownika 'developer' o tym samym UID i GID co użytkownik na hoście
+# Add 'developer' user with the same UID and GID as the host user
 ARG USER_ID
 ARG GROUP_ID
 RUN groupadd -g ${GROUP_ID} developer && \
     useradd -u ${USER_ID} -g developer -ms /bin/bash developer
 
-# Instalacja Rust jako użytkownik 'developer'
+# Switch to 'developer' user
 USER developer
 WORKDIR /home/developer
 
+# Install Rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && . "$HOME/.cargo/env" \
     && rustup target add wasm32-unknown-unknown
 ENV PATH="/home/developer/.cargo/bin:${PATH}"
 
-# Instalacja nvm (Node Version Manager) jako użytkownik 'developer'
-USER developer
+# Install nvm (Node Version Manager)
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash \
     && export NVM_DIR="$HOME/.nvm" \
     && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" \
     && nvm install 20.9.0 \
     && nvm use 20.9.0
 
-# Dodajemy nvm do ścieżki
+# Add nvm to PATH
 ENV NVM_DIR="/home/developer/.nvm"
 ENV NODE_VERSION="20.9.0"
 ENV PATH="$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH"
 
-# Instalacja najnowszej wersji npm
-RUN npm install -g npm@10.8.3  # Update npm to the latest version
+# Install latest npm
+RUN npm install -g npm@10.8.3
 
-# Instalacja DFX SDK jako użytkownik 'developer'
+# Install DFX SDK
 ENV DFXVM_INIT_YES=true
 RUN curl -o- https://internetcomputer.org/install.sh | bash
 ENV PATH="/home/developer/bin:${PATH}"
 
-# Ustawienie zmiennych środowiskowych DFX
+# Set DFX environment variables
 ENV DFX_HOST=0.0.0.0
 ENV DFX_PORT=4943
 
-# Ustawienie katalogu roboczego
+# Switch to root user to install Google Chrome
+USER root
+
+# Install Google Chrome
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    sh -c 'echo "deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main" \
+    >> /etc/apt/sources.list.d/google-chrome.list' && \
+    apt-get update && apt-get install -y google-chrome-stable
+
+# Switch back to 'developer' user
+USER developer
+
+# Set working directory
 WORKDIR /app
 
-# Komenda domyślna
+# Default command
 CMD [ "bash" ]
