@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 import sys
+import time
 
 def run():
     driver = create_driver()
@@ -39,8 +40,44 @@ def run():
     )
     button.click()    
     
+
+    # Wait until the input field is visible
+    try:
+        input_field = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.ID, 'captchaInput'))
+        )
+        # Clear the field if necessary
+        input_field.clear()
+        # Enter 'a' into the input field
+        input_field.send_keys('a')
+    except TimeoutException:
+        print("Input field not found or not visible on the page.")
     
+    # time.sleep(10)
     
+    try:
+        # Wait until the button is clickable
+        button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, 'confirmRegisterButton'))
+        )
+        # Click the button
+        button.click()
+    except TimeoutException:
+        print("Button with id 'confirmRegisterButton' not found or not clickable.")    
+        
+
+    try:
+        # Wait until the button is clickable
+        button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, 'displayUserContinue'))
+        )
+        # # Click the button
+        # button.click()
+    except TimeoutException:
+        print("Button with id 'displayUserContinue' not found or not clickable.")
+            
+
+    # time.sleep(10)
 
     with open('page02.html', 'w', encoding='utf-8') as f:
         f.write(driver.page_source)    
