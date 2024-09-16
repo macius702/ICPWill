@@ -15,72 +15,63 @@ def run():
     driver = create_driver()
     url = "http://br5f7-7uaaa-aaaaa-qaaca-cai.localhost:4943/#authorize"
     driver.get(url)
-    
-    # We are in the II login Page
 
-
-    # Locate the button using XPath and its text content
-    button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//button[normalize-space()='Home']"))
-    )
-
-    # Click the button
-    button.click()
-    
-    print_elements(driver, file_path='elements.txt')
-    with open('page01.html', 'w', encoding='utf-8') as f:
-        f.write(driver.page_source)    
-    
-    use_existing_button = driver.find_element(By.ID, "registerButton")
-    use_existing_button.click()      
-    
-    # Wait until the button is clickable and then click it
-    button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-action='construct-identity']"))
-    )
-    button.click()    
-    
-
-    # Wait until the input field is visible
     try:
-        input_field = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.ID, 'captchaInput'))
+        # Click the "Home" button
+        click_element(driver, By.XPATH, "//button[normalize-space()='Home']")
+
+        # Save elements and page source
+        print_elements(driver, file_path='elements.txt')
+        save_page_source(driver, 'page01.html')
+
+        # Click the "Register" button
+        click_element(driver, By.ID, "registerButton")
+
+        # Click the "Construct Identity" button
+        click_element(driver, By.CSS_SELECTOR, "button[data-action='construct-identity']")
+
+        # Input 'a' into the captcha input field
+        input_text(driver, By.ID, 'captchaInput', 'a')
+
+        # Click the "Confirm Register" button
+        click_element(driver, By.ID, 'confirmRegisterButton')
+
+        # Click the "Display User Continue" button
+        click_element(driver, By.ID, 'displayUserContinue')
+
+        # Save page source
+        save_page_source(driver, 'page02.html')
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        driver.quit()
+
+
+def click_element(driver, by_method, locator, timeout=10):
+    try:
+        element = WebDriverWait(driver, timeout).until(
+            EC.element_to_be_clickable((by_method, locator))
         )
-        # Clear the field if necessary
+        element.click()
+    except TimeoutException:
+        print(f"Element with locator '{locator}' not found or not clickable.")
+
+
+def input_text(driver, by_method, locator, text, timeout=10):
+    try:
+        input_field = WebDriverWait(driver, timeout).until(
+            EC.visibility_of_element_located((by_method, locator))
+        )
         input_field.clear()
-        # Enter 'a' into the input field
-        input_field.send_keys('a')
+        input_field.send_keys(text)
     except TimeoutException:
-        print("Input field not found or not visible on the page.")
-    
-    # time.sleep(10)
-    
-    try:
-        # Wait until the button is clickable
-        button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, 'confirmRegisterButton'))
-        )
-        # Click the button
-        button.click()
-    except TimeoutException:
-        print("Button with id 'confirmRegisterButton' not found or not clickable.")    
-        
+        print(f"Input field with locator '{locator}' not found or not visible.")
 
-    try:
-        # Wait until the button is clickable
-        button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, 'displayUserContinue'))
-        )
-        # # Click the button
-        # button.click()
-    except TimeoutException:
-        print("Button with id 'displayUserContinue' not found or not clickable.")
-            
 
-    # time.sleep(10)
-
-    with open('page02.html', 'w', encoding='utf-8') as f:
-        f.write(driver.page_source)    
+def save_page_source(driver, filename):
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(driver.page_source)
 
 
 def get_xpath(element: WebElement) -> str:
