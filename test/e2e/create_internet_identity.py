@@ -14,6 +14,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 import sys
 import time
+import subprocess
 
 def create_with_feed():
     driver = create_driver()
@@ -93,6 +94,11 @@ def create_with_feed():
     save_page_source(driver, 'page10d.html')
 
     print("Principal Value:", principal_value)    
+    
+    subprocess.call(["./feed_local.sh", principal_value])
+    
+    print('DONE.')
+    
         
     
     
