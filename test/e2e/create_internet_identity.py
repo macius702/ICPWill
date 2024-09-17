@@ -16,6 +16,9 @@ import sys
 import time
 import subprocess
 
+TIMEOUT_MULTIPLIER = 1
+
+
 def create_with_feed():
     driver = create_driver()
     url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
@@ -25,31 +28,28 @@ def create_with_feed():
     
     click_element(driver, By.XPATH, "//button[text()='login']")
     
-    time.sleep(10)
-    time.sleep(1)
+    time.sleep(1 * TIMEOUT_MULTIPLIER)
     
     original_tab = driver.current_window_handle
     driver.switch_to.window(driver.window_handles[-1])
-    time.sleep(5)
+
 
     save_page_source(driver, 'page035.html')
     
     register_button = driver.find_element(By.ID, "registerButton")
     register_button.click()    
-    time.sleep(5)
     save_page_source(driver, 'page04c.html')
     
     create_passkey_button = driver.find_element(By.CSS_SELECTOR, "button[data-action='construct-identity']")
     create_passkey_button.click()
 
-    time.sleep(5)
+    time.sleep(5 * TIMEOUT_MULTIPLIER)
     save_page_source(driver, 'page05c.html')
     
     
     captcha_input = driver.find_element(By.ID, "captchaInput")
     captcha_input.click()
     captcha_input.send_keys('a' + Keys.ENTER)
-    time.sleep(5)
     save_page_source(driver, 'page06c.html')
     
 
@@ -60,7 +60,6 @@ def create_with_feed():
     driver.switch_to.window(original_tab)
 
     
-    time.sleep(15)
     save_page_source(driver, 'page07d.html')
 
     input_field = driver.find_element(By.CSS_SELECTOR, "input[placeholder='nick']")
@@ -69,20 +68,17 @@ def create_with_feed():
 
     input_field.send_keys("ExampleNickname")
 
-    time.sleep(5)
     save_page_source(driver, 'page08d.html')
     
     
     register_button = driver.find_element(By.XPATH, "//button[contains(text(), 'register')]")
     register_button.click()    
-    time.sleep(5)
     save_page_source(driver, 'page09d.html')
     
     
     principal_paragraph = driver.find_element(By.XPATH, "//p[contains(text(), 'Principal:')]")
     principal_text = principal_paragraph.text
     principal_value = principal_text.split(': ')[1]  
-    time.sleep(5)
     save_page_source(driver, 'page10d.html')
 
     print("Principal Value:", principal_value)    
@@ -117,8 +113,8 @@ def save_page_source(driver, filename):
     print("All window handles:", driver.window_handles)
     print("Current windw handle: ", driver.current_window_handle)
     print(f'Saving page source to {filename}')
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(driver.page_source)
+    # with open(filename, 'w', encoding='utf-8') as f:
+    #     f.write(driver.page_source)
 
 
 def get_xpath(element: WebElement) -> str:
@@ -181,6 +177,13 @@ def create_driver():
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('window-size=1920x1080')
     driver = webdriver.Chrome(options=options)
+
+   
+    driver.implicitly_wait(5 * TIMEOUT_MULTIPLIER)  # Wait for up to  seconds for elements to appear
+    print("Implicit Wait:", driver.timeouts.implicit_wait)
+    print("Page Load Timeout:", driver.timeouts.page_load)
+    print("Script Timeout:", driver.timeouts.script)
+
     return driver
 
 if __name__=="__main__":
