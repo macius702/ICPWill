@@ -1,7 +1,7 @@
 # docker:
 #  po clone
 # docker build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) -t my_dfx_rust_npm_image .
-# docker run -it -v $PWD:/app -p 4943:4943 my_dfx_rust_npm_image
+# docker run --rm -it -v $PWD:/app -p 4943:4943 --name will_in_docker my_dfx_rust_npm_image
 
 # https://github.com/cryptoisgood/wdfx/blob/master/docker/Dockerfile   try it ?
 
