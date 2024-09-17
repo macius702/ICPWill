@@ -175,11 +175,12 @@ def print_elements(driver, file_path=None):
     
 def create_driver():
     options = Options()
-    options.add_argument('--headless')  # Enable headless mode
+    options.add_argument('--headless')  
     options.add_argument('--no-sandbox')
+    options.add_argument("--disable-gpu")
     options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('window-size=1920x1080')  # Set window size (optional but recommended)
-    driver = webdriver.Chrome(options=options)  # Pass options to the driver
+    options.add_argument('window-size=1920x1080')
+    driver = webdriver.Chrome(options=options)
     return driver
 
 if __name__=="__main__":
