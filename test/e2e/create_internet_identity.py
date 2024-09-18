@@ -19,7 +19,7 @@ import subprocess
 TIMEOUT_MULTIPLIER = 1
 
 
-def create_with_feed():
+def create__internet_identity(with_icp_feed = False):
     driver = create_driver()
     url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
     driver.get(url)
@@ -83,7 +83,8 @@ def create_with_feed():
 
     print("Principal Value:", principal_value)    
     
-    subprocess.call(["./feed_local.sh", principal_value])
+    if with_icp_feed:
+        subprocess.call(["./feed_local.sh", principal_value])
     
     print('DONE.')
         
@@ -187,4 +188,6 @@ def create_driver():
     return driver
 
 if __name__=="__main__":
-    create_with_feed()
+    create__internet_identity(with_icp_feed = True)
+    create__internet_identity()
+    create__internet_identity()
