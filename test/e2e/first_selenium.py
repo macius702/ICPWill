@@ -18,7 +18,7 @@ import os
 import subprocess
 from colorama import Fore, Style
 
-from utils import get_all_monitors_resolution, create_driver
+from utils import get_all_monitors_resolution, create_driver, TIMEOUT_MULTIPLIER
 
 TIMEOUT_MULTIPLIER = 1
 

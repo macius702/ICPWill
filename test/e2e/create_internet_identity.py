@@ -13,9 +13,9 @@ import sys
 import time
 import subprocess
 
-from utils import create_driver
+from utils import create_driver, TIMEOUT_MULTIPLIER
 
-TIMEOUT_MULTIPLIER = 1
+
 
 
 def create__internet_identity(with_icp_feed = False):

@@ -3,6 +3,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.chrome.options import Options
 import os
 
+TIMEOUT_MULTIPLIER = 1
 
 def create_driver():
     if 'ICPWILL_CHROME_HEADLESS_TESTING' in os.environ:
