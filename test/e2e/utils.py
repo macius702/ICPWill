@@ -94,6 +94,7 @@ def click_element(driver, by_method, locator, timeout=10):
             EC.element_to_be_clickable((by_method, locator))
         )
         element.click()
+        return element
     except TimeoutException:
         print(f"Element with locator '{locator}' not found or not clickable.")
 

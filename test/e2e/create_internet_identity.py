@@ -36,25 +36,22 @@ def create__internet_identity(with_icp_feed = False):
 
     save_page_source(driver, 'page035.html')
     
-    register_button = driver.find_element(By.ID, "registerButton")
-    register_button.click()    
+    register_button = click_element(driver, By.ID, "registerButton")
     save_page_source(driver, 'page04c.html')
     
-    create_passkey_button = driver.find_element(By.CSS_SELECTOR, "button[data-action='construct-identity']")
-    create_passkey_button.click()
+    create_passkey_button = click_element(driver, By.CSS_SELECTOR, "button[data-action='construct-identity']")
 
     time.sleep(5 * TIMEOUT_MULTIPLIER)
     save_page_source(driver, 'page05c.html')
-    
-    
-    captcha_input = driver.find_element(By.ID, "captchaInput")
-    captcha_input.click()
+
+
+    captcha_input = click_element(driver, By.ID, "captchaInput")
     captcha_input.send_keys('a' + Keys.ENTER)
     save_page_source(driver, 'page06c.html')
-    
 
-    continue_button = driver.find_element(By.ID, "displayUserContinue")
-    continue_button.click()
+
+    continue_button = click_element(driver, By.ID, "displayUserContinue")
+
 
 
     driver.switch_to.window(original_tab)
@@ -62,21 +59,16 @@ def create__internet_identity(with_icp_feed = False):
     
     save_page_source(driver, 'page07d.html')
 
-    input_field = driver.find_element(By.CSS_SELECTOR, "input[placeholder='nick']")
-    input_field.click()
-
-
+    input_field = click_element(driver, By.CSS_SELECTOR, "input[placeholder='nick']")
     input_field.send_keys("ExampleNickname")
-
     save_page_source(driver, 'page08d.html')
     
     
-    register_button = driver.find_element(By.XPATH, "//button[contains(text(), 'register')]")
-    register_button.click()    
+    register_button = click_element(driver, By.XPATH, "//button[contains(text(), 'register')]")
     save_page_source(driver, 'page09d.html')
     
     
-    principal_paragraph = driver.find_element(By.XPATH, "//p[contains(text(), 'Principal:')]")
+    principal_paragraph = click_element(driver, By.XPATH, "//p[contains(text(), 'Principal:')]")
     principal_text = principal_paragraph.text
     principal_value = principal_text.split(': ')[1]  
     save_page_source(driver, 'page10d.html')
