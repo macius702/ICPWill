@@ -13,6 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 import sys
+import os
 import time
 import subprocess
 
@@ -171,15 +172,20 @@ def print_elements(driver, file_path=None):
 
     
 def create_driver():
-    options = Options()
-    options.add_argument('--headless')  
-    options.add_argument('--no-sandbox')
-    options.add_argument("--disable-gpu")
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('window-size=1920x1080')
-    driver = webdriver.Chrome(options=options)
+    if 'ICPWILL_CHROME_HEADLESS_TESTING' in os.environ:
+        options = Options()
+        options.add_argument('--headless')  
+        options.add_argument('--no-sandbox')
+        options.add_argument("--disable-gpu")
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('window-size=1920x1080')
+    else:
+        options = Options()
+        # options.add_argument('--headless')
+        # options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options)
 
-   
     driver.implicitly_wait(5 * TIMEOUT_MULTIPLIER)  # Wait for up to  seconds for elements to appear
     print("Implicit Wait:", driver.timeouts.implicit_wait)
     print("Page Load Timeout:", driver.timeouts.page_load)

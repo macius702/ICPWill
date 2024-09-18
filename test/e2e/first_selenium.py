@@ -14,6 +14,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 # ./venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --driver=chromedriver
 
 import time
+import os
 import subprocess
 from colorama import Fore, Style
 
@@ -397,14 +398,19 @@ def print_elements(driver):
             print(f"Error retrieving element details: {e}")
 
 def create_driver():
-    options = Options()
-    # options.add_argument('--headless')
-    # options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-
-
-    
-    driver = webdriver.Chrome()    
+    if 'ICPWILL_CHROME_HEADLESS_TESTING' in os.environ:
+        options = Options()
+        options.add_argument('--headless')  
+        options.add_argument('--no-sandbox')
+        options.add_argument("--disable-gpu")
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('window-size=1920x1080')
+    else:
+        options = Options()
+        # options.add_argument('--headless')
+        # options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options)
 
     print("Implicit Wait:", driver.timeouts.implicit_wait)
     print("Page Load Timeout:", driver.timeouts.page_load)

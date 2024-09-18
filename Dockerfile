@@ -79,7 +79,7 @@ ENV PATH="/home/developer/bin:${PATH}"
 # Set DFX environment variables
 ENV DFX_HOST=0.0.0.0
 ENV DFX_PORT=4943
-ENV CHROME_HEADLESS_TESTS=1
+ENV ICPWILL_CHROME_HEADLESS_TESTING=1
 
 # Set working directory
 WORKDIR /app
