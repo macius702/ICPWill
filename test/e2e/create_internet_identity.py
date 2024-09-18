@@ -2,10 +2,7 @@
 #  python3 test/e2e/create_internet_identity.py 
 
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,9 +10,10 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 import sys
-import os
 import time
 import subprocess
+
+from utils import create_driver
 
 TIMEOUT_MULTIPLIER = 1
 
@@ -118,80 +116,7 @@ def save_page_source(driver, filename):
     # with open(filename, 'w', encoding='utf-8') as f:
     #     f.write(driver.page_source)
 
-
-def get_xpath(element: WebElement) -> str:
-    tag = element.tag_name
-    if tag == "html":
-        return "/html"
-    parent = element.find_element(By.XPATH, "..")
-    siblings = parent.find_elements(By.XPATH, f"./{tag}")
-    index = 1
-    for i, sibling in enumerate(siblings):
-        if sibling == element:
-            index = i + 1
-            break
-    xpath = get_xpath(parent)
-    return f"{xpath}/{tag}[{index}]"
-
-
-
-
-def print_elements(driver, file_path=None):
-    elements = driver.find_elements(By.XPATH, "//*")  # This will get all elements
-
-    def print_element_details(element, output_file):
-        try:
-            # Get XPath for the element
-            xpath = get_xpath(element)
-            # Get element tag name, ID, class, and text content
-            tag_name = element.tag_name
-            element_id = element.get_attribute("id")
-            element_class = element.get_attribute("class")
-            element_text = element.text
-            element_placeholder = element.get_attribute("placeholder")  # Get the placeholder attribute
-
-            # Print the details
-            print(f"Element XPath: {xpath}", file=output_file)
-            print(f"Tag Name: {tag_name}", file=output_file)
-            print(f"ID: {element_id}", file=output_file)
-            print(f"Class: {element_class}", file=output_file)
-            print(f"Text: {element_text}", file=output_file)
-            print(f"Placeholder: {element_placeholder}", file=output_file)  # Print the placeholder
-            print("-" * 50, file=output_file)
-        except Exception as e:
-            print(f"Error retrieving element details: {e}", file=output_file)
-
-    output_file = sys.stdout  # Default to standard output
-    if file_path:
-        with open(file_path, 'w', encoding='utf-8') as output_file:
-            for element in elements:
-                print_element_details(element, output_file)
-    else:
-        for element in elements:
-            print_element_details(element, output_file)
-
     
-def create_driver():
-    if 'ICPWILL_CHROME_HEADLESS_TESTING' in os.environ:
-        options = Options()
-        options.add_argument('--headless')  
-        options.add_argument('--no-sandbox')
-        options.add_argument("--disable-gpu")
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('window-size=1920x1080')
-    else:
-        options = Options()
-        # options.add_argument('--headless')
-        # options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options)
-
-    driver.implicitly_wait(5 * TIMEOUT_MULTIPLIER)  # Wait for up to  seconds for elements to appear
-    print("Implicit Wait:", driver.timeouts.implicit_wait)
-    print("Page Load Timeout:", driver.timeouts.page_load)
-    print("Script Timeout:", driver.timeouts.script)
-
-    return driver
 
 if __name__=="__main__":
     create__internet_identity(with_icp_feed = True)

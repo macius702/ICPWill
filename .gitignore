@@ -26,3 +26,4 @@ dist/
 
 # Python virtual env
 venv/
+*.pyc
