@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y \
     python3 python3-pip \
     wget \
     unzip \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Google Chrome
@@ -41,7 +42,9 @@ RUN pip3 install selenium>=4.6.0 colorama screeninfo
 ARG USER_ID
 ARG GROUP_ID
 RUN groupadd -g ${GROUP_ID} developer && \
-    useradd -u ${USER_ID} -g developer -ms /bin/bash developer
+    useradd -u ${USER_ID} -g developer -G sudo -ms /bin/bash developer && \
+    echo 'developer ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer
 
 # Switch to 'developer' user
 USER developer
