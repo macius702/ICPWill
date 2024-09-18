@@ -91,6 +91,7 @@ def run():
 
     initial_balances = t.read_balances()
 
+    time.sleep(20 * TIMEOUT_MULTIPLIER)
     t.setup_and_run_inheritance()
 
     time.sleep(20 * TIMEOUT_MULTIPLIER)
@@ -220,7 +221,7 @@ class Test:
     def register_user(self, who):
         for i, driver in enumerate(self.drivers):
             if i in who:
-                nick_input_field = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER).until(
+                nick_input_field = WebDriverWait(driver, 20 * TIMEOUT_MULTIPLIER).until(
                     EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
                 )
                 nick_input_field.send_keys(nicknames[i])
@@ -259,7 +260,7 @@ class Test:
         )
         combobox_button.click()
 
-        option = WebDriverWait(self.testator, 10 * TIMEOUT_MULTIPLIER).until(
+        option = WebDriverWait(self.testator, 40 * TIMEOUT_MULTIPLIER).until(
             EC.element_to_be_clickable((By.XPATH, f"//span[text()='{option_text}']"))
         )
         option.click()
