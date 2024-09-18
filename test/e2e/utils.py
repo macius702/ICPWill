@@ -1,6 +1,10 @@
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 import os
 
 TIMEOUT_MULTIPLIER = 1
@@ -73,6 +77,36 @@ def print_elements(driver):
 
         except Exception as e:
             print(f"Error retrieving element details: {e}")
+
+
+def save_page_source(driver, filename):
+    print("All window handles:", driver.window_handles)
+    print("Current windw handle: ", driver.current_window_handle)
+    print(f'Saving page source to {filename}')
+    # with open(filename, 'w', encoding='utf-8') as f:
+    #     f.write(driver.page_source)
+
+    
+
+def click_element(driver, by_method, locator, timeout=10):
+    try:
+        element = WebDriverWait(driver, timeout).until(
+            EC.element_to_be_clickable((by_method, locator))
+        )
+        element.click()
+    except TimeoutException:
+        print(f"Element with locator '{locator}' not found or not clickable.")
+
+
+def input_text(driver, by_method, locator, text, timeout=10):
+    try:
+        input_field = WebDriverWait(driver, timeout).until(
+            EC.visibility_of_element_located((by_method, locator))
+        )
+        input_field.clear()
+        input_field.send_keys(text)
+    except TimeoutException:
+        print(f"Input field with locator '{locator}' not found or not visible.")
 
 
 from screeninfo import get_monitors, ScreenInfoError
