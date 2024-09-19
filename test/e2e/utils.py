@@ -87,13 +87,13 @@ def save_page_source(driver, filename):
     #     f.write(driver.page_source)
 
 
-def wait_for_element(driver, by, value, timeout=10):
+def wait_for_element(driver, by, value, timeout=10 * TIMEOUT_MULTIPLIER):
     return WebDriverWait(driver, timeout).until(
         EC.presence_of_element_located((by, value))
     )
 
 
-def click_element(driver, by_method, locator, timeout=10):
+def click_element(driver, by_method, locator, timeout=10 * TIMEOUT_MULTIPLIER):
     try:
         element = WebDriverWait(driver, timeout).until(
             EC.element_to_be_clickable((by_method, locator))
@@ -104,7 +104,7 @@ def click_element(driver, by_method, locator, timeout=10):
         print(f"Element with locator '{locator}' not found or not clickable.")
 
 
-def input_text(driver, by_method, locator, text, timeout=10):
+def input_text(driver, by_method, locator, text, timeout=10 * TIMEOUT_MULTIPLIER):
     try:
         input_field = WebDriverWait(driver, timeout).until(
             EC.visibility_of_element_located((by_method, locator))

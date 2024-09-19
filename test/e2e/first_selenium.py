@@ -10,7 +10,7 @@ import time
 from colorama import Fore, Style
 import os
 
-from utils import click_element, wait_for_element, create_driver, get_all_monitors_resolution
+from utils import click_element, wait_for_element, create_driver, get_all_monitors_resolution, TIMEOUT_MULTIPLIER
 
 mode_is_local = True
 nicknames = ["A1", "B2", "C3"]
@@ -57,7 +57,7 @@ def run():
 
     t.setup_and_run_inheritance()
 
-    time.sleep(10)
+    time.sleep(10 * TIMEOUT_MULTIPLIER)
     t.refresh_all()
 
     t.register_user()
@@ -115,8 +115,8 @@ def run():
     print(Style.RESET_ALL)    
 
     print(Fore.GREEN + 'Test passed' + Style.RESET_ALL)    
-    
-    #time.sleep(600)
+
+
 
 
 
@@ -140,7 +140,7 @@ class Test:
     def login_all(self):
         for i, driver in enumerate(self.drivers):
             login_button = click_element(driver, By.XPATH, "//button[text()='login']")
-            time.sleep(1)
+            time.sleep(1 * TIMEOUT_MULTIPLIER)
             
             original_tab = driver.current_window_handle
             self.switch_to_last_tab(driver)
@@ -169,9 +169,9 @@ class Test:
     def read_balances(self):
         print('Entering readBalances')
         if mode_is_local:
-            time.sleep(10)
+            time.sleep(10 * TIMEOUT_MULTIPLIER)
         else:
-            time.sleep(30)
+            time.sleep(30 * TIMEOUT_MULTIPLIER)
         balances = []
         for driver in self.drivers:
             balance_element = wait_for_element(driver, By.XPATH, "//p[contains(text(), 'Balance:')]")
