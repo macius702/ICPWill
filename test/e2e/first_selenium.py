@@ -15,6 +15,8 @@ import time
 from colorama import Fore, Style
 import os
 
+from utils import click_element
+
 mode_is_local = True
 nicknames = ["A1", "B2", "C3"]
 inheritance = [ 0, 13000, 14000]
@@ -178,7 +180,7 @@ class Test:
                 EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
             )
             nick_input_field.send_keys(nicknames[i])
-            self.click_button_by_text(driver, 'register')
+            click_element(driver, By.XPATH, "//button[text()='register']")
 
     def read_balances(self):
         print('Entering readBalances')
