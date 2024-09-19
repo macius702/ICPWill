@@ -156,10 +156,7 @@ class Test:
             identity_anchor = 10000 + i
             input_field.send_keys(str(identity_anchor))
 
-            continue_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
-            )
-            continue_button.click()
+            click_element(driver, By.XPATH, "//button[@data-action='continue']")
 
             self.switch_back_to_original_tab(driver, original_tab)
 
@@ -203,15 +200,9 @@ class Test:
         self.enter_seconds_and_activate("4")
 
     def select_combobox_option(self, option_text):
-        combobox_button = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[@role='combobox']"))
-        )
-        combobox_button.click()
+        click_element(self.testator, By.XPATH, "//button[@role='combobox']")
 
-        option = WebDriverWait(self.testator, 10).until(
-            EC.element_to_be_clickable((By.XPATH, f"//span[text()='{option_text}']"))
-        )
-        option.click()
+        click_element(self.testator, By.XPATH, f"//span[text()='{option_text}']")
 
     def add_beneficiary_and_enter_icp(self, nick, icp_value):
         click_element(self.testator, By.XPATH, "//button[text()='Add beneficiary']")
