@@ -133,7 +133,7 @@ dfx deploy $PLAYGROUND icp_will_frontend
 
 
 python3 test/e2e/create_internet_identity.py
-# python3 test/e2e/first_selenium.py
+python3 test/e2e/first_selenium.py
 
 echo DONE.
 
