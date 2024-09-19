@@ -139,12 +139,6 @@ class Test:
     def switch_back_to_original_tab(self, driver, original_tab):
         driver.switch_to.window(original_tab)
     
-    def click_button_by_text(self, driver, button_text):
-        button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, f"//button[text()='{button_text}']"))
-        )
-        button.click()
-    
     def login_all(self):
         for i, driver in enumerate(self.drivers):
             login_button = driver.find_element(By.XPATH, "//button[text()='login']")
@@ -220,8 +214,8 @@ class Test:
         option.click()
 
     def add_beneficiary_and_enter_icp(self, nick, icp_value):
-        self.click_button_by_text(self.testator, 'Add beneficiary')
-        
+        click_element(self.testator, By.XPATH, "//button[text()='Add beneficiary']")
+
         row_with_input = WebDriverWait(self.testator, 10).until(EC.presence_of_element_located((By.XPATH, f"//tr[.//input[@value='{nick}']]")))
         icp_input_field = row_with_input.find_element(By.XPATH, ".//input[@placeholder='ICP value']")
         icp_input_field.send_keys(str(icp_value))
@@ -232,10 +226,7 @@ class Test:
         )
         seconds_input_field.send_keys(seconds)
 
-        self.click_button_by_text(self.testator, 'Save and Activate')
-
-        
-        
+        click_element(self.testator, By.XPATH, "//button[text()='Save and Activate']")
 
 
 
