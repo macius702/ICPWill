@@ -21,7 +21,10 @@ def run():
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
 
-    url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
+    if mode_is_local:
+        url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
+    else:
+        url = "https://d627x-vyaaa-aaaan-qmvva-cai.icp0.io/"
 
     screen_width = 1920
     screen_height = 1200
