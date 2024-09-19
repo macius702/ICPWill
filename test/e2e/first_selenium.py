@@ -1,7 +1,6 @@
 
 
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 # using Selenium Manager before running this script:
@@ -11,7 +10,7 @@ import time
 from colorama import Fore, Style
 import os
 
-from utils import click_element, wait_for_element
+from utils import click_element, wait_for_element, create_driver, get_all_monitors_resolution
 
 mode_is_local = True
 nicknames = ["A1", "B2", "C3"]
@@ -209,40 +208,6 @@ class Test:
         seconds_input_field.send_keys(seconds)
 
         click_element(self.testator, By.XPATH, "//button[text()='Save and Activate']")
-
-
-def create_driver():
-    if 'ICPWILL_CHROME_HEADLESS_TESTING' in os.environ:
-        options = Options()
-        options.add_argument('--headless')  
-        options.add_argument('--no-sandbox')
-        options.add_argument("--disable-gpu")
-        options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('window-size=1920x1080')
-    else:
-        options = Options()
-        options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options)
-
-    print("Implicit Wait:", driver.timeouts.implicit_wait)
-    print("Page Load Timeout:", driver.timeouts.page_load)
-    print("Script Timeout:", driver.timeouts.script)
-    
-    driver.implicitly_wait(5)  # Wait for up to  seconds for elements to appear
-    print("Implicit Wait:", driver.timeouts.implicit_wait)
-    print("Page Load Timeout:", driver.timeouts.page_load)
-    print("Script Timeout:", driver.timeouts.script)
-    
-    return driver
-
-from screeninfo import get_monitors, ScreenInfoError
-def get_all_monitors_resolution():
-    try:
-        monitors = get_monitors()
-        for monitor in monitors:
-            print(f"Monitor {monitor.name}: {monitor.width}x{monitor.height}")
-    except ScreenInfoError:
-        print("No monitors found or screen enumeration is not available.")
 
 get_all_monitors_resolution()
 
