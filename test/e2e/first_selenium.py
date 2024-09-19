@@ -137,18 +137,16 @@ class Test:
     
     def login_all(self):
         for i, driver in enumerate(self.drivers):
-            login_button = driver.find_element(By.XPATH, "//button[text()='login']")
-            login_button.click()
+            login_button = click_element(driver, By.XPATH, "//button[text()='login']")
             time.sleep(1)
             
             original_tab = driver.current_window_handle
             self.switch_to_last_tab(driver)
             
             # We are in the II login Page
-            use_existing_button = driver.find_element(By.ID, "loginButton")
-            use_existing_button.click()      
+            use_existing_button = click_element(driver, By.ID, "loginButton")
                         
-            input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
+            input_field = click_element(driver, By.XPATH, "//input[@placeholder='Internet Identity']")
             identity_anchor = 10000 + i
             input_field.send_keys(str(identity_anchor))
 
@@ -158,8 +156,7 @@ class Test:
 
     def logout_all(self):
         for driver in self.drivers:
-            logout_button = driver.find_element(By.XPATH, "//button[contains(text(), 'logout')]")
-            logout_button.click()
+            logout_button = click_element(driver, By.XPATH, "//button[contains(text(), 'logout')]")
 
     def register_user(self):
         for i, driver in enumerate(self.drivers):
