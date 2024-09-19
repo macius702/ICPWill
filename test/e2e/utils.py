@@ -86,7 +86,12 @@ def save_page_source(driver, filename):
     # with open(filename, 'w', encoding='utf-8') as f:
     #     f.write(driver.page_source)
 
-    
+
+def wait_for_element(driver, by, value, timeout=10):
+    return WebDriverWait(driver, timeout).until(
+        EC.presence_of_element_located((by, value))
+    )
+
 
 def click_element(driver, by_method, locator, timeout=10):
     try:

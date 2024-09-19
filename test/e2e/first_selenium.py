@@ -2,11 +2,8 @@
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 # using Selenium Manager before running this script:
 # ./venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --driver=chromedriver
@@ -15,7 +12,7 @@ import time
 from colorama import Fore, Style
 import os
 
-from utils import click_element
+from utils import click_element, wait_for_element
 
 mode_is_local = True
 nicknames = ["A1", "B2", "C3"]
@@ -167,9 +164,7 @@ class Test:
 
     def register_user(self):
         for i, driver in enumerate(self.drivers):
-            nick_input_field = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
-            )
+            nick_input_field = wait_for_element(driver, By.XPATH, "//input[@placeholder='nick']")
             nick_input_field.send_keys(nicknames[i])
             click_element(driver, By.XPATH, "//button[text()='register']")
 
@@ -181,9 +176,7 @@ class Test:
             time.sleep(30)
         balances = []
         for driver in self.drivers:
-            balance_element = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Balance:')]"))
-            )
+            balance_element = wait_for_element(driver, By.XPATH, "//p[contains(text(), 'Balance:')]")
             balance_text = balance_element.text.split(":")[1].strip()
             print(f"Balance: {balance_text}")
             balances.append(int(balance_text))
@@ -206,19 +199,17 @@ class Test:
 
     def add_beneficiary_and_enter_icp(self, nick, icp_value):
         click_element(self.testator, By.XPATH, "//button[text()='Add beneficiary']")
-
-        row_with_input = WebDriverWait(self.testator, 10).until(EC.presence_of_element_located((By.XPATH, f"//tr[.//input[@value='{nick}']]")))
+        row_with_input = wait_for_element(
+            self.testator, By.XPATH, f"//tr[.//input[@value='{nick}']]"
+        )
         icp_input_field = row_with_input.find_element(By.XPATH, ".//input[@placeholder='ICP value']")
         icp_input_field.send_keys(str(icp_value))
 
     def enter_seconds_and_activate(self, seconds):
-        seconds_input_field = WebDriverWait(self.testator, 10).until(
-            EC.presence_of_element_located((By.ID, "seconds"))
-        )
+        seconds_input_field = wait_for_element(self.testator, By.ID, "seconds")
         seconds_input_field.send_keys(seconds)
 
         click_element(self.testator, By.XPATH, "//button[text()='Save and Activate']")
-
 
 
 def get_xpath(element: WebElement) -> str:
