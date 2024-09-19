@@ -7,21 +7,13 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-
 
 # using Selenium Manager before running this script:
 # ./venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --driver=chromedriver
 
 import time
-import os
-import subprocess
 from colorama import Fore, Style
-
-from utils import get_all_monitors_resolution, create_driver, TIMEOUT_MULTIPLIER
-
-TIMEOUT_MULTIPLIER = 1
-
+import os
 
 mode_is_local = True
 nicknames = ["A1", "B2", "C3"]
@@ -31,10 +23,7 @@ def run():
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
 
-    if mode_is_local:
-        url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
-    else:
-        url = "https://d627x-vyaaa-aaaan-qmvva-cai.icp0.io/"
+    url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
 
     screen_width = 1920
     screen_height = 1200
@@ -56,50 +45,22 @@ def run():
 
     # Pass nicknames and inheritance to the Test class instance
     t = Test(drivers, nicknames, inheritance)
-    
-    if mode_is_local:
-        t.login_all((0,))
-        try:
-            t.register_user((0,))
-            time.sleep(5 * TIMEOUT_MULTIPLIER)
-            
-        except TimeoutException as e:
-            print(f"Caught exception: {e}")
-            print(f"Exception type: {type(e)}")            
-            t.first_time_test_run = True
-            time.sleep(5 * TIMEOUT_MULTIPLIER)
-            
-                
-        # except TimeoutException:
-        #     t.first_time_test_run = True
-            
 
     if mode_is_local:
-        if t.first_time_test_run:
-            t.login_all((0,1,2))
-        else:
-            t.login_all((1,2))
+        t.login_all()
     else:
         # manual login
         input("Press Enter to continue...")
 
-    if t.first_time_test_run:
-        t.register_user((0,1,2))
-    else:
-        t.register_user((1,2))
-        
-    if t.first_time_test_run:
-        t.feedTestator()
-
+    t.register_user()
     initial_balances = t.read_balances()
 
-    time.sleep(20 * TIMEOUT_MULTIPLIER)
     t.setup_and_run_inheritance()
 
-    time.sleep(20 * TIMEOUT_MULTIPLIER)
+    time.sleep(10)
     t.refresh_all()
 
-    t.register_user((0,1,2))
+    t.register_user()
 
     final_balances = t.read_balances()
     
@@ -165,7 +126,6 @@ class Test:
         self.testator = self.drivers[0]
         self.nicknames = nicknames
         self.inheritance = inheritance
-        self.first_time_test_run = False
 
     def refresh_all(self):
         for driver in self.drivers:
@@ -178,67 +138,57 @@ class Test:
         driver.switch_to.window(original_tab)
     
     def click_button_by_text(self, driver, button_text):
-        button = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER).until(
+        button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, f"//button[text()='{button_text}']"))
         )
         button.click()
     
-    def login_all(self, who):
+    def login_all(self):
         for i, driver in enumerate(self.drivers):
-            if i in who:
-                login_button = driver.find_element(By.XPATH, "//button[text()='login']")
-                login_button.click()
-                time.sleep(1 * TIMEOUT_MULTIPLIER)
-                
-                original_tab = driver.current_window_handle
-                self.switch_to_last_tab(driver)
-                
-                # We are in the II login Page
-                use_existing_button = driver.find_element(By.ID, "loginButton")
-                use_existing_button.click()      
-                
-
-                if self.first_time_test_run:
-                    self.create_identity(driver)
-                else:
-                    input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
-                    identity_anchor = 10000 + i
-                    input_field.send_keys(str(identity_anchor))
-
-                    continue_button = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER).until(
-                        EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
-                    )
-                    continue_button.click()
-
-                self.switch_back_to_original_tab(driver, original_tab)
+            login_button = driver.find_element(By.XPATH, "//button[text()='login']")
+            login_button.click()
+            time.sleep(1)
             
+            original_tab = driver.current_window_handle
+            self.switch_to_last_tab(driver)
             
-            
+            # We are in the II login Page
+            use_existing_button = driver.find_element(By.ID, "loginButton")
+            use_existing_button.click()      
+                        
+            input_field = driver.find_element(By.XPATH, "//input[@placeholder='Internet Identity']")
+            identity_anchor = 10000 + i
+            input_field.send_keys(str(identity_anchor))
+
+            continue_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[@data-action='continue']"))
+            )
+            continue_button.click()
+
+            self.switch_back_to_original_tab(driver, original_tab)
 
     def logout_all(self):
         for driver in self.drivers:
             logout_button = driver.find_element(By.XPATH, "//button[contains(text(), 'logout')]")
             logout_button.click()
 
-    def register_user(self, who):
+    def register_user(self):
         for i, driver in enumerate(self.drivers):
-            if i in who:
-                nick_input_field = WebDriverWait(driver, 20 * TIMEOUT_MULTIPLIER).until(
-                    EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
-                )
-                nick_input_field.send_keys(nicknames[i])
-                self.click_button_by_text(driver, 'register')
-                
+            nick_input_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@placeholder='nick']"))
+            )
+            nick_input_field.send_keys(nicknames[i])
+            self.click_button_by_text(driver, 'register')
 
     def read_balances(self):
         print('Entering readBalances')
         if mode_is_local:
-            time.sleep(10 * TIMEOUT_MULTIPLIER)
+            time.sleep(10)
         else:
-            time.sleep(30 * TIMEOUT_MULTIPLIER)
+            time.sleep(30)
         balances = []
         for driver in self.drivers:
-            balance_element = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER).until(
+            balance_element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Balance:')]"))
             )
             balance_text = balance_element.text.split(":")[1].strip()
@@ -257,12 +207,12 @@ class Test:
         self.enter_seconds_and_activate("4")
 
     def select_combobox_option(self, option_text):
-        combobox_button = WebDriverWait(self.testator, 10 * TIMEOUT_MULTIPLIER).until(
+        combobox_button = WebDriverWait(self.testator, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//button[@role='combobox']"))
         )
         combobox_button.click()
 
-        option = WebDriverWait(self.testator, 40 * TIMEOUT_MULTIPLIER).until(
+        option = WebDriverWait(self.testator, 10).until(
             EC.element_to_be_clickable((By.XPATH, f"//span[text()='{option_text}']"))
         )
         option.click()
@@ -270,92 +220,159 @@ class Test:
     def add_beneficiary_and_enter_icp(self, nick, icp_value):
         self.click_button_by_text(self.testator, 'Add beneficiary')
         
-        row_with_input = WebDriverWait(self.testator, 10 * TIMEOUT_MULTIPLIER).until(EC.presence_of_element_located((By.XPATH, f"//tr[.//input[@value='{nick}']]")))
+        row_with_input = WebDriverWait(self.testator, 10).until(EC.presence_of_element_located((By.XPATH, f"//tr[.//input[@value='{nick}']]")))
         icp_input_field = row_with_input.find_element(By.XPATH, ".//input[@placeholder='ICP value']")
         icp_input_field.send_keys(str(icp_value))
 
     def enter_seconds_and_activate(self, seconds):
-        seconds_input_field = WebDriverWait(self.testator, 10 * TIMEOUT_MULTIPLIER).until(
+        seconds_input_field = WebDriverWait(self.testator, 10).until(
             EC.presence_of_element_located((By.ID, "seconds"))
         )
         seconds_input_field.send_keys(seconds)
 
         self.click_button_by_text(self.testator, 'Save and Activate')
 
-            
-            
-    def create_identity(self, driver):
-        # wait = WebDriverWait(driver, 10)
-        # more_options_button = wait.until(EC.element_to_be_clickable((
-        #     By.XPATH, "//button[@data-role='more-options' and contains(text(), 'More options')]"
-        # )))
-        # more_options_button.click()
-        
-        wait = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER)
-        register_button = wait.until(EC.element_to_be_clickable((By.ID, "registerButton")))
-        register_button.click()    
-        
-        # print_elements(driver)
-
         
         
-        wait = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER)
-        # passkey_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Create Passkey')]")))
-        self.click_button_by_text(driver, 'Create Passkey')
-        # passkey_button = wait.until(EC.element_to_be_clickable((
-        #     By.XPATH, "//button[@data-action='construct-identity' and contains(text(), 'Create Passkey')]"
-        # )))
-    #     create_passkey_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Create Passkey')]")))
 
 
-    #    <button data-action="construct-identity" class="c-button l-stack">
-    #       <!--?lit$979677746$-->Create Passkey
-    #     </button>
-            
-        # passkey_button.click()
-        
-        wait = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER)
-        captcha_input = wait.until(EC.element_to_be_clickable((By.ID, "captchaInput")))
-        captcha_input.send_keys('a')    
-        
-        wait = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER)
-        confirm_register_button = wait.until(EC.element_to_be_clickable((By.ID, "confirmRegisterButton")))
-        confirm_register_button.click()    
-            
-        wait = WebDriverWait(driver, 10 * TIMEOUT_MULTIPLIER)
-        continue_button = wait.until(EC.element_to_be_clickable((By.ID, "displayUserContinue")))
-        continue_button.click()    
-                
-    def feedTestator(self):
 
-        # feed the testator
-        # print_elements(self.testator)
-        # grab the principal to feed
-        
-        # Wait for the element that contains "Principal:" to be present
-        wait = WebDriverWait(self.testator, 10 * TIMEOUT_MULTIPLIER)
-        principal_element = wait.until(EC.presence_of_element_located((By.XPATH, "//p[contains(text(), 'Principal:')]")))
+def get_xpath(element: WebElement) -> str:
+    tag = element.tag_name
+    if tag == "html":
+        return "/html"
+    parent = element.find_element(By.XPATH, "..")
+    siblings = parent.find_elements(By.XPATH, f"./{tag}")
+    index = 1
+    for i, sibling in enumerate(siblings):
+        if sibling == element:
+            index = i + 1
+            break
+    xpath = get_xpath(parent)
+    return f"{xpath}/{tag}[{index}]"
 
-        # Extract the full text and get the value after "Principal:"
-        principal_text = principal_element.text
-        principal_value = principal_text.split("Principal:")[1].strip()
 
-        # Print the extracted principal value
-        print("Principal value:", principal_value)                
-        
-        subprocess.call(["./feed_local.sh", principal_value])
-            
-        self.refresh_all()
+def print_elements(driver):
+    elements = driver.find_elements(By.XPATH, "//*")  # This will get all elements
+    for element in elements:
+        try:
+            # Get XPath for the element
+            xpath = get_xpath(element)
 
-        self.register_user((0,1,2))
-            
-                    
-                                    
-        time.sleep(20 * TIMEOUT_MULTIPLIER)
-                
-            
-            
+            # Get element tag name, ID, class, and text content
+            tag_name = element.tag_name
+            element_id = element.get_attribute("id")
+            element_class = element.get_attribute("class")
+            element_text = element.text
+            element_placeholder = element.get_attribute("placeholder")  # Get the placeholder attribute
 
+
+            # Print the details
+            print(f"Element XPath: {xpath}")
+            print(f"Tag Name: {tag_name}")
+            print(f"ID: {element_id}")
+            print(f"Class: {element_class}")
+            print(f"Text: {element_text}")
+            print(f"Placeholder: {element_placeholder}")  # Print the placeholder
+            print("-" * 50)
+
+        except Exception as e:
+            print(f"Error retrieving element details: {e}")
+
+def create_driver():
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options)    
+    return driver
+
+from screeninfo import get_monitors, ScreenInfoError
+def get_all_monitors_resolution():
+    try:
+        monitors = get_monitors()
+        for monitor in monitors:
+            print(f"Monitor {monitor.name}: {monitor.width}x{monitor.height}")
+    except ScreenInfoError:
+        print("No monitors found or screen enumeration is not available.")
+
+
+def get_xpath(element: WebElement) -> str:
+    tag = element.tag_name
+    if tag == "html":
+        return "/html"
+    parent = element.find_element(By.XPATH, "..")
+    siblings = parent.find_elements(By.XPATH, f"./{tag}")
+    index = 1
+    for i, sibling in enumerate(siblings):
+        if sibling == element:
+            index = i + 1
+            break
+    xpath = get_xpath(parent)
+    return f"{xpath}/{tag}[{index}]"
+
+
+def print_elements(driver):
+    elements = driver.find_elements(By.XPATH, "//*")  # This will get all elements
+    for element in elements:
+        try:
+            # Get XPath for the element
+            xpath = get_xpath(element)
+
+            # Get element tag name, ID, class, and text content
+            tag_name = element.tag_name
+            element_id = element.get_attribute("id")
+            element_class = element.get_attribute("class")
+            element_text = element.text
+            element_placeholder = element.get_attribute("placeholder")  # Get the placeholder attribute
+
+
+            # Print the details
+            print(f"Element XPath: {xpath}")
+            print(f"Tag Name: {tag_name}")
+            print(f"ID: {element_id}")
+            print(f"Class: {element_class}")
+            print(f"Text: {element_text}")
+            print(f"Placeholder: {element_placeholder}")  # Print the placeholder
+            print("-" * 50)
+
+        except Exception as e:
+            print(f"Error retrieving element details: {e}")
+
+def create_driver():
+    if 'ICPWILL_CHROME_HEADLESS_TESTING' in os.environ:
+        options = Options()
+        options.add_argument('--headless')  
+        options.add_argument('--no-sandbox')
+        options.add_argument("--disable-gpu")
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('window-size=1920x1080')
+    else:
+        options = Options()
+        # options.add_argument('--headless')
+        # options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options)
+
+    print("Implicit Wait:", driver.timeouts.implicit_wait)
+    print("Page Load Timeout:", driver.timeouts.page_load)
+    print("Script Timeout:", driver.timeouts.script)
+    
+    driver.implicitly_wait(5)  # Wait for up to  seconds for elements to appear
+    print("Implicit Wait:", driver.timeouts.implicit_wait)
+    print("Page Load Timeout:", driver.timeouts.page_load)
+    print("Script Timeout:", driver.timeouts.script)
+    
+    return driver
+
+from screeninfo import get_monitors, ScreenInfoError
+def get_all_monitors_resolution():
+    try:
+        monitors = get_monitors()
+        for monitor in monitors:
+            print(f"Monitor {monitor.name}: {monitor.width}x{monitor.height}")
+    except ScreenInfoError:
+        print("No monitors found or screen enumeration is not available.")
 
 get_all_monitors_resolution()
 
