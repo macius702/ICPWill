@@ -11,6 +11,7 @@ type Beneficiary = record {
 type BatchTransfer = record {
   beneficiaries : vec Beneficiary;
   execution_delay_seconds : nat64;
+  of_inactivity : bool;
 };
 
 type UserData = record {

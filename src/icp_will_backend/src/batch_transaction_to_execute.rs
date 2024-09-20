@@ -21,6 +21,7 @@ pub struct Beneficiary {
 pub struct BatchTransfer {
     pub beneficiaries: Vec<Beneficiary>,
     pub execution_delay_seconds: u64,
+    pub of_inactivity: bool,
 }
 
 #[ic_cdk::update]

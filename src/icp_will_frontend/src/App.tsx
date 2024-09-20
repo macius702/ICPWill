@@ -59,6 +59,7 @@ const App: React.FC = () => {
   const [showDirectTransfer, setShowDirectTransfer] = useState<CheckedState>(false)
   const [overrideTarget, setOverrideTarget] = useState(false);
   const [overridePrincipal, setOverridePrincipal] = useState('');
+  const [inactivityChecked, setInactivityChecked] = useState(true);
 
   const isBeneficiaryValid =
     targetPrincipal &&
@@ -303,6 +304,7 @@ const App: React.FC = () => {
           // 
         })),
         execution_delay_seconds: executionTimeInSeconds,
+        of_inactivity : inactivityChecked, 
       };
       console.log('Save and Activate triggered with payload:', payload);
       const backend = getAuthClient();
@@ -506,6 +508,18 @@ const App: React.FC = () => {
                         placeholder="Seconds"
                       />
                     </div>
+                  </div>
+
+
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="checkbox"
+                      id="inactivity"
+                      checked={inactivityChecked}
+                      onChange={e => setInactivityChecked(e.target.checked)}
+                    />
+                    <Label htmlFor="inactivity" className="mb-4">of inactivity</Label>
+
                   </div>
                 </Card>
               )}
