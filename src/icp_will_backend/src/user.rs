@@ -13,14 +13,12 @@ pub struct UserData {
 
 impl UserData {
     pub fn new(nickname: String) -> Self {
-        let mut user_data = Self {
+        Self {
             nickname,
             avatar_url: None,
             batch_transfer: None,
-            last_activity: 0,
-        };
-        user_data.reset_last_activity();
-        user_data        
+            last_activity: time(),
+        }
     }
 
     pub fn set_batch_transfer(&mut self, batch_transfer: BatchTransfer) {

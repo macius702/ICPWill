@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::caller;
-use crate::{BATCH_TIMERS, USERS};
+use crate::{reset_user_last_activity, BATCH_TIMERS, USERS};
 use crate::transfer::handle_timer_event;
 use icrc_ledger_types::icrc1::transfer::NumTokens;
 use icrc_ledger_types::icrc1::account::Account;
@@ -31,10 +31,11 @@ fn register_batch_transfer(batch_transfer_data: BatchTransfer) -> Result<(), Str
     if user == Principal::anonymous() {
         return Err("Anonymous Principal!".to_string());
     }
+    reset_user_last_activity(user);
+
 
     USERS.with_borrow_mut(|users| {
         let user_data = users.get_mut(&user).ok_or("User not found!")?;
-        user_data.reset_last_activity();
         ic_cdk::println!("Registering batch transfer: batch_transfer_data {:?}", batch_transfer_data);
         user_data.set_batch_transfer(batch_transfer_data);
         Ok(())
@@ -78,10 +79,10 @@ async fn execute_batch_transfers() -> Result<(), String> {
     if user == Principal::anonymous() {
         return Err("Anonymous Principal!".to_string());
     }
+    reset_user_last_activity(user);    
 
     let batch_transfer_data = USERS.with_borrow_mut(|users| {
         let user_data = users.get_mut(&user).ok_or("User not found!")?;
-        user_data.reset_last_activity();        
         Ok::<_, &'static str>(user_data.get_batch_transfer().clone().ok_or("No batch transfer data found")?)
     })?;
 

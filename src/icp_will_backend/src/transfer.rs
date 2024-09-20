@@ -46,6 +46,7 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     if user == Principal::anonymous() {
         return Err("Anonymous Principal!".to_string());
     }
+    reset_user_last_activity(user);    
 
     let secs = Duration::from_secs(
         args.delay_in_seconds
@@ -64,11 +65,8 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
         });
     });
     
-    USERS.with_borrow_mut(|users| {
+    USERS.with_borrow_mut(|_users| {
         ic_cdk::println!("Storing timer_id  for possible cancellation later: {:?}", timer_id);
-        let user_data = users.get_mut(&user).expect("User not found!");
-        user_data.reset_last_activity();
-        ic_cdk::println!("User1 last activity reset");
 
         //add timer_id to TIMERS
         TIMERS.with_borrow_mut(|timers| timers.insert(user, timer_id));
@@ -112,13 +110,7 @@ pub fn cancel_batch_activation() -> Result<(), String> {
     if user == Principal::anonymous() {
         return Err("Anonymous Principal!".to_string());
     }
-
-    USERS.with_borrow_mut(|users| {
-        let user_data = users.get_mut(&user).expect("User not found!");
-        user_data.reset_last_activity();
-        ic_cdk::println!("User1 last activity reset");
-    });
-
+    reset_user_last_activity(user);    
 
     BATCH_TIMERS.with_borrow_mut(|batch_timers| {
         if let Some(timer_id) = batch_timers.get(&user) {

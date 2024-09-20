@@ -25,7 +25,7 @@ fn register(nick: String) {
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
-
+    // no need to reset last activity because UserData constructor is recording that
     USERS.with_borrow_mut(|users| users.insert(user, UserData::new(nick)));
 }
 
@@ -58,8 +58,9 @@ fn add_chat_msg(msg: String, user2: Principal) {
         if user1 == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
+    reset_user_last_activity(user1);
 
-        let is_user_registered = USERS.with_borrow(|users| users.contains_key(&user1));
+    let is_user_registered = USERS.with_borrow(|users| users.contains_key(&user1));
 
     ic_cdk::println!("In add_chat_msg is_user_registered: {:#?}", is_user_registered);
 
@@ -69,9 +70,8 @@ fn add_chat_msg(msg: String, user2: Principal) {
 
         let mut principals = [user1, user2];
     principals.sort();
-    ic_cdk::println!("sorted principals {:#?}", principals);
+    ic_cdk::println!("sorted principals {:#?}",   principals);
 
-    // Reset last activity for user1
     reset_user_last_activity(user1);
 
     CHAT.with_borrow_mut(|chats| {
