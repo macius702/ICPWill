@@ -80,7 +80,7 @@ async fn execute_batch_transfers() -> Result<(), String> {
 
     let batch_transfer_data = USERS.with_borrow_mut(|users| {
         let user_data = users.get_mut(&user).ok_or("User not found!")?;
-        Ok::<_, &'static str>(user_data.batch_transfer.clone().ok_or("No batch transfer data found")?)
+        Ok::<_, &'static str>(user_data.get_batch_transfer().clone().ok_or("No batch transfer data found")?)
     })?;
 
     ic_cdk::println!("Scheduling batch transfer: batch_transfer_data {:?}", batch_transfer_data);
