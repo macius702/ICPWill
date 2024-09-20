@@ -21,6 +21,7 @@ pub struct Beneficiary {
 pub struct BatchTransfer {
     pub beneficiaries: Vec<Beneficiary>,
     pub execution_delay_seconds: u64,
+    pub of_inactivity: bool,
 }
 
 #[ic_cdk::update]
@@ -67,27 +68,17 @@ async fn batch_transfer_timer_handler(caller : &Principal, batch: BatchTransfer)
     Ok(())
 }
 
-// mtlk genereally we should not react to errors. resulting in partially non successfull batch transfer
-// we will repeat repeat the remainging transfers the next time, according to the repeat ratio then fallback recipient
-#[ic_cdk::update]
-async fn execute_batch_transfers() -> Result<(), String> {
-    ic_cdk::println!("Entering execute_batch_transfers");
-    let user = ic_cdk::caller();
-
-    if user == Principal::anonymous() {
-        return Err("Anonymous Principal!".to_string());
-    }
-
-    let batch_transfer_data = USERS.with_borrow_mut(|users| {
+pub fn get_batch_transfer_data(user: Principal) -> Result<BatchTransfer, &'static str> {
+    USERS.with_borrow_mut(|users| {
         let user_data = users.get_mut(&user).ok_or("User not found!")?;
-        Ok::<_, &'static str>(user_data.batch_transfer.clone().ok_or("No batch transfer data found")?)
-    })?;
+        user_data.get_batch_transfer().clone().ok_or("No batch transfer data found")
+    })
+}
 
-    ic_cdk::println!("Scheduling batch transfer: batch_transfer_data {:?}", batch_transfer_data);
 
+pub fn schedule_batch_transfer(user: Principal, batch_transfer_data: BatchTransfer) {
     let secs = Duration::from_secs(batch_transfer_data.execution_delay_seconds);
-    
-    // Schedule the timer to execute batch transfer after the delay
+
     let timer_id = ic_cdk_timers::set_timer(secs, move || {
         let user_clone = user.clone();
         let batch_transfer_data_clone = batch_transfer_data.clone();
@@ -106,6 +97,23 @@ async fn execute_batch_transfers() -> Result<(), String> {
         ic_cdk::println!("Storing timer_id for possible cancellation later: {:?}", timer_id);
         BATCH_TIMERS.with_borrow_mut(|timers| timers.insert(user, timer_id));
     });
+}
+
+// mtlk genereally we should not react to errors. resulting in partially non successfull batch transfer
+// we will repeat repeat the remainging transfers the next time, according to the repeat ratio then fallback recipient
+#[ic_cdk::update]
+async fn execute_batch_transfers() -> Result<(), String> {
+    ic_cdk::println!("Entering execute_batch_transfers");
+    let user = ic_cdk::caller();
+
+    if user == Principal::anonymous() {
+        return Err("Anonymous Principal!".to_string());
+    }
+
+
+    let batch_transfer_data = get_batch_transfer_data(user)?;
+    ic_cdk::println!("Scheduling batch transfer: {:?}", batch_transfer_data);
+    schedule_batch_transfer(user, batch_transfer_data);
 
     Ok(())
 }

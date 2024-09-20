@@ -59,7 +59,8 @@ const App: React.FC = () => {
   const [showDirectTransfer, setShowDirectTransfer] = useState<CheckedState>(false)
   const [overrideTarget, setOverrideTarget] = useState(false);
   const [overridePrincipal, setOverridePrincipal] = useState('');
-
+  const [inactivityChecked, setInactivityChecked] = useState(true);
+  
   const isBeneficiaryValid =
     targetPrincipal &&
     targetPrincipal !== principal?.toText() &&
@@ -68,13 +69,17 @@ const App: React.FC = () => {
     beneficiaries.length > 0 &&
     (executionAfterYears > 0 || executionAfterMonths > 0 || executionAfterSeconds > 0)
 
-  const isUserLogged = () => {
-    if (!identity || !principal || principal.isAnonymous()) {
-      throw new Error('PLZ log in')
-    }
-    return { identity, principal }
+    const isUserLogged = (a_identity?: Identity) => {
+      const identityToUse = a_identity || identity;
+      const principalToUse = a_identity ? a_identity.getPrincipal() : principal;
+  
+      if (!identityToUse || !principalToUse || principalToUse.isAnonymous()) {
+        throw new Error('PLZ log in');
+      }
+  
+      return { identity: identityToUse, principal: principalToUse };
   }
-
+  
   const validateTargetPrincipal = () => {
     const cleanTargetPrincipal = targetPrincipal.trim()
     if (cleanTargetPrincipal === '') {
@@ -87,13 +92,15 @@ const App: React.FC = () => {
     return target
   }
 
-  const getAuthClient = () => {
-    isUserLogged()
+  const getAuthClient = (a_identity?: Identity) => {
+    const identityToUse = a_identity || identity;
+    isUserLogged(identityToUse);
+    
     return createActor(canisterId, {
       agentOptions: {
-        identity: identity,
+        identity: identityToUse,
       },
-    })
+    });
   }
 
   const dodajChatMSG = async () => {
@@ -106,7 +113,7 @@ const App: React.FC = () => {
   const pobierzChaty = async () => {
     const { identity, principal } = isUserLogged()
     const target = validateTargetPrincipal()
-    const chatPath = [target, identity.getPrincipal()].sort()
+    const chatPath = [target, principal].sort()
     const fetchedChats = await icp_will_backend.get_chat(chatPath)
     setChats(fetchedChats)
   }
@@ -216,11 +223,12 @@ const App: React.FC = () => {
   }
 
   const login = async () => {
+    console.log('In frontent login->')
     const authClient = await AuthClient.create()
+    console.log('In frontent login-> authClient: ', authClient)
     await authClient.login({
       identityProvider: IDENTITY_PROVIDER,
       onSuccess: async () => {
-        // setPrincipal(undefined)
         console.log('In frontent login on success authClient: ', authClient)
         await handleAuthentication(authClient)
       },
@@ -305,6 +313,7 @@ const App: React.FC = () => {
           // 
         })),
         execution_delay_seconds: executionTimeInSeconds,
+        of_inactivity : inactivityChecked,
       };
       console.log('Save and Activate triggered with payload:', payload);
       const backend = getAuthClient();
@@ -325,10 +334,29 @@ const App: React.FC = () => {
 
   const handleAuthentication = async (authClient: AuthClient) => {
     const identity = authClient.getIdentity()
+    console.log('In handleAuthentication , identity: ', identity)
     const principal = identity.getPrincipal()
+    console.log('In handleAuthentication , principal: ', principal)
     setPrincipal(principal)
     setIdentity(identity)
+
     console.log('Zalogowano', principal)
+    await announceActivity(identity)
+    await getUserData()
+    await getAllUsers()
+  }
+
+  const announceActivity = async (identity : Identity) =>
+  {
+    // console.log('In frontend announceActivity')
+    // console.log('In frontend announceActivity before isUserLogged()')
+    // const { principal } = isUserLogged()
+    console.log('In frontend announceActivity after isUserLogged()')
+    const backend = getAuthClient(identity)
+    console.log('In frontend announceActivity backend:}', backend) 
+    console.log('In frontend announceActivity Before await backend.announce_activity()') 
+    await backend.announce_activity()
+    console.log('In frontend announceActivity After await backend.announce_activity()') 
   }
 
   const fetchBalance = async () => {
@@ -363,6 +391,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
+      console.log('In useEffect ()')
       const authClient = await AuthClient.create()
       const isAuthenticated = await authClient.isAuthenticated()
       console.log('Is authenticated', isAuthenticated)
@@ -522,6 +551,18 @@ const App: React.FC = () => {
                         placeholder="Seconds"
                       />
                     </div>
+                  </div>
+
+
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="checkbox"
+                      id="inactivity"
+                      checked={inactivityChecked}
+                      onChange={e => setInactivityChecked(e.target.checked)}
+                    />
+                    <Label htmlFor="inactivity" className="mb-4">of inactivity</Label>
+
                   </div>
                 </Card>
               )}

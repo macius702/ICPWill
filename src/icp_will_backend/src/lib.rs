@@ -11,6 +11,9 @@ pub mod batch_transaction_to_execute;
 pub mod transfer;
 pub mod balance;
 
+use crate::batch_transaction_to_execute::get_batch_transfer_data;
+use crate::batch_transaction_to_execute::schedule_batch_transfer;
+
 thread_local! {
     static CHAT: RefCell<HashMap<[Principal; 2], Vec<String>>> = RefCell::default();
     static USERS: RefCell<HashMap<Principal, UserData>> = RefCell::default();
@@ -49,13 +52,25 @@ fn get_chat(mut chat_path: [Principal; 2]) -> Option<Vec<String>> {
     return result;
 }
 
+
+#[ic_cdk::update]
+fn announce_activity() {
+    let user = caller();
+    if user == Principal::anonymous() {
+        panic!("Anonymous Principal!")
+    }
+    reinstantiate_timer(user);
+}
+
+
+
 #[ic_cdk::update]
 fn add_chat_msg(msg: String, user2: Principal) {
     let user1 = caller();
 
     ic_cdk::println!("In add_chat_msg user1: {:#?}", user1);
 
-    if user1 == Principal::anonymous() {
+        if user1 == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
 
@@ -67,10 +82,10 @@ fn add_chat_msg(msg: String, user2: Principal) {
         panic!("Not registered!")
     }
 
-    let mut principals = [user1, user2];
+        let mut principals = [user1, user2];
     principals.sort();
     ic_cdk::println!("sorted principals {:#?}",   principals);
-    
+
 
     CHAT.with_borrow_mut(|chats| {
         let mut_chat = chats.get_mut(&principals);
@@ -83,9 +98,42 @@ fn add_chat_msg(msg: String, user2: Principal) {
             ic_cdk::println!("{:#?}", chat_msgs);            
         } else {
             chats.insert(principals, vec![msg]);
-            ic_cdk::println!("first {:#?}", chats);            
+            ic_cdk::println!("first {:#?}", chats);
 
         }
         ic_cdk::println!("In add_chat_msg  After insertin {:#?}", chats);
     })
 }
+
+
+pub fn reinstantiate_timer(user: Principal) {
+    let user_data = USERS.with_borrow(|users| users.get(&user).cloned());
+
+    if let Some(user_data) = user_data {
+        if let Some(batch_transfer) = user_data.get_batch_transfer() {
+            if batch_transfer.of_inactivity {
+                let batch_timer_removed = BATCH_TIMERS.with_borrow_mut(|timers| timers.remove(&user).is_some());
+                if batch_timer_removed {
+                    ic_cdk::println!("Rust reinstantiate_timer ->>> Successfully removed BATCH_TIMER for user: {}", user.to_text());
+
+                    // Fetch batch transfer data and proceed
+                    match get_batch_transfer_data(user) {
+                        Ok(batch_transfer_data) => {
+                            ic_cdk::println!("Rust reinstantiate_timer ->>> Scheduling batch transfer: {:?}", batch_transfer_data);
+                            schedule_batch_transfer(user, batch_transfer_data);
+                        }
+                        Err(e) => {
+                            ic_cdk::println!("Rust reinstantiate_timer ->>> Error retrieving batch transfer data: {}", e);
+                        }
+                    }
+                } else {
+                }
+            } else {
+            }
+        } else {
+        }
+
+
+    }
+}
+

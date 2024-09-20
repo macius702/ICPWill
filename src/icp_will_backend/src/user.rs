@@ -1,12 +1,11 @@
 use candid::CandidType;
-
 use crate::batch_transaction_to_execute::BatchTransfer;
 
 #[derive(Clone, CandidType)]
 pub struct UserData {
     nickname: String,
     avatar_url: Option<String>,
-    pub batch_transfer: Option<BatchTransfer>,
+    batch_transfer: Option<BatchTransfer>,
 }
 
 impl UserData {
@@ -20,5 +19,9 @@ impl UserData {
 
     pub fn set_batch_transfer(&mut self, batch_transfer: BatchTransfer) {
         self.batch_transfer = Some(batch_transfer);
+    }
+
+    pub fn get_batch_transfer(&self) -> Option<BatchTransfer> {
+        self.batch_transfer.clone()
     }
 }

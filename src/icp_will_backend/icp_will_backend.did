@@ -11,6 +11,7 @@ type Beneficiary = record {
 type BatchTransfer = record {
   beneficiaries : vec Beneficiary;
   execution_delay_seconds : nat64;
+  of_inactivity : bool;
 };
 
 type UserData = record {
@@ -30,6 +31,7 @@ type TransferArgs = record {
 service : {
   "get_chat" : (vec principal) -> (opt vec text) query;
   "add_chat_msg" : (text, principal) -> ();
+  "announce_activity" : () -> ();
   "register" : (text) -> ();
   "get_users" : () -> (vec record { principal; UserData });
   "get_user" : (principal) -> (opt UserData);
