@@ -72,11 +72,7 @@ fn add_chat_msg(msg: String, user2: Principal) {
     ic_cdk::println!("sorted principals {:#?}", principals);
 
     // Reset last activity for user1
-    USERS.with_borrow_mut(|users| {
-        let user_data = users.get_mut(&user1).expect("User not found!");
-        user_data.reset_last_activity();
-        ic_cdk::println!("User1 last activity reset");
-    });
+    reset_user_last_activity(user1);
 
     CHAT.with_borrow_mut(|chats| {
         let mut_chat = chats.get_mut(&principals);
@@ -94,4 +90,12 @@ fn add_chat_msg(msg: String, user2: Principal) {
         }
         ic_cdk::println!("In add_chat_msg  After insertin {:#?}", chats);
     })
+}
+
+pub fn reset_user_last_activity(user: Principal) {
+    USERS.with_borrow_mut(|users| {
+        let user_data = users.get_mut(&user).expect("User not found!");
+        user_data.reset_last_activity();
+        ic_cdk::println!("User1 last activity reset");
+    });
 }

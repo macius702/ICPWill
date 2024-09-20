@@ -11,7 +11,7 @@ use serde::Serialize;
 
 
 use crate::constants::LEDGER_CANISTER_ID;
-use crate::{BATCH_TIMERS, TIMERS, USERS};
+use crate::{reset_user_last_activity, BATCH_TIMERS, TIMERS, USERS};
 
 
 
@@ -91,11 +91,7 @@ pub fn cancel_activation() -> Result<(), String> {
         return Err("Anonymous Principal!".to_string());
     }
 
-    USERS.with_borrow_mut(|users| {
-        let user_data = users.get_mut(&user).expect("User not found!");
-        user_data.reset_last_activity();
-        ic_cdk::println!("User1 last activity reset");
-    });
+    reset_user_last_activity(user);
 
     TIMERS.with_borrow_mut(|timers| {
         if let Some(timer_id) = timers.get(&user) {
