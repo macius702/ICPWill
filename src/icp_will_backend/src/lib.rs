@@ -55,11 +55,11 @@ fn add_chat_msg(msg: String, user2: Principal) {
 
     ic_cdk::println!("In add_chat_msg user1: {:#?}", user1);
 
-    if user1 == Principal::anonymous() {
+        if user1 == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
 
-    let is_user_registered = USERS.with_borrow(|users| users.contains_key(&user1));
+        let is_user_registered = USERS.with_borrow(|users| users.contains_key(&user1));
 
     ic_cdk::println!("In add_chat_msg is_user_registered: {:#?}", is_user_registered);
 
@@ -67,10 +67,16 @@ fn add_chat_msg(msg: String, user2: Principal) {
         panic!("Not registered!")
     }
 
-    let mut principals = [user1, user2];
+        let mut principals = [user1, user2];
     principals.sort();
-    ic_cdk::println!("sorted principals {:#?}",   principals);
-    
+    ic_cdk::println!("sorted principals {:#?}", principals);
+
+    // Reset last activity for user1
+    USERS.with_borrow_mut(|users| {
+        let user_data = users.get_mut(&user1).expect("User not found!");
+        user_data.reset_last_activity();
+        ic_cdk::println!("User1 last activity reset");
+    });
 
     CHAT.with_borrow_mut(|chats| {
         let mut_chat = chats.get_mut(&principals);
@@ -83,7 +89,7 @@ fn add_chat_msg(msg: String, user2: Principal) {
             ic_cdk::println!("{:#?}", chat_msgs);            
         } else {
             chats.insert(principals, vec![msg]);
-            ic_cdk::println!("first {:#?}", chats);            
+            ic_cdk::println!("first {:#?}", chats);
 
         }
         ic_cdk::println!("In add_chat_msg  After insertin {:#?}", chats);

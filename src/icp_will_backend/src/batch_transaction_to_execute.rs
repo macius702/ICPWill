@@ -34,6 +34,7 @@ fn register_batch_transfer(batch_transfer_data: BatchTransfer) -> Result<(), Str
 
     USERS.with_borrow_mut(|users| {
         let user_data = users.get_mut(&user).ok_or("User not found!")?;
+        user_data.reset_last_activity();
         ic_cdk::println!("Registering batch transfer: batch_transfer_data {:?}", batch_transfer_data);
         user_data.set_batch_transfer(batch_transfer_data);
         Ok(())
@@ -80,6 +81,7 @@ async fn execute_batch_transfers() -> Result<(), String> {
 
     let batch_transfer_data = USERS.with_borrow_mut(|users| {
         let user_data = users.get_mut(&user).ok_or("User not found!")?;
+        user_data.reset_last_activity();        
         Ok::<_, &'static str>(user_data.get_batch_transfer().clone().ok_or("No batch transfer data found")?)
     })?;
 
