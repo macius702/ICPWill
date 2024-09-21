@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap};
+use std::{cell::RefCell, collections::HashMap, time::Duration};
 
 use candid::Principal;
 use ic_cdk::caller;
@@ -10,6 +10,9 @@ pub mod user;
 pub mod batch_transaction_to_execute;
 pub mod transfer;
 pub mod balance;
+
+use crate::batch_transaction_to_execute::get_batch_transfer_data;
+use crate::batch_transaction_to_execute::schedule_batch_transfer;
 
 thread_local! {
     static CHAT: RefCell<HashMap<[Principal; 2], Vec<String>>> = RefCell::default();
@@ -48,6 +51,24 @@ fn get_chat(mut chat_path: [Principal; 2]) -> Option<Vec<String>> {
     ic_cdk::println!("{:?}", result);
     return result;
 }
+
+
+#[ic_cdk::update]
+fn announce_activity() {
+    let user = caller();
+
+    ic_cdk::println!("In add_chat_msg user1: {:#?}", user);
+
+        if user == Principal::anonymous() {
+        panic!("Anonymous Principal!")
+    }
+    //reset_user_last_activity(user);
+    reinstantiate_timer(user);
+
+
+}
+
+
 
 #[ic_cdk::update]
 fn add_chat_msg(msg: String, user2: Principal) {
@@ -99,3 +120,33 @@ pub fn reset_user_last_activity(user: Principal) {
         ic_cdk::println!("User1 last activity reset");
     });
 }
+
+
+pub fn reinstantiate_timer(user: Principal) {
+    USERS.with_borrow_mut(|users| {
+        let user_data = users.get_mut(&user).expect("User not found!");
+        if let Some(batch_transfer) = user_data.get_batch_transfer() {
+            if batch_transfer.of_inactivity {
+                BATCH_TIMERS.with_borrow_mut(|timers| {
+                    if timers.remove(&user).is_some() {
+                        ic_cdk::println!("Successfully removed BATCH_TIMER for user: {}", user.to_text());
+
+                        match get_batch_transfer_data(user) {
+                            Ok(batch_transfer_data) => {
+                                ic_cdk::println!("Scheduling batch transfer: {:?}", batch_transfer_data);
+                                schedule_batch_transfer(user, batch_transfer_data);
+                            }
+                            Err(e) => {
+                                ic_cdk::println!("Error: {}", e);
+                            }
+                        }
+                    } else {
+                        ic_cdk::println!("No active BATCH_TIMER found for user: {}", user.to_text());
+                    }
+                });
+            }
+        }
+        ic_cdk::println!("User last activity reset");
+    });
+}
+

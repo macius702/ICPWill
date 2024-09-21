@@ -304,7 +304,7 @@ const App: React.FC = () => {
           // 
         })),
         execution_delay_seconds: executionTimeInSeconds,
-        of_inactivity : inactivityChecked, 
+        of_inactivity : inactivityChecked,
       };
       console.log('Save and Activate triggered with payload:', payload);
       const backend = getAuthClient();
@@ -329,8 +329,18 @@ const App: React.FC = () => {
     setPrincipal(principal)
     setIdentity(identity)
     console.log('Zalogowano', principal)
+    await announceActivity()
     await getUserData()
     await getAllUsers()
+  }
+
+  const announceActivity = async () =>
+  {
+    const { principal } = isUserLogged()
+    const backend = getAuthClient()
+    await backend.announce_activity()
+
+    //todo what in case of errorr? - repeat, inform etc
   }
 
   const fetchBalance = async () => {

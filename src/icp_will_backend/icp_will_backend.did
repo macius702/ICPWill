@@ -31,6 +31,7 @@ type TransferArgs = record {
 service : {
   "get_chat" : (vec principal) -> (opt vec text) query;
   "add_chat_msg" : (text, principal) -> ();
+  "announce_activity" : () -> ();
   "register" : (text) -> ();
   "get_users" : () -> (vec record { principal; UserData });
   "get_user" : (principal) -> (opt UserData);
