@@ -374,6 +374,22 @@ const App: React.FC = () => {
     init()
   }, [])
 
+    // Effect for reacting to changes in `principal`
+    useEffect(() => {
+      if (principal !== undefined) {
+        // Define an async function inside the effect
+        const fetchData = async () => {
+          console.log('Principal is now defined', principal);
+          await getUserData();
+          await getAllUsers();
+        };
+  
+        // Call the async function
+        fetchData();
+      }
+    }, [principal]);
+  
+
   return (
     <Layout
       navItems={[
