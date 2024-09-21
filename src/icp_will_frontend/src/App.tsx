@@ -220,6 +220,8 @@ const App: React.FC = () => {
     await authClient.login({
       identityProvider: IDENTITY_PROVIDER,
       onSuccess: async () => {
+        // setPrincipal(undefined)
+        console.log('In frontent login on success authClient: ', authClient)
         await handleAuthentication(authClient)
       },
     })
