@@ -52,30 +52,28 @@ def create__internet_identity(with_icp_feed = False):
 
     continue_button = click_element(driver, By.ID, "displayUserContinue")
 
-
-
-    driver.switch_to.window(original_tab)
-
-    
-    save_page_source(driver, 'page07d.html')
-
-    input_field = click_element(driver, By.CSS_SELECTOR, "input[placeholder='nick']")
-    input_field.send_keys("ExampleNickname")
-    save_page_source(driver, 'page08d.html')
-    
-    
-    register_button = click_element(driver, By.XPATH, "//button[contains(text(), 'register')]")
-    save_page_source(driver, 'page09d.html')
-    
-    
-    principal_paragraph = click_element(driver, By.XPATH, "//p[contains(text(), 'Principal:')]")
-    principal_text = principal_paragraph.text
-    principal_value = principal_text.split(': ')[1]  
-    save_page_source(driver, 'page10d.html')
-
-    print("Principal Value:", principal_value)    
-    
     if with_icp_feed:
+        driver.switch_to.window(original_tab)
+
+        
+        save_page_source(driver, 'page07d.html')
+
+        input_field = click_element(driver, By.CSS_SELECTOR, "input[placeholder='nick']")
+        input_field.send_keys("ExampleNickname")
+        save_page_source(driver, 'page08d.html')
+        
+        
+        register_button = click_element(driver, By.XPATH, "//button[contains(text(), 'register')]")
+        save_page_source(driver, 'page09d.html')
+        
+        
+        principal_paragraph = click_element(driver, By.XPATH, "//p[contains(text(), 'Principal:')]")
+        principal_text = principal_paragraph.text
+        principal_value = principal_text.split(': ')[1]  
+        save_page_source(driver, 'page10d.html')
+
+        print("Principal Value:", principal_value)    
+    
         subprocess.call(["./feed_local.sh", principal_value])
     
     print('DONE.')

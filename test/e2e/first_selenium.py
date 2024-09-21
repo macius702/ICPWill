@@ -60,8 +60,6 @@ def run():
     time.sleep(10 * TIMEOUT_MULTIPLIER)
     t.refresh_all()
 
-    t.register_user()
-
     final_balances = t.read_balances()
     
     firstBeneficiaryExpectedBalance = inheritance[1] + initial_balances[1]
