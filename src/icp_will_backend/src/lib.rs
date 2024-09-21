@@ -125,46 +125,48 @@ pub fn reset_user_last_activity(user: Principal) {
 pub fn reinstantiate_timer(user: Principal) {
     ic_cdk::println!("Rust reinstantiate_timer ->>> Starting reinstantiate_timer for user: {}", user.to_text());
 
-    USERS.with_borrow_mut(|users| {
-        ic_cdk::println!("Rust reinstantiate_timer ->>> Attempting to retrieve user data...");
 
-        if let Some(user_data) = users.get_mut(&user){
+    let user_data = USERS.with_borrow(|users| users.get(&user).cloned());
 
-            ic_cdk::println!("Rust reinstantiate_timer ->>> User data found for user: {}", user.to_text());
+    if let Some(mut user_data) = user_data {
+        ic_cdk::println!("Rust reinstantiate_timer ->>> User data found for user: {}", user.to_text());
 
-            if let Some(batch_transfer) = user_data.get_batch_transfer() {
-                ic_cdk::println!("Rust reinstantiate_timer ->>> Batch transfer data retrieved for user: {:?}", batch_transfer);
 
-                if batch_transfer.of_inactivity {
-                    ic_cdk::println!("Rust reinstantiate_timer ->>> User has been inactive, processing BATCH_TIMER...");
+        if let Some(batch_transfer) = user_data.get_batch_transfer() {
+            ic_cdk::println!("Rust reinstantiate_timer ->>> Batch transfer data retrieved for user: {:?}", batch_transfer);
 
-                    BATCH_TIMERS.with_borrow_mut(|timers| {
-                        if timers.remove(&user).is_some() {
-                            ic_cdk::println!("Rust reinstantiate_timer ->>> Successfully removed BATCH_TIMER for user: {}", user.to_text());
+            if batch_transfer.of_inactivity {
+                ic_cdk::println!("Rust reinstantiate_timer ->>> User has been inactive, processing BATCH_TIMER...");
 
-                            match get_batch_transfer_data(user) {
-                                Ok(batch_transfer_data) => {
-                                    ic_cdk::println!("Rust reinstantiate_timer ->>> Scheduling batch transfer: {:?}", batch_transfer_data);
-                                    schedule_batch_transfer(user, batch_transfer_data);
-                                }
-                                Err(e) => {
-                                    ic_cdk::println!("Rust reinstantiate_timer ->>> Error retrieving batch transfer data: {}", e);
-                                }
-                            }
-                        } else {
-                            ic_cdk::println!("Rust reinstantiate_timer ->>> No active BATCH_TIMER found for user: {}", user.to_text());
+
+                let batch_timer_removed = BATCH_TIMERS.with_borrow_mut(|timers| timers.remove(&user).is_some());
+
+                if batch_timer_removed {
+                    ic_cdk::println!("Rust reinstantiate_timer ->>> Successfully removed BATCH_TIMER for user: {}", user.to_text());
+
+                    // Fetch batch transfer data and proceed
+                    match get_batch_transfer_data(user) {
+                        Ok(batch_transfer_data) => {
+                            ic_cdk::println!("Rust reinstantiate_timer ->>> Scheduling batch transfer: {:?}", batch_transfer_data);
+                            schedule_batch_transfer(user, batch_transfer_data);
                         }
-                    });
+                        Err(e) => {
+                            ic_cdk::println!("Rust reinstantiate_timer ->>> Error retrieving batch transfer data: {}", e);
+                        }
+                    }
                 } else {
-                    ic_cdk::println!("User has been active, no need to reset timer.");
+                    ic_cdk::println!("Rust reinstantiate_timer ->>> No active BATCH_TIMER found for user: {}", user.to_text());
                 }
             } else {
-                ic_cdk::println!("No batch transfer data available for user: {}", user.to_text());
+                ic_cdk::println!("User has been active, no need to reset timer.");
             }
-
-            ic_cdk::println!("User last activity reset for user: {}", user.to_text());
+        } else {
+            ic_cdk::println!("No batch transfer data available for user: {}", user.to_text());
         }
-    });
+
+
+        ic_cdk::println!("User last activity reset for user: {}", user.to_text());
+    }
 
     ic_cdk::println!("reinstantiate_timer completed for user: {}", user.to_text());
 }
