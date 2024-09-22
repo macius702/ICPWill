@@ -329,8 +329,6 @@ const App: React.FC = () => {
     setPrincipal(principal)
     setIdentity(identity)
     console.log('Zalogowano', principal)
-    await getUserData()
-    await getAllUsers()
   }
 
   const fetchBalance = async () => {
