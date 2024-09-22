@@ -56,9 +56,6 @@ fn get_chat(mut chat_path: [Principal; 2]) -> Option<Vec<String>> {
 #[ic_cdk::update]
 fn announce_activity() {
     let user = caller();
-
-    ic_cdk::println!("In Rust announce_activity: {}", user.to_text());
-
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
