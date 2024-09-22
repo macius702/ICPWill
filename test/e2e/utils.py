@@ -72,8 +72,8 @@ def save_page_source(driver, filename):
     print("All window handles:", driver.window_handles)
     print("Current windw handle: ", driver.current_window_handle)
     print(f'Saving page source to {filename}')
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(driver.page_source)
+    # with open(filename, 'w', encoding='utf-8') as f:
+    #     f.write(driver.page_source)
 
 
 def wait_for_element(driver, by, value, timeout=10 * TIMEOUT_MULTIPLIER):

@@ -52,7 +52,6 @@ def run():
         # manual login
         input("Press Enter to continue...")
 
-    t.register_user()
     initial_balances = t.read_balances()
 
     t.setup_and_run_inheritance()
@@ -167,7 +166,7 @@ class Test:
     def read_balances(self):
         print('Entering readBalances')
         if mode_is_local:
-            time.sleep(10 * TIMEOUT_MULTIPLIER)
+            time.sleep(20 * TIMEOUT_MULTIPLIER) # //TODO(mtlk) - amore sophisticated wait here
         else:
             time.sleep(30 * TIMEOUT_MULTIPLIER)
         balances = []

@@ -14,12 +14,12 @@ import time
 import subprocess
 
 from utils import create_driver, TIMEOUT_MULTIPLIER
-from utils import save_page_source, click_element
+from utils import click_element
 
 
 
 
-def create__internet_identity(with_icp_feed = False):
+def create__internet_identity(nickname, with_icp_feed = False):
     driver = create_driver()
     url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
     driver.get(url)
@@ -44,15 +44,14 @@ def create__internet_identity(with_icp_feed = False):
 
     continue_button = click_element(driver, By.ID, "displayUserContinue")
 
+    driver.switch_to.window(original_tab)
+
+    input_field = click_element(driver, By.CSS_SELECTOR, "input[placeholder='nick']")
+    input_field.send_keys(nickname)
+
+    register_button = click_element(driver, By.XPATH, "//button[contains(text(), 'register')]")
+        
     if with_icp_feed:
-        driver.switch_to.window(original_tab)
-
-        input_field = click_element(driver, By.CSS_SELECTOR, "input[placeholder='nick']")
-        input_field.send_keys("ExampleNickname")
-
-        register_button = click_element(driver, By.XPATH, "//button[contains(text(), 'register')]")
-        
-        
         principal_paragraph = click_element(driver, By.XPATH, "//p[contains(text(), 'Principal:')]")
         principal_text = principal_paragraph.text
         principal_value = principal_text.split(': ')[1]  
@@ -67,6 +66,6 @@ def create__internet_identity(with_icp_feed = False):
 
 
 if __name__=="__main__":
-    create__internet_identity(with_icp_feed = True)
-    create__internet_identity()
-    create__internet_identity()
+    create__internet_identity('A1', with_icp_feed = True)
+    create__internet_identity('B2')
+    create__internet_identity('C3')
