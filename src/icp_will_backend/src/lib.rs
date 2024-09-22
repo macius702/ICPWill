@@ -57,7 +57,7 @@ fn get_chat(mut chat_path: [Principal; 2]) -> Option<Vec<String>> {
 fn announce_activity() {
     let user = caller();
 
-    ic_cdk::println!("In Rust announce_activity: {:#?}", user);
+    ic_cdk::println!("In Rust announce_activity: {}", user.to_text());
 
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
@@ -110,24 +110,12 @@ fn add_chat_msg(msg: String, user2: Principal) {
 
 
 pub fn reinstantiate_timer(user: Principal) {
-    ic_cdk::println!("Rust reinstantiate_timer ->>> Starting reinstantiate_timer for user: {}", user.to_text());
-
-
     let user_data = USERS.with_borrow(|users| users.get(&user).cloned());
 
     if let Some(user_data) = user_data {
-        ic_cdk::println!("Rust reinstantiate_timer ->>> User data found for user: {}", user.to_text());
-
-
         if let Some(batch_transfer) = user_data.get_batch_transfer() {
-            ic_cdk::println!("Rust reinstantiate_timer ->>> Batch transfer data retrieved for user: {:?}", batch_transfer);
-
             if batch_transfer.of_inactivity {
-                ic_cdk::println!("Rust reinstantiate_timer ->>> User has been inactive, processing BATCH_TIMER...");
-
-
                 let batch_timer_removed = BATCH_TIMERS.with_borrow_mut(|timers| timers.remove(&user).is_some());
-
                 if batch_timer_removed {
                     ic_cdk::println!("Rust reinstantiate_timer ->>> Successfully removed BATCH_TIMER for user: {}", user.to_text());
 
@@ -142,19 +130,13 @@ pub fn reinstantiate_timer(user: Principal) {
                         }
                     }
                 } else {
-                    ic_cdk::println!("Rust reinstantiate_timer ->>> No active BATCH_TIMER found for user: {}", user.to_text());
                 }
             } else {
-                ic_cdk::println!("User has been active, no need to reset timer.");
             }
         } else {
-            ic_cdk::println!("No batch transfer data available for user: {}", user.to_text());
         }
 
 
-        ic_cdk::println!("User last activity reset for user: {}", user.to_text());
     }
-
-    ic_cdk::println!("reinstantiate_timer completed for user: {}", user.to_text());
 }
 

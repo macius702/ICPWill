@@ -16,23 +16,12 @@ def create_driver():
         options.add_argument('--no-sandbox')
         options.add_argument("--disable-gpu")
         options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('window-size=1920x1080')
     else:
         options = Options()
-        # options.add_argument('--headless')
-        # options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options)
 
-    print("Implicit Wait:", driver.timeouts.implicit_wait)
-    print("Page Load Timeout:", driver.timeouts.page_load)
-    print("Script Timeout:", driver.timeouts.script)
-    
-    driver.implicitly_wait(5)  # Wait for up to  seconds for elements to appear
-    print("Implicit Wait:", driver.timeouts.implicit_wait)
-    print("Page Load Timeout:", driver.timeouts.page_load)
-    print("Script Timeout:", driver.timeouts.script)
-    
+    options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options)
+    driver.implicitly_wait(5 * TIMEOUT_MULTIPLIER)  # Wait for up to  seconds for elements to appear
     return driver
 
 
@@ -83,8 +72,8 @@ def save_page_source(driver, filename):
     print("All window handles:", driver.window_handles)
     print("Current windw handle: ", driver.current_window_handle)
     print(f'Saving page source to {filename}')
-    # with open(filename, 'w', encoding='utf-8') as f:
-    #     f.write(driver.page_source)
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(driver.page_source)
 
 
 def wait_for_element(driver, by, value, timeout=10 * TIMEOUT_MULTIPLIER):
