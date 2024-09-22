@@ -136,7 +136,3 @@ python3 test/e2e/create_internet_identity.py
 python3 test/e2e/first_selenium.py
 
 echo DONE.
-
-
-
-# google-chrome 'https://v3x57-gaaaa-aaaab-qadmq-cai.icp0.io/'

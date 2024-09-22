@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, time::Duration};
+use std::{cell::RefCell, collections::HashMap};
 
 use candid::Principal;
 use ic_cdk::caller;
@@ -28,7 +28,7 @@ fn register(nick: String) {
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
-    // no need to reset last activity because UserData constructor is recording that
+
     USERS.with_borrow_mut(|users| users.insert(user, UserData::new(nick)));
 }
 
@@ -59,13 +59,10 @@ fn announce_activity() {
 
     ic_cdk::println!("In Rust announce_activity: {:#?}", user);
 
-        if user == Principal::anonymous() {
+    if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
-    //reset_user_last_activity(user);
     reinstantiate_timer(user);
-
-
 }
 
 
@@ -79,7 +76,6 @@ fn add_chat_msg(msg: String, user2: Principal) {
         if user1 == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
-    reset_user_last_activity(user1);
 
     let is_user_registered = USERS.with_borrow(|users| users.contains_key(&user1));
 
@@ -93,7 +89,6 @@ fn add_chat_msg(msg: String, user2: Principal) {
     principals.sort();
     ic_cdk::println!("sorted principals {:#?}",   principals);
 
-    reset_user_last_activity(user1);
 
     CHAT.with_borrow_mut(|chats| {
         let mut_chat = chats.get_mut(&principals);
@@ -113,14 +108,6 @@ fn add_chat_msg(msg: String, user2: Principal) {
     })
 }
 
-pub fn reset_user_last_activity(user: Principal) {
-    USERS.with_borrow_mut(|users| {
-        let user_data = users.get_mut(&user).expect("User not found!");
-        user_data.reset_last_activity();
-        ic_cdk::println!("User1 last activity reset");
-    });
-}
-
 
 pub fn reinstantiate_timer(user: Principal) {
     ic_cdk::println!("Rust reinstantiate_timer ->>> Starting reinstantiate_timer for user: {}", user.to_text());
@@ -128,7 +115,7 @@ pub fn reinstantiate_timer(user: Principal) {
 
     let user_data = USERS.with_borrow(|users| users.get(&user).cloned());
 
-    if let Some(mut user_data) = user_data {
+    if let Some(user_data) = user_data {
         ic_cdk::println!("Rust reinstantiate_timer ->>> User data found for user: {}", user.to_text());
 
 

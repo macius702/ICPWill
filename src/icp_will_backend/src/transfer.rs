@@ -11,7 +11,7 @@ use serde::Serialize;
 
 
 use crate::constants::LEDGER_CANISTER_ID;
-use crate::{reset_user_last_activity, BATCH_TIMERS, TIMERS, USERS};
+use crate::{BATCH_TIMERS, TIMERS, USERS};
 
 
 
@@ -46,7 +46,6 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
     if user == Principal::anonymous() {
         return Err("Anonymous Principal!".to_string());
     }
-    reset_user_last_activity(user);    
 
     let secs = Duration::from_secs(
         args.delay_in_seconds
@@ -89,8 +88,6 @@ pub fn cancel_activation() -> Result<(), String> {
         return Err("Anonymous Principal!".to_string());
     }
 
-    reset_user_last_activity(user);
-
     TIMERS.with_borrow_mut(|timers| {
         if let Some(timer_id) = timers.get(&user) {
             ic_cdk_timers::clear_timer(*timer_id);
@@ -110,7 +107,6 @@ pub fn cancel_batch_activation() -> Result<(), String> {
     if user == Principal::anonymous() {
         return Err("Anonymous Principal!".to_string());
     }
-    reset_user_last_activity(user);    
 
     BATCH_TIMERS.with_borrow_mut(|batch_timers| {
         if let Some(timer_id) = batch_timers.get(&user) {

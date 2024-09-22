@@ -1,6 +1,4 @@
 use candid::CandidType;
-use ic_cdk::api::time;
-
 use crate::batch_transaction_to_execute::BatchTransfer;
 
 #[derive(Clone, CandidType)]
@@ -8,7 +6,6 @@ pub struct UserData {
     nickname: String,
     avatar_url: Option<String>,
     batch_transfer: Option<BatchTransfer>,
-    last_activity: u64,
 }
 
 impl UserData {
@@ -17,7 +14,6 @@ impl UserData {
             nickname,
             avatar_url: None,
             batch_transfer: None,
-            last_activity: time(),
         }
     }
 
@@ -28,12 +24,4 @@ impl UserData {
     pub fn get_batch_transfer(&self) -> Option<BatchTransfer> {
         self.batch_transfer.clone()
     }
-
-    pub fn reset_last_activity(&mut self) {
-        self.last_activity = time(); // Updates the last_activity field to current timestamp
-    }
-
-    pub fn get_last_activity(&self) -> u64 {
-        self.last_activity
-    }    
 }
