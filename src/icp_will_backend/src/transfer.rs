@@ -102,6 +102,7 @@ pub fn cancel_activation() -> Result<(), String> {
 // TODO(mtlk) implement a button in gui and test
 #[ic_cdk::update]
 pub fn cancel_batch_activation() -> Result<(), String> {
+    ic_cdk::println!("Entering cancel_batch_activation");
     let user = caller();
 
     if user == Principal::anonymous() {
@@ -112,8 +113,11 @@ pub fn cancel_batch_activation() -> Result<(), String> {
         if let Some(timer_id) = batch_timers.get(&user) {
             ic_cdk_timers::clear_timer(*timer_id);
             batch_timers.remove(&user);
+            ic_cdk::println!("Successfully cancelled BATCH_TIMER for user: {}", user.to_text());
         }
     });
+
+    ic_cdk::println!("Leaving cancel_batch_activation");
 
     Ok(())
 }

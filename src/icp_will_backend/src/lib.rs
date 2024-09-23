@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap};
 use candid::Principal;
 use ic_cdk::caller;
 use ic_cdk_timers::TimerId;
-use user::UserData;
+use user::{UserData, ResponseUserData};
 
 pub mod constants;
 pub mod user;
@@ -33,13 +33,33 @@ fn register(nick: String) {
 }
 
 #[ic_cdk::query]
-fn get_users() -> HashMap<Principal, UserData> {
-    USERS.with_borrow(|users| users.clone())
+fn get_users() -> HashMap<Principal, ResponseUserData> {
+    USERS.with_borrow(|users| {
+        users.iter().map(|(principal, user_data)| {
+            let has_active_timer = check_for_active_timer(principal);
+            let response_user_data = user_data.to_response(has_active_timer); // Use the factory method
+            (*principal, response_user_data) // Return the Principal and ResponseUserData
+        }).collect()
+    })
 }
 
 #[ic_cdk::query]
-fn get_user(user: Principal) -> Option<UserData> {
-    USERS.with_borrow(|users| users.get(&user).cloned())
+fn get_user(user: Principal) -> Option<ResponseUserData> {
+    USERS.with_borrow(|users| {
+        users.get(&user).map(|user_data| {
+            user_data.to_response(check_for_active_timer(&user))
+        })
+    })
+}
+
+fn check_for_active_timer(user: &Principal) -> bool {
+    if *user == Principal::anonymous() {
+        return false;
+    }
+
+    BATCH_TIMERS.with_borrow(|batch_timers| {
+        batch_timers.contains_key(user)
+    })
 }
 
 #[ic_cdk::query]

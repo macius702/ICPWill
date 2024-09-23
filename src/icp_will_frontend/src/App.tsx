@@ -8,7 +8,8 @@ import { Tokens } from '../../declarations/icrc1_ledger_canister/icrc1_ledger_ca
 
 import type {
   TransferArgs,
-  UserData,
+  ResponseUserData,
+  BatchTransfer
 } from '../../declarations/icp_will_backend/icp_will_backend.did'
 import { Button } from './components/ui/button'
 import { Textarea } from './components/ui/textarea'
@@ -27,10 +28,11 @@ import { Checkbox } from './components/ui/checkbox'
 import { CheckedState } from '@radix-ui/react-checkbox'
 
 import { createAgent } from "@dfinity/utils";
+import { SaveIcon } from 'lucide-react'
 
-interface Beneficiary {
+interface IBeneficiary {
   nickname: string
-  icpAmount: number
+  icpAmount: bigint
   userPrincipal: Principal
 }
 
@@ -45,13 +47,13 @@ const App: React.FC = () => {
   const [identity, setIdentity] = useState<Identity | undefined>()
   const [principal, setPrincipal] = useState<Principal | undefined>()
   const [targetPrincipal, setTargetPrincipal] = useState<string>('')
-  const [userData, setUserData] = useState<UserData | undefined>()
+  const [userData, setUserData] = useState<ResponseUserData | undefined>()
   const [newUsername, setNewUsername] = useState<string>('')
-  const [allUsers, setAllUsers] = useState<[Principal, UserData][]>([])
+  const [allUsers, setAllUsers] = useState<[Principal, ResponseUserData][]>([])
   const [balance, setBalance] = useState<BigInt | null>(null)
   const [amountToSend, setAmountToSend] = useState<number>(0)
   const [transferDelay, setTransferDelay] = useState<number>(0)
-  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([])
+  const [beneficiaries, setBeneficiaries] = useState<IBeneficiary[]>([])
   const [executionAfterYears, setExecutionAfterYears] = useState<number>(0)
   const [executionAfterMonths, setExecutionAfterMonths] = useState<number>(0)
   const [executionAfterSeconds, setExecutionAfterSeconds] = useState<number>(0)
@@ -69,7 +71,9 @@ const App: React.FC = () => {
     targetPrincipal !== 'Please select one'
   const isSaveAndActivateEnabled =
     beneficiaries.length > 0 &&
-    (executionAfterYears > 0 || executionAfterMonths > 0 || executionAfterSeconds > 0)
+    (executionAfterYears > 0 || executionAfterMonths > 0 || executionAfterSeconds > 0) &&
+    !(userData && userData.has_active_timer)
+
 
   const isUserLogged = (a_identity?: Identity) => {
     const identityToUse = a_identity || identity;
@@ -132,7 +136,16 @@ const App: React.FC = () => {
     setLoading(true);
     const { principal } = isUserLogged();
     const maybeUserData = await icp_will_backend.get_user(principal);
-    setUserData(maybeUserData.length === 0 ? undefined : maybeUserData[0]);
+    const userData = maybeUserData.length === 0 ? undefined : maybeUserData[0];
+    
+    setUserData(userData);
+
+    if (userData && userData.batch_transfer.length > 0) {
+      updateUIwithBatchTransferData(userData)
+    } else {
+      console.log('No batch transfer available');
+    }
+
     await fetchBalance();
     setLoading(false);
   };
@@ -249,7 +262,7 @@ const App: React.FC = () => {
           ...beneficiaries,
           {
             nickname: selectedUser[1].nickname,
-            icpAmount: 0,
+            icpAmount: BigInt(0),
             userPrincipal: selectedUser[0],
           },
         ])
@@ -273,7 +286,7 @@ const App: React.FC = () => {
       const feeFromLedger = await myledger.icrc1_fee() as Tokens;
       const overallTransactionCost = feeFromLedger * BigInt(beneficiaries.length) + feeFromLedger;
 
-      const assetsSum = beneficiaries.reduce((sum, { icpAmount }) => sum + icpAmount, 0);
+      const assetsSum = beneficiaries.reduce((sum : bigint, { icpAmount }) => sum + icpAmount, BigInt(0));
       const overallSum = BigInt(assetsSum) + overallTransactionCost;
 
       const theSpender = Principal.fromText(canisterId);
@@ -367,13 +380,26 @@ const App: React.FC = () => {
     const { principal } = isUserLogged()
     const backend = getAuthClient()
     let result = await backend.get_balance()
-        if ('Ok' in result) {
+    if ('Ok' in result) {
       setBalance(result.Ok)
     } else {
       setBalance(null)
     }
     console.log(result)
   }
+
+
+  const cancelTimer = async () => {
+    console.log('in cancelTimer')
+    const backend = getAuthClient()
+    console.log('in cancelTimer backend: ', backend)
+
+    let result = await backend.cancel_batch_activation()
+    console.log('in cancelTimer result ', result)
+
+    
+  }
+
   // Helper function to create an agent
   async function createAgentWithHost(identity: Identity) {
     const fetchRootKey = NETWORK !== '--ic';
@@ -391,6 +417,63 @@ const App: React.FC = () => {
       agent,
       canisterId: Principal.fromText(LEDGER_CANISTER_ID),
     });
+  }
+
+  // Helper for getUserData
+  function updateUIwithBatchTransferData(userData: ResponseUserData) {
+    const batchTransfer = userData.batch_transfer[0]!
+
+    setInactivityChecked(batchTransfer.of_inactivity)
+
+    updateUIwithseconds(batchTransfer)
+
+    updateUIWithBeneficiaries(batchTransfer)
+  }
+
+  // Helper for getUserData
+  function updateUIWithBeneficiaries(batchTransfer: BatchTransfer) {
+    const benes = batchTransfer.beneficiaries
+
+    if (benes) {
+
+      const updatedbenes: IBeneficiary[] = benes.map(
+        (beneficiary: any) => {
+
+          const updated = {
+            nickname: beneficiary.nickname,
+            icpAmount: beneficiary.amount_icp,
+            userPrincipal: beneficiary.beneficiary_principal,
+          }
+
+
+          return updated
+        }
+      )
+
+
+      setBeneficiaries(updatedbenes)
+    }
+  }
+
+  // Helper for getUserData
+  function updateUIwithseconds(batchTransfer: BatchTransfer) {
+    const totalSeconds = Number(batchTransfer.execution_delay_seconds)
+  
+    const SECONDS_IN_YEAR = 365 * 24 * 60 * 60 // 31,536,000 seconds
+    const SECONDS_IN_MONTH = 30 * 24 * 60 * 60 // 2,592,000 seconds
+  
+    const executionAfterYears = Math.floor(totalSeconds / SECONDS_IN_YEAR)
+    const remainderAfterYears = totalSeconds % SECONDS_IN_YEAR
+  
+    const executionAfterMonths = Math.floor(remainderAfterYears / SECONDS_IN_MONTH)
+    const remainderAfterMonths = remainderAfterYears % SECONDS_IN_MONTH
+
+    const executionAfterSeconds = remainderAfterMonths
+
+
+    setExecutionAfterYears(executionAfterYears)
+    setExecutionAfterMonths(executionAfterMonths)
+    setExecutionAfterSeconds(executionAfterSeconds)
   }
 
   useEffect(() => {
@@ -505,10 +588,10 @@ const App: React.FC = () => {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 <Input
-                                  value={beneficiary.icpAmount}
+                                  value={beneficiary.icpAmount.toString()}
                                   onChange={e => {
                                     const newBeneficiaries = [...beneficiaries]
-                                    newBeneficiaries[index].icpAmount = Number(e.target.value)
+                                    newBeneficiaries[index].icpAmount = BigInt(e.target.value)
                                     setBeneficiaries(newBeneficiaries)
                                   }}
                                   placeholder="ICP value"
@@ -574,10 +657,17 @@ const App: React.FC = () => {
                     </Card>
                   )}
 
+                  {/* Buttons Container */}
                   <Card style={{ marginTop: '20px' }}>
-                    <Button onClick={saveAndActivate} disabled={!isSaveAndActivateEnabled}>
-                      Save and Activate
-                    </Button>
+                    <div className="flex flex-row gap-4 justify-center items-center">
+                      <Button onClick={saveAndActivate} disabled={!isSaveAndActivateEnabled}>
+                      <SaveIcon className="mr-2" />
+                        Save and Activate
+                      </Button>
+                      <Button onClick={cancelTimer} disabled={!userData.has_active_timer || loading}>
+                        {loading ? 'Cancelling...' : 'Cancel'}
+                      </Button>
+                    </div>
                   </Card>
 
                   <div className="flex flex-row gap-8">

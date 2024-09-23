@@ -14,10 +14,11 @@ type BatchTransfer = record {
   of_inactivity : bool;
 };
 
-type UserData = record {
+type ResponseUserData = record {
   nickname : text;
   avatar_url : opt text;
   batch_transfer : opt BatchTransfer;
+  has_active_timer : bool
 };
 
 
@@ -33,8 +34,8 @@ service : {
   "add_chat_msg" : (text, principal) -> ();
   "announce_activity" : () -> ();
   "register" : (text) -> ();
-  "get_users" : () -> (vec record { principal; UserData });
-  "get_user" : (principal) -> (opt UserData);
+  "get_users" : () -> (vec record { principal; ResponseUserData });
+  "get_user" : (principal) -> (opt ResponseUserData);
   "transfer" : (TransferArgs) -> (ResultNat);
   "get_balance" : () -> (ResultNat);
   "register_batch_transfer" : (
@@ -45,5 +46,7 @@ service : {
 
 
   "cancel_activation": () -> (Result);
+  "cancel_batch_activation": () -> (Result);
+
 
 };
