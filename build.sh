@@ -12,9 +12,47 @@ npm i
 
 dfx identity new Alice  --storage-mode=plaintext
 
+# Default values
+MODE="local"
+CLEAN=""
 
-MODE=${1:-local}
-CLEAN=${2}
+handle_options() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --clean)
+        CLEAN="--clean"
+        shift # remove --clean from the arguments
+        ;;
+      local | nonlocal)
+        MODE="$1" # set MODE based on the positional argument
+        shift # remove the mode from the arguments
+        ;;
+      --mode)
+        MODE="$2"
+        shift 2 # remove --mode and its value from the arguments
+        ;;
+      *)
+        echo "Invalid option: $1" >&2
+        exit 1
+        ;;
+    esac
+  done
+
+  # Ensure MODE is either local or nonlocal
+  if [[ "$MODE" != "local" && "$MODE" != "nonlocal" ]]; then
+    echo "Invalid mode specified. Use 'local' or 'nonlocal'."
+    exit 1
+  fi
+}
+
+echo "===========OPTIONS========="
+echo "Starting parsing options..."
+
+handle_options "$@"
+
+echo "MODE=$MODE"
+echo "CLEAN=$CLEAN"
+
 
 
 PATTERN1="========================================"
