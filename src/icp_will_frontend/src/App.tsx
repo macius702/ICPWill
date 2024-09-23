@@ -60,7 +60,9 @@ const App: React.FC = () => {
   const [overrideTarget, setOverrideTarget] = useState(false);
   const [overridePrincipal, setOverridePrincipal] = useState('');
   const [inactivityChecked, setInactivityChecked] = useState(true);
-  
+  const [loading, setLoading] = useState(false);
+
+
   const isBeneficiaryValid =
     targetPrincipal &&
     targetPrincipal !== principal?.toText() &&
@@ -69,17 +71,17 @@ const App: React.FC = () => {
     beneficiaries.length > 0 &&
     (executionAfterYears > 0 || executionAfterMonths > 0 || executionAfterSeconds > 0)
 
-    const isUserLogged = (a_identity?: Identity) => {
-      const identityToUse = a_identity || identity;
-      const principalToUse = a_identity ? a_identity.getPrincipal() : principal;
-  
-      if (!identityToUse || !principalToUse || principalToUse.isAnonymous()) {
-        throw new Error('PLZ log in');
-      }
-  
-      return { identity: identityToUse, principal: principalToUse };
+  const isUserLogged = (a_identity?: Identity) => {
+    const identityToUse = a_identity || identity;
+    const principalToUse = a_identity ? a_identity.getPrincipal() : principal;
+
+    if (!identityToUse || !principalToUse || principalToUse.isAnonymous()) {
+      throw new Error('PLZ log in');
+    }
+
+    return { identity: identityToUse, principal: principalToUse };
   }
-  
+
   const validateTargetPrincipal = () => {
     const cleanTargetPrincipal = targetPrincipal.trim()
     if (cleanTargetPrincipal === '') {
@@ -95,7 +97,7 @@ const App: React.FC = () => {
   const getAuthClient = (a_identity?: Identity) => {
     const identityToUse = a_identity || identity;
     isUserLogged(identityToUse);
-    
+
     return createActor(canisterId, {
       agentOptions: {
         identity: identityToUse,
@@ -127,11 +129,13 @@ const App: React.FC = () => {
   }
 
   const getUserData = async () => {
-    const { principal } = isUserLogged()
-    const maybeUserData = await icp_will_backend.get_user(principal)
-    setUserData(maybeUserData.length === 0 ? undefined : maybeUserData[0])
-    await fetchBalance()
-  }
+    setLoading(true);
+    const { principal } = isUserLogged();
+    const maybeUserData = await icp_will_backend.get_user(principal);
+    setUserData(maybeUserData.length === 0 ? undefined : maybeUserData[0]);
+    await fetchBalance();
+    setLoading(false);
+  };
 
   const getAllUsers = async () => {
     const users = await icp_will_backend.get_users()
@@ -353,17 +357,17 @@ const App: React.FC = () => {
     // const { principal } = isUserLogged()
     console.log('In frontend announceActivity after isUserLogged()')
     const backend = getAuthClient(identity)
-    console.log('In frontend announceActivity backend:}', backend) 
-    console.log('In frontend announceActivity Before await backend.announce_activity()') 
+    console.log('In frontend announceActivity backend:}', backend)
+    console.log('In frontend announceActivity Before await backend.announce_activity()')
     await backend.announce_activity()
-    console.log('In frontend announceActivity After await backend.announce_activity()') 
+    console.log('In frontend announceActivity After await backend.announce_activity()')
   }
 
   const fetchBalance = async () => {
     const { principal } = isUserLogged()
     const backend = getAuthClient()
     let result = await backend.get_balance()
-    if ('Ok' in result) {
+        if ('Ok' in result) {
       setBalance(result.Ok)
     } else {
       setBalance(null)
@@ -399,25 +403,24 @@ const App: React.FC = () => {
         await handleAuthentication(authClient)
       }
     }
-    console.log('mounted effect');
     init()
   }, [])
 
-    // Effect for reacting to changes in `principal`
-    useEffect(() => {
-      if (principal !== undefined) {
-        // Define an async function inside the effect
-        const fetchData = async () => {
-          console.log('Principal is now defined', principal);
-          await getUserData();
-          await getAllUsers();
-        };
-  
-        // Call the async function
-        fetchData();
-      }
-    }, [principal]);
-  
+  // Effect for reacting to changes in `principal`
+  useEffect(() => {
+    if (principal !== undefined) {
+      // Define an async function inside the effect
+      const fetchData = async () => {
+        console.log('Principal is now defined', principal);
+        await getUserData();
+        await getAllUsers();
+      };
+
+      // Call the async function
+      fetchData();
+    }
+  }, [principal]);
+
 
   return (
     <Layout
@@ -430,223 +433,228 @@ const App: React.FC = () => {
       ]}
     >
       <>
-        {principal && !userData && (
-          <Card className="flex flex-col gap-6 py-4 px-8">
-            <Input
-              value={newUsername}
-              onChange={e => setNewUsername(e.target.value)}
-              placeholder="nick"
-            />
-            <Button onClick={registerUsername}>register</Button>
-          </Card>
-        )}
-
-        {principal && userData && (
+        {loading ? (
+          <p>Loading...</p> // Show loading message when fetching data
+        ) : (
           <>
-            <h2 className="text-2xl font-bold mb-4">My testament ICP</h2>
-            <Card className="flex flex-col gap-6 py-4 px-8">
-              <p>Nick: {userData.nickname}</p>
-              <p>Principal: {principal.toString()}</p>
-              <p>Balance: {Number(balance)}</p>
-
-              {allUsers && (
-                <Select
-                  onValueChange={value => {
-                    setTargetPrincipal(value)
-                    pobierzChaty()
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Please select one" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allUsers.map(([userPrincipal, userData]) => (
-                      <SelectItem key={userPrincipal.toText()} value={userPrincipal.toText()}>
-                        {userData.nickname}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              <Button onClick={addBeneficiary} disabled={!isBeneficiaryValid}>
-                Add beneficiary
-              </Button>
-
-              <div className="container mx-auto p-6">
-                <h2 className="text-2xl font-bold mb-4">Will beneficiaries</h2>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full bg-white border border-gray-300">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Beneficiary
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Amount
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Date
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-300">
-                      {beneficiaries.map((beneficiary, index) => (
-                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <Input value={beneficiary.nickname} readOnly />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <Input
-                              value={beneficiary.icpAmount}
-                              onChange={e => {
-                                const newBeneficiaries = [...beneficiaries]
-                                newBeneficiaries[index].icpAmount = Number(e.target.value)
-                                setBeneficiaries(newBeneficiaries)
-                              }}
-                              placeholder="ICP value"
-                            />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <Button onClick={() => removeBeneficiary(index)}>Remove</Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {beneficiaries.length > 0 && (
-                <Card className="gap-4 flex flex-col justify-center items-center">
-                  <h4>Execution after:</h4>
-
-                  <div className="flex gap-4">
-                    <div className="flex gap-6 items-center">
-                      <Label htmlFor="years">Years:</Label>
-                      <Input
-                        id="years"
-                        value={executionAfterYears}
-                        onChange={e => setExecutionAfterYears(Number(e.target.value))}
-                        placeholder="Years"
-                      />
-                    </div>
-
-                    <div className="flex gap-6">
-                      <Label htmlFor="years">Months:</Label>
-                      <Input
-                        id="months"
-                        value={executionAfterMonths}
-                        onChange={e => setExecutionAfterMonths(Number(e.target.value))}
-                        placeholder="Months"
-                      />
-                    </div>
-
-                    <div className="flex gap-6">
-                      <Label htmlFor="seconds">Seconds:</Label>
-                      <Input
-                        id="seconds"
-                        value={executionAfterSeconds}
-                        onChange={e => setExecutionAfterSeconds(Number(e.target.value))}
-                        placeholder="Seconds"
-                      />
-                    </div>
-                  </div>
-
-
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="checkbox"
-                      id="inactivity"
-                      checked={inactivityChecked}
-                      onChange={e => setInactivityChecked(e.target.checked)}
-                    />
-                    <Label htmlFor="inactivity" className="mb-4">of inactivity</Label>
-
-                  </div>
-                </Card>
-              )}
-
-              <Card style={{ marginTop: '20px' }}>
-                <Button onClick={saveAndActivate} disabled={!isSaveAndActivateEnabled}>
-                  Save and Activate
-                </Button>
+            {principal && !userData && (
+              <Card className="flex flex-col gap-6 py-4 px-8">
+                <Input
+                  value={newUsername}
+                  onChange={e => setNewUsername(e.target.value)}
+                  placeholder="nick"
+                />
+                <Button onClick={registerUsername}>register</Button>
               </Card>
+            )}
 
-              <div className="flex flex-row gap-8">
-                <div className="flex flex-col gap-4">
-                  <Label htmlFor="showChat">Show chat</Label>
-                  <Checkbox id="showChat" checked={showChat} onCheckedChange={setShowChat} />
-                </div>
+            {principal && userData && (
+              <>
+                <h2 className="text-2xl font-bold mb-4">My testament ICP</h2>
+                <Card className="flex flex-col gap-6 py-4 px-8">
+                  <p>Nick: {userData.nickname}</p>
+                  <p>Principal: {principal.toString()}</p>
+                  <p>Balance: {Number(balance)}</p>
 
-                <div className="flex flex-row gap-8">
-                  <div className="flex flex-col gap-4">
-                    <Label htmlFor="showDirectTransfer">Show direct transfer</Label>
-                    <Checkbox
-                      id="showDirectTransfer"
-                      checked={showDirectTransfer}
-                      onCheckedChange={setShowDirectTransfer}
-                    />
-                  </div>
-                </div>
-              </div>
+                  {allUsers && (
+                    <Select
+                      onValueChange={value => {
+                        setTargetPrincipal(value)
+                        pobierzChaty()
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Please select one" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allUsers.map(([userPrincipal, userData]) => (
+                          <SelectItem key={userPrincipal.toText()} value={userPrincipal.toText()}>
+                            {userData.nickname}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
-              {showChat && (
-                <>
-                  <Card>{chats[0]?.map((chat, index) => <div key={index}>{chat}</div>)}</Card>
+                  <Button onClick={addBeneficiary} disabled={!isBeneficiaryValid}>
+                    Add beneficiary
+                  </Button>
 
-                  <Textarea
-                    value={newChat}
-                    onChange={e => setNewChat(e.target.value)}
-                    placeholder="wiadomosc"
-                  />
-                  <Button onClick={dodajChatMSG}>Dodaj notatke</Button>
-                </>
-              )}
-
-              {showDirectTransfer && (
-                <>
-                  <Label htmlFor="amountToSend">Amount to send:</Label>
-                  <Input
-                    value={amountToSend}
-                    onChange={e => setAmountToSend(Number(e.target.value))}
-                    placeholder="Amount to send"
-                  />
-
-                  <Label htmlFor="transferDelay">Delay in seconds:</Label>
-                  <Input
-                    value={transferDelay}
-                    onChange={e => setTransferDelay(Number(e.target.value))}
-                    placeholder="Delay in seconds"
-                  />
-
-                  <div className="flex items-center mb-2">
-                    <Label htmlFor="overrideTarget" className="mr-2 flex items-center">Override target principal</Label>
-                    <input
-                      type="checkbox"
-                      id="overrideTarget"
-                      checked={overrideTarget}
-                      onChange={(e) => setOverrideTarget(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <div className={`flex items-center ${overrideTarget ? '' : 'opacity-0'}`}>
-                      <Label htmlFor="overridePrincipal" className="mr-2">Overriding with principal:</Label>
-                      <input
-                        type="text"
-                        id="overridePrincipal"
-                        value={overridePrincipal}
-                        onChange={(e) => setOverridePrincipal(e.target.value)}
-                        className="block border border-gray-300 mb-2"
-                        disabled={!overrideTarget}
-                      />
+                  <div className="container mx-auto p-6">
+                    <h2 className="text-2xl font-bold mb-4">Will beneficiaries</h2>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full bg-white border border-gray-300">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Beneficiary
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Amount
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-300">
+                          {beneficiaries.map((beneficiary, index) => (
+                            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <Input value={beneficiary.nickname} readOnly />
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <Input
+                                  value={beneficiary.icpAmount}
+                                  onChange={e => {
+                                    const newBeneficiaries = [...beneficiaries]
+                                    newBeneficiaries[index].icpAmount = Number(e.target.value)
+                                    setBeneficiaries(newBeneficiaries)
+                                  }}
+                                  placeholder="ICP value"
+                                />
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <Button onClick={() => removeBeneficiary(index)}>Remove</Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
-                  <Button onClick={transfer}>Direct transfer</Button>
-                </>
-              )}
-            </Card>
-          </>
+                  {beneficiaries.length > 0 && (
+                    <Card className="gap-4 flex flex-col justify-center items-center">
+                      <h4>Execution after:</h4>
+
+                      <div className="flex gap-4">
+                        <div className="flex gap-6 items-center">
+                          <Label htmlFor="years">Years:</Label>
+                          <Input
+                            id="years"
+                            value={executionAfterYears}
+                            onChange={e => setExecutionAfterYears(Number(e.target.value))}
+                            placeholder="Years"
+                          />
+                        </div>
+
+                        <div className="flex gap-6">
+                          <Label htmlFor="years">Months:</Label>
+                          <Input
+                            id="months"
+                            value={executionAfterMonths}
+                            onChange={e => setExecutionAfterMonths(Number(e.target.value))}
+                            placeholder="Months"
+                          />
+                        </div>
+
+                        <div className="flex gap-6">
+                          <Label htmlFor="seconds">Seconds:</Label>
+                          <Input
+                            id="seconds"
+                            value={executionAfterSeconds}
+                            onChange={e => setExecutionAfterSeconds(Number(e.target.value))}
+                            placeholder="Seconds"
+                          />
+                        </div>
+                      </div>
+
+
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="checkbox"
+                          id="inactivity"
+                          checked={inactivityChecked}
+                          onChange={e => setInactivityChecked(e.target.checked)}
+                        />
+                        <Label htmlFor="inactivity" className="mb-4">of inactivity</Label>
+
+                      </div>
+                    </Card>
+                  )}
+
+                  <Card style={{ marginTop: '20px' }}>
+                    <Button onClick={saveAndActivate} disabled={!isSaveAndActivateEnabled}>
+                      Save and Activate
+                    </Button>
+                  </Card>
+
+                  <div className="flex flex-row gap-8">
+                    <div className="flex flex-col gap-4">
+                      <Label htmlFor="showChat">Show chat</Label>
+                      <Checkbox id="showChat" checked={showChat} onCheckedChange={setShowChat} />
+                    </div>
+
+                    <div className="flex flex-row gap-8">
+                      <div className="flex flex-col gap-4">
+                        <Label htmlFor="showDirectTransfer">Show direct transfer</Label>
+                        <Checkbox
+                          id="showDirectTransfer"
+                          checked={showDirectTransfer}
+                          onCheckedChange={setShowDirectTransfer}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {showChat && (
+                    <>
+                      <Card>{chats[0]?.map((chat, index) => <div key={index}>{chat}</div>)}</Card>
+
+                      <Textarea
+                        value={newChat}
+                        onChange={e => setNewChat(e.target.value)}
+                        placeholder="wiadomosc"
+                      />
+                      <Button onClick={dodajChatMSG}>Dodaj notatke</Button>
+                    </>
+                  )}
+
+                  {showDirectTransfer && (
+                    <>
+                      <Label htmlFor="amountToSend">Amount to send:</Label>
+                      <Input
+                        value={amountToSend}
+                        onChange={e => setAmountToSend(Number(e.target.value))}
+                        placeholder="Amount to send"
+                      />
+
+                      <Label htmlFor="transferDelay">Delay in seconds:</Label>
+                      <Input
+                        value={transferDelay}
+                        onChange={e => setTransferDelay(Number(e.target.value))}
+                        placeholder="Delay in seconds"
+                      />
+
+                      <div className="flex items-center mb-2">
+                        <Label htmlFor="overrideTarget" className="mr-2 flex items-center">Override target principal</Label>
+                        <input
+                          type="checkbox"
+                          id="overrideTarget"
+                          checked={overrideTarget}
+                          onChange={(e) => setOverrideTarget(e.target.checked)}
+                          className="mr-2"
+                        />
+                        <div className={`flex items-center ${overrideTarget ? '' : 'opacity-0'}`}>
+                          <Label htmlFor="overridePrincipal" className="mr-2">Overriding with principal:</Label>
+                          <input
+                            type="text"
+                            id="overridePrincipal"
+                            value={overridePrincipal}
+                            onChange={(e) => setOverridePrincipal(e.target.value)}
+                            className="block border border-gray-300 mb-2"
+                            disabled={!overrideTarget}
+                          />
+                        </div>
+                      </div>
+
+                      <Button onClick={transfer}>Direct transfer</Button>
+                    </>
+                  )}
+                </Card>
+              </>
+            )}            </>
         )}
       </>
     </Layout>

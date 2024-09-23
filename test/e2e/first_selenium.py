@@ -17,6 +17,9 @@ nicknames = ["A1", "B2", "C3"]
 inheritance = [ 0, 13000, 14000]
 
 def run():
+
+    print(Style.RESET_ALL)    
+
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
 
@@ -165,10 +168,6 @@ class Test:
 
     def read_balances(self):
         print('Entering readBalances')
-        if mode_is_local:
-            time.sleep(20 * TIMEOUT_MULTIPLIER) # //TODO(mtlk) - amore sophisticated wait here
-        else:
-            time.sleep(30 * TIMEOUT_MULTIPLIER)
         balances = []
         for driver in self.drivers:
             balance_element = wait_for_element(driver, By.XPATH, "//p[contains(text(), 'Balance:')]")
