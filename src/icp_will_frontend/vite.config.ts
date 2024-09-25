@@ -9,6 +9,8 @@ dotenv.config({ path: '../../.env' });
 export default defineConfig({
   build: {
     emptyOutDir: true,
+    sourcemap: true,  // Enables source maps in production
+    minify: false,  // Disable minification for easier debugging
   },
   optimizeDeps: {
     esbuildOptions: {
