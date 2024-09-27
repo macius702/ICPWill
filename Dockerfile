@@ -44,7 +44,7 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add
     apt-get update && apt-get install -y google-chrome-stable
 
 # Install Python packages (ensure Selenium is 4.6.0 or newer)
-RUN pip3 install selenium>=4.6.0 colorama screeninfo
+RUN pip3 install selenium>=4.6.0 colorama screeninfo pytest
 
 # Add 'developer' user with the same UID and GID as the host user
 ARG USER_ID

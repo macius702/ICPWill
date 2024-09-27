@@ -1,4 +1,4 @@
-
+import pytest
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -13,16 +13,11 @@ import os
 from utils import click_element, wait_for_element, create_driver, get_all_monitors_resolution, TIMEOUT_MULTIPLIER
 
 mode_is_local = True
-nicknames = ["A1", "B2", "C3"]
-inheritance = [ 0, 13000, 14000]
 
-def run():
-
-    print(Style.RESET_ALL)    
-
+@pytest.fixture(scope="module")
+def setup_drivers():
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
-
     if mode_is_local:
         url = "http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai"
     else:
@@ -46,9 +41,22 @@ def run():
         # Move the x position for the next window
         x_position += window_width
 
-    # Pass nicknames and inheritance to the Test class instance
-    t = Test(drivers, nicknames, inheritance)
+    print(Style.RESET_ALL)    
+    yield drivers
+    for driver in drivers:
+        driver.quit()
 
+@pytest.fixture
+def test_instance(setup_drivers):
+
+    nicknames = ["A1", "B2", "C3"]
+    inheritance = [ 0, 13000, 14000]
+
+    return Mytest(setup_drivers, nicknames, inheritance)
+
+def test_send(test_instance):
+    t = test_instance
+#     inheritance = t.inheritance
     if mode_is_local:
         t.login_all()
     else:
@@ -64,7 +72,7 @@ def run():
 
     final_balances = t.read_balances()
     
-    firstBeneficiaryExpectedBalance = inheritance[1] + initial_balances[1]
+    firstBeneficiaryExpectedBalance = t.inheritance[1] + initial_balances[1]
     
         
     def inheritance_report(expected1, got1, expected2, got2, approval_fee, transaction_fee_per_beneficiary, total_transaction_fees, inheritance_paid, total_expenses ):
@@ -88,39 +96,45 @@ def run():
         return report
     
     fee = 10_000
-    testatorExpenses = fee + fee *2 + inheritance[1] + inheritance[2]
-    firstBeneficiaryExpectedBalance = inheritance[1] + initial_balances[1]
-    secondBeneficiaryExpectedBalance = inheritance[2] + initial_balances[2]
+    testatorExpenses = fee + fee *2 + t.inheritance[1] + t.inheritance[2]
+    firstBeneficiaryExpectedBalance = t.inheritance[1] + initial_balances[1]
+    secondBeneficiaryExpectedBalance = t.inheritance[2] + initial_balances[2]
 
     print(inheritance_report(
-        inheritance[1],
+        t.inheritance[1],
         final_balances[1]-initial_balances[1],
-        inheritance[2],
+        t.inheritance[2],
         final_balances[2]-initial_balances[2],
         fee,
         fee,
         fee * 2,
-        inheritance[1] + inheritance[2],
+        t.inheritance[1] + t.inheritance[2],
         testatorExpenses))
     
     # setup RED color in case of asserts
     print(Fore.RED)
-    
-    assert(initial_balances[0] - testatorExpenses == final_balances[0])
-    
-    assert(firstBeneficiaryExpectedBalance == final_balances[1])
-    
-    assert(secondBeneficiaryExpectedBalance == final_balances[2])
-
-    print(Style.RESET_ALL)    
-
-    print(Fore.GREEN + 'Test passed' + Style.RESET_ALL)    
 
 
+    try:
+
+        assert(initial_balances[0] - testatorExpenses == final_balances[0])
+
+        assert(firstBeneficiaryExpectedBalance == final_balances[1])
+
+        assert(secondBeneficiaryExpectedBalance == final_balances[2])
+        
+        print(Fore.GREEN + 'Test passed' + Style.RESET_ALL)
+    finally:
+        # test cleanup
+        print(Style.RESET_ALL)  
+        t.clear_beneficiaries()
 
 
 
-class Test:
+
+
+
+class Mytest:
     def __init__(self, drivers, nicknames, inheritance):
         self.drivers = drivers
         self.testator = self.drivers[0]
@@ -176,13 +190,16 @@ class Test:
             balances.append(int(balance_text))
         return balances
 
+    def clear_beneficiaries(self):
+        click_element(self.testator, By.XPATH, "//button[text()='Clear']")
+
     def setup_and_run_inheritance(self):
         print('Entering setupAndRunInheritance')
         self.select_combobox_option('B2')
-        self.add_beneficiary_and_enter_icp('B2', inheritance[1])
+        self.add_beneficiary_and_enter_icp('B2', self.inheritance[1])
 
         self.select_combobox_option('C3')
-        self.add_beneficiary_and_enter_icp('C3', inheritance[2])
+        self.add_beneficiary_and_enter_icp('C3', self.inheritance[2])
 
         self.enter_seconds_and_activate("4")
 

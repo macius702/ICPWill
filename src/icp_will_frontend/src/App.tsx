@@ -137,7 +137,7 @@ const App: React.FC = () => {
     const { principal } = isUserLogged();
     const maybeUserData = await icp_will_backend.get_user(principal);
     const userData = maybeUserData.length === 0 ? undefined : maybeUserData[0];
-    
+
     setUserData(userData);
 
     if (userData && userData.batch_transfer.length > 0) {
@@ -195,8 +195,8 @@ const App: React.FC = () => {
         from_subaccount: [],
         created_at_time: [],
         amount: BigInt(amountToSend) + feeFromLedger,
-        expected_allowance : [],
-        expires_at : [],
+        expected_allowance: [],
+        expires_at: [],
         spender: { owner: theSpender, subaccount: [] },
       });
 
@@ -274,6 +274,16 @@ const App: React.FC = () => {
     setBeneficiaries(beneficiaries.filter((_, i) => i !== index))
   }
 
+  const clearBeneficiaries = async () => {
+    const payload = {
+      beneficiaries: [],
+      execution_delay_seconds: BigInt(0),
+      of_inactivity: true,
+    };
+    console.log('clearBeneficiaries triggered with payload:', payload);
+    const backend = getAuthClient();
+    await backend.register_batch_transfer(payload);
+  }
 
 
   const setupAllowancesForBatchTransfer = async () => {
@@ -286,7 +296,7 @@ const App: React.FC = () => {
       const feeFromLedger = await myledger.icrc1_fee() as Tokens;
       const overallTransactionCost = feeFromLedger * BigInt(beneficiaries.length) + feeFromLedger;
 
-      const assetsSum = beneficiaries.reduce((sum : bigint, { icpAmount }) => sum + icpAmount, BigInt(0));
+      const assetsSum = beneficiaries.reduce((sum: bigint, { icpAmount }) => sum + icpAmount, BigInt(0));
       const overallSum = BigInt(assetsSum) + overallTransactionCost;
 
       const theSpender = Principal.fromText(canisterId);
@@ -300,8 +310,8 @@ const App: React.FC = () => {
         from_subaccount: [],
         created_at_time: [],
         amount: overallSum,
-        expected_allowance : [],
-        expires_at : [],
+        expected_allowance: [],
+        expires_at: [],
         spender: { owner: theSpender, subaccount: [] },
       });
 
@@ -330,7 +340,7 @@ const App: React.FC = () => {
           // 
         })),
         execution_delay_seconds: executionTimeInSeconds,
-        of_inactivity : inactivityChecked,
+        of_inactivity: inactivityChecked,
       };
       console.log('Save and Activate triggered with payload:', payload);
       const backend = getAuthClient();
@@ -363,8 +373,7 @@ const App: React.FC = () => {
     await getAllUsers()
   }
 
-  const announceActivity = async (identity : Identity) =>
-  {
+  const announceActivity = async (identity: Identity) => {
     // console.log('In frontend announceActivity')
     // console.log('In frontend announceActivity before isUserLogged()')
     // const { principal } = isUserLogged()
@@ -397,7 +406,7 @@ const App: React.FC = () => {
     let result = await backend.cancel_batch_activation()
     console.log('in cancelTimer result ', result)
 
-    
+
   }
 
   // Helper function to create an agent
@@ -458,13 +467,13 @@ const App: React.FC = () => {
   // Helper for getUserData
   function updateUIwithseconds(batchTransfer: BatchTransfer) {
     const totalSeconds = Number(batchTransfer.execution_delay_seconds)
-  
+
     const SECONDS_IN_YEAR = 365 * 24 * 60 * 60 // 31,536,000 seconds
     const SECONDS_IN_MONTH = 30 * 24 * 60 * 60 // 2,592,000 seconds
-  
+
     const executionAfterYears = Math.floor(totalSeconds / SECONDS_IN_YEAR)
     const remainderAfterYears = totalSeconds % SECONDS_IN_YEAR
-  
+
     const executionAfterMonths = Math.floor(remainderAfterYears / SECONDS_IN_MONTH)
     const remainderAfterMonths = remainderAfterYears % SECONDS_IN_MONTH
 
@@ -559,9 +568,14 @@ const App: React.FC = () => {
                     </Select>
                   )}
 
-                  <Button onClick={addBeneficiary} disabled={!isBeneficiaryValid}>
-                    Add beneficiary
-                  </Button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <Button onClick={addBeneficiary} disabled={!isBeneficiaryValid}>
+                      Add beneficiary
+                    </Button>
+                    <Button onClick={clearBeneficiaries} disabled={beneficiaries.length === 0}>
+                      Clear
+                    </Button>
+                  </div>
 
                   <div className="container mx-auto p-6">
                     <h2 className="text-2xl font-bold mb-4">Will beneficiaries</h2>
@@ -661,7 +675,7 @@ const App: React.FC = () => {
                   <Card style={{ marginTop: '20px' }}>
                     <div className="flex flex-row gap-4 justify-center items-center">
                       <Button onClick={saveAndActivate} disabled={!isSaveAndActivateEnabled}>
-                      <SaveIcon className="mr-2" />
+                        <SaveIcon className="mr-2" />
                         Save and Activate
                       </Button>
                       <Button onClick={cancelTimer} disabled={!userData.has_active_timer || loading}>
