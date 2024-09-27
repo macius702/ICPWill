@@ -14,7 +14,7 @@ from utils import click_element, wait_for_element, create_driver, get_all_monito
 
 mode_is_local = True
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def setup_drivers():
     # Open 3 isolated Chrome windows
     drivers = [create_driver() for _ in range(3)]
@@ -54,82 +54,91 @@ def test_instance(setup_drivers):
 
     return Mytest(setup_drivers, nicknames, inheritance)
 
-def test_send(test_instance):
-    t = test_instance
-#     inheritance = t.inheritance
+def inheritance_report(expected1, got1, expected2, got2, approval_fee, transaction_fee_per_beneficiary, total_transaction_fees, inheritance_paid, total_expenses):
+    report = f"""
+    Inheritance Report:
+
+    1st Beneficiary:
+    - Expected Inheritance:   {expected1:>10,}
+    - Actual Inheritance:     {got1:>10,}
+
+    2nd Beneficiary:
+    - Expected Inheritance:   {expected2:>10,}
+    - Actual Inheritance:     {got2:>10,}
+
+    Testator's Expenses:
+    - Approval Fee:           {approval_fee:>10,}
+    - Total Transaction Fees: {total_transaction_fees:>10,} (Fee per Beneficiary: {transaction_fee_per_beneficiary:>10,})
+    - Inheritance Paid:       {inheritance_paid:>10,}
+    - Total Expenses:         {total_expenses:>10,}
+    """
+    return report
+
+def run_inheritance_test(t, cancel=False, seconds=4):
     if mode_is_local:
         t.login_all()
     else:
-        # manual login
+        # Manual login
         input("Press Enter to continue...")
 
     initial_balances = t.read_balances()
 
-    t.setup_and_run_inheritance()
+    t.setup_and_run_inheritance(seconds)
 
     time.sleep(10 * TIMEOUT_MULTIPLIER)
     t.refresh_all()
 
+    if cancel:
+        t.cancel_transfer()
+        time.sleep(10 * TIMEOUT_MULTIPLIER)
+        t.refresh_all()
+
     final_balances = t.read_balances()
-    
-    firstBeneficiaryExpectedBalance = t.inheritance[1] + initial_balances[1]
-    
-        
-    def inheritance_report(expected1, got1, expected2, got2, approval_fee, transaction_fee_per_beneficiary, total_transaction_fees, inheritance_paid, total_expenses ):
-        report = f"""
-        Inheritance Report:
 
-        1st Beneficiary:
-        - Expected Inheritance:   {expected1:>10,}
-        - Actual Inheritance:     {got1:>10,}
-
-        2nd Beneficiary:
-        - Expected Inheritance:   {expected2:>10,}
-        - Actual Inheritance:     {got2:>10,}
-
-        Testator's Expenses:
-        - Approval Fee:           {approval_fee:>10,}
-        - Total Transaction Fees: {total_transaction_fees:>10,} (Fee per Beneficiary: {transaction_fee_per_beneficiary:>10,})
-        - Inheritance Paid:       {inheritance_paid:>10,}
-        - Total Expenses:         {total_expenses:>10,}
-        """
-        return report
-    
     fee = 10_000
-    testatorExpenses = fee + fee *2 + t.inheritance[1] + t.inheritance[2]
-    firstBeneficiaryExpectedBalance = t.inheritance[1] + initial_balances[1]
-    secondBeneficiaryExpectedBalance = t.inheritance[2] + initial_balances[2]
+    if cancel:
+        testatorExpenses = fee
+        firstBeneficiaryExpectedBalance = initial_balances[1]
+        secondBeneficiaryExpectedBalance = initial_balances[2]
+    else:
+        testatorExpenses = fee + fee * 2 + t.inheritance[1] + t.inheritance[2]
+        firstBeneficiaryExpectedBalance = t.inheritance[1] + initial_balances[1]
+        secondBeneficiaryExpectedBalance = t.inheritance[2] + initial_balances[2]
 
-    print(inheritance_report(
-        t.inheritance[1],
-        final_balances[1]-initial_balances[1],
-        t.inheritance[2],
-        final_balances[2]-initial_balances[2],
-        fee,
-        fee,
-        fee * 2,
-        t.inheritance[1] + t.inheritance[2],
-        testatorExpenses))
-    
-    # setup RED color in case of asserts
+    print(
+        inheritance_report(
+            t.inheritance[1],
+            final_balances[1] - initial_balances[1],
+            t.inheritance[2],
+            final_balances[2] - initial_balances[2],
+            fee,
+            fee,
+            fee * 2,
+            t.inheritance[1] + t.inheritance[2],
+            testatorExpenses,
+        )
+    )
+
+    # Setup RED color in case of asserts
     print(Fore.RED)
 
-
     try:
-
-        assert(initial_balances[0] - testatorExpenses == final_balances[0])
-
-        assert(firstBeneficiaryExpectedBalance == final_balances[1])
-
-        assert(secondBeneficiaryExpectedBalance == final_balances[2])
-        
-        print(Fore.GREEN + 'Test passed' + Style.RESET_ALL)
+        assert initial_balances[0] - testatorExpenses == final_balances[0]
+        assert firstBeneficiaryExpectedBalance == final_balances[1]
+        assert secondBeneficiaryExpectedBalance == final_balances[2]
+        print(Fore.GREEN + "Test passed" + Style.RESET_ALL)
     finally:
-        # test cleanup
-        print(Style.RESET_ALL)  
+        # Test cleanup
+        print(Style.RESET_ALL)
         t.clear_beneficiaries()
 
+def test_send(test_instance):
+    t = test_instance
+    run_inheritance_test(t, cancel=False, seconds=4)
 
+def test_cancel_send(test_instance):
+    t = test_instance
+    run_inheritance_test(t, cancel=True, seconds=30)
 
 
 
@@ -193,7 +202,10 @@ class Mytest:
     def clear_beneficiaries(self):
         click_element(self.testator, By.XPATH, "//button[text()='Clear']")
 
-    def setup_and_run_inheritance(self):
+    def cancel_transfer(self):
+        click_element(self.testator, By.XPATH, "//button[text()='Cancel']")
+
+    def setup_and_run_inheritance(self, seconds = 4):
         print('Entering setupAndRunInheritance')
         self.select_combobox_option('B2')
         self.add_beneficiary_and_enter_icp('B2', self.inheritance[1])
@@ -201,7 +213,7 @@ class Mytest:
         self.select_combobox_option('C3')
         self.add_beneficiary_and_enter_icp('C3', self.inheritance[2])
 
-        self.enter_seconds_and_activate("4")
+        self.enter_seconds_and_activate(str(seconds))
 
     def select_combobox_option(self, option_text):
         click_element(self.testator, By.XPATH, "//button[@role='combobox']")
