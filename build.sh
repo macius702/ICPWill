@@ -16,6 +16,25 @@ dfx identity new Alice  --storage-mode=plaintext
 MODE="local"
 CLEAN=""
 
+usage() {
+  echo "Usage: $0 [--clean] [--mode MODE] [local|nonlocal]"
+  echo
+  echo "Options:"
+  echo "  --clean          Start with a clean replica (Internet identities will be deleted)."
+  echo "  --mode MODE      Set the mode to 'local' or 'nonlocal'."
+  echo "  local|nonlocal    Positional argument to set the mode."
+  echo
+  echo "Description:"
+  echo "  This script builds the ICPWill app."
+  echo "  Use '--clean' to start with a clean replica, which means that Internet identities will be deleted."
+  echo "  You can set the mode either using '--mode' followed by 'local' or 'nonlocal',"
+  echo "  or by simply providing 'local' or 'nonlocal' as a positional argument."
+  echo
+  echo "Modes:"
+  echo "  local     Build and run the app on this computer."
+  echo "  nonlocal   Deploy the app to the ICP blockchain."
+}
+
 handle_options() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -28,16 +47,21 @@ handle_options() {
         shift # remove the mode from the arguments
         ;;
       --mode)
+        if [[ -z "$2" ]]; then
+          echo "Error: '--mode' requires an argument." >&2
+          usage
+          exit 1
+        fi
         MODE="$2"
         shift 2 # remove --mode and its value from the arguments
         ;;
       *)
         echo "Invalid option: $1" >&2
+        usage
         exit 1
         ;;
     esac
   done
-
   # Ensure MODE is either local or nonlocal
   if [[ "$MODE" != "local" && "$MODE" != "nonlocal" ]]; then
     echo "Invalid mode specified. Use 'local' or 'nonlocal'."
