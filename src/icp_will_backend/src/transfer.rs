@@ -110,10 +110,10 @@ pub fn cancel_batch_activation() -> Result<(), String> {
     }
 
     BATCH_TIMERS.with_borrow_mut(|batch_timers| {
-        if let Some(timer_id) = batch_timers.get(&user) {
-            ic_cdk_timers::clear_timer(*timer_id);
+        if let Some(&timer_id) = batch_timers.get(&user) {
+            ic_cdk_timers::clear_timer(timer_id);
             batch_timers.remove(&user);
-            ic_cdk::println!("Successfully cancelled BATCH_TIMER for user: {}", user.to_text());
+            ic_cdk::println!("Successfully cancelled BATCH_TIMER {:?} for user: {}", timer_id, user.to_text());
         }
     });
 

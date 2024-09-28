@@ -132,7 +132,16 @@ pub fn reinstantiate_timer(user: Principal) {
     if let Some(user_data) = user_data {
         if let Some(batch_transfer) = user_data.get_batch_transfer() {
             if batch_transfer.of_inactivity {
-                let batch_timer_removed = BATCH_TIMERS.with_borrow_mut(|timers| timers.remove(&user).is_some());
+
+                let batch_timer_removed = BATCH_TIMERS.with_borrow_mut(|timers| {
+                    if let Some(timer_id) = timers.get(&user) {
+                        // Clear the timer before removing it
+                        ic_cdk_timers::clear_timer(*timer_id);
+                        ic_cdk::println!("Rust reinstantiate_timer ->>> Cleared timer for user: {}", user.to_text());
+                    }
+                    timers.remove(&user).is_some()
+                });
+
                 if batch_timer_removed {
                     ic_cdk::println!("Rust reinstantiate_timer ->>> Successfully removed BATCH_TIMER for user: {}", user.to_text());
 

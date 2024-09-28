@@ -91,6 +91,7 @@ def run_inheritance_test(t, cancel=False, seconds=4):
     if cancel:
         t.cancel_transfer()
         time.sleep(10 * TIMEOUT_MULTIPLIER)
+        time.sleep(seconds)
         t.refresh_all()
 
     final_balances = t.read_balances()
@@ -123,9 +124,9 @@ def run_inheritance_test(t, cancel=False, seconds=4):
     print(Fore.RED)
 
     try:
-        assert initial_balances[0] - testatorExpenses == final_balances[0]
-        assert firstBeneficiaryExpectedBalance == final_balances[1]
-        assert secondBeneficiaryExpectedBalance == final_balances[2]
+        assert initial_balances[0] - testatorExpenses == final_balances[0], f"Expected {initial_balances[0] - testatorExpenses}, but got {final_balances[0]}"
+        assert firstBeneficiaryExpectedBalance == final_balances[1], f"Expected first beneficiary balance: {firstBeneficiaryExpectedBalance}, but got {final_balances[1]}"
+        assert secondBeneficiaryExpectedBalance == final_balances[2], f"Expected second beneficiary balance: {secondBeneficiaryExpectedBalance}, but got {final_balances[2]}"
         print(Fore.GREEN + "Test passed" + Style.RESET_ALL)
     finally:
         # Test cleanup
