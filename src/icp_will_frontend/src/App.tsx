@@ -36,9 +36,17 @@ interface IBeneficiary {
   userPrincipal: Principal
 }
 
+enum TimerStatus {
+  Active = 'active',
+  Inactive = 'inactive',
+  CannotTell = 'cannot_tell'
+}
+
 const customLog = (message: any, ...optionalParams: any[]) => {
   //console.log(`[Custom Log]:`, message, ...optionalParams);
 };
+
+
 
 
 const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER
@@ -154,6 +162,32 @@ const App: React.FC = () => {
     await fetchBalance();
     setLoading(false);
   };
+
+
+  const getUserHasActiveTimer = async (): Promise<TimerStatus> => {
+     customLog('Entering getUserHasActiveTimer')
+    const { principal } = isUserLogged();
+     customLog('getUserHasActiveTimer principal: ', principal)
+
+    const maybeUserData = await icp_will_backend.get_user(principal);
+     customLog('getUserHasActiveTimer maybeUserData: ', maybeUserData)
+
+    const userData = maybeUserData.length === 0 ? undefined : maybeUserData[0];
+     customLog('getUserHasActiveTimer userData: ', userData)
+
+    if (userData) {
+       customLog('getUserHasActiveTimer if(userData)')
+      if (userData.has_active_timer)
+        return TimerStatus.Active
+      else
+        return TimerStatus.Inactive
+    }
+    else {
+       customLog('getUserHasActiveTimer else')
+      return TimerStatus.CannotTell
+    }
+  };
+
 
   const getAllUsers = async () => {
     const users = await icp_will_backend.get_users()
@@ -334,9 +368,43 @@ const App: React.FC = () => {
 
   const saveAndActivate = async () => {
     if (isSaveAndActivateEnabled) {
-      customLog('Save and Activate triggered');
+
+
+      // 
+       customLog('saveAndActivate userData: ', userData)
+      if (userData) {
+         customLog('saveAndActivate userData: ', userData)
+        setUserData(prevData => {
+           customLog('saveAndActivate prevData =>', prevData)
+          if (!prevData) {
+            // If prevData is undefined, return it or handle accordingly
+            return prevData;
+          }
+
+           customLog('saveAndActivate After prevData =>')
+
+          // Prepare the new object
+          const updatedData = {
+            nickname: prevData.nickname,
+            avatar_url: prevData.avatar_url,
+            batch_transfer: prevData.batch_transfer,
+            has_active_timer: true,
+          };
+
+
+             // Log the new object being returned
+           customLog('Returning updated data:', updatedData);
+          return updatedData;
+        });
+      }
+      else{
+         customLog('saveAndActivate no userData')
+      }
+
+
+       customLog('Save and Activate triggered');
       const executionTimeInSeconds = BigInt(executionAfterYears * 31536000 + executionAfterMonths * 2592000 + executionAfterSeconds);
-      customLog('this.benefficiaries', beneficiaries);
+       customLog('this.benefficiaries', beneficiaries);
       const payload = {
         beneficiaries: beneficiaries.map(b => ({
           beneficiary_principal: b.userPrincipal,
@@ -357,10 +425,6 @@ const App: React.FC = () => {
       await backend.execute_batch_transfers();
 
 
-      //await backend.execute_batch_transfers();
-
-
-      ;
     }
   }
 
@@ -374,8 +438,6 @@ const App: React.FC = () => {
 
      customLog('Zalogowano', principal)
     await announceActivity(identity)
-    await getUserData()
-    await getAllUsers()
   }
 
   const announceActivity = async (identity: Identity) => {
@@ -394,6 +456,7 @@ const App: React.FC = () => {
     const { principal } = isUserLogged()
     const backend = getAuthClient()
     let result = await backend.get_balance()
+    console.log('fetching balance')
     if ('Ok' in result) {
       setBalance(result.Ok)
     } else {
@@ -490,6 +553,46 @@ const App: React.FC = () => {
     setExecutionAfterSeconds(executionAfterSeconds)
   }
 
+  function startPolling(intervalTime: number) {
+     customLog('in startPolling identity: ', identity)
+    const intervalId = setInterval(async () => {
+       customLog('in setInterval identity: ', identity)
+      try {
+        // const data = await canister.getData();
+         customLog('in setInterval try{: ', identity)
+        //const backend = getAuthClient();
+        const timerStatus = await getUserHasActiveTimer()
+         customLog('in setInterval timerStatus: ', timerStatus)
+         customLog('in setInterval userData: ', userData)
+
+        if (userData) {
+          setUserData(prevData => {
+            if (!prevData) {
+              // If prevData is undefined, return it or handle accordingly
+              return prevData;
+            }
+
+            // Return a new object with all required properties
+            return {
+              // Explicitly set all required properties
+              nickname: prevData.nickname,
+              avatar_url: prevData.avatar_url,
+              batch_transfer: prevData.batch_transfer,
+              // Update has_active_timer
+              has_active_timer: timerStatus === TimerStatus.Active,
+            };
+          });
+        }
+        else {
+           customLog('Cannot tell the timer status')
+        }
+      } catch (error) {
+        console.error('Error telling the timer status: ', error);
+      }
+    }, intervalTime);
+    return intervalId;
+  }
+
   useEffect(() => {
     const init = async () => {
        customLog('In useEffect ()')
@@ -518,6 +621,29 @@ const App: React.FC = () => {
     }
   }, [principal]);
 
+  useEffect(() => {
+     console.log('useEffect [userData]:', userData)
+    if (userData != undefined) {
+      if(userData.has_active_timer)
+      {
+        const intervalId = startPolling(10000)
+
+        return () => {
+          console.log('Cleanup: Clearing interval', intervalId);
+          clearInterval(intervalId);
+        }
+      }
+      else {
+        console.log('Define and call an async function to handle the asynchronous fetchBalance')
+        const fetchBalanceAsync = async () => {
+          await fetchBalance();
+        };
+  
+        fetchBalanceAsync();
+      }
+
+    }
+  }, [userData]);
 
   return (
     <Layout
