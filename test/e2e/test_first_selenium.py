@@ -139,7 +139,7 @@ def test_send(test_instance):
 
 def test_cancel_send(test_instance):
     t = test_instance
-    run_inheritance_test(t, cancel=True, seconds=30)
+    run_inheritance_test(t, cancel=True, seconds=10)
 
 
 
