@@ -36,6 +36,11 @@ interface IBeneficiary {
   userPrincipal: Principal
 }
 
+const customLog = (message: any, ...optionalParams: any[]) => {
+  //console.log(`[Custom Log]:`, message, ...optionalParams);
+};
+
+
 const IDENTITY_PROVIDER = import.meta.env.VITE_IDENTITY_PROVIDER
 const AGENT_HOST = import.meta.env.VITE_AGENT_HOST
 const LEDGER_CANISTER_ID = import.meta.env.VITE_LEDGER_CANISTER_ID
@@ -143,7 +148,7 @@ const App: React.FC = () => {
     if (userData && userData.batch_transfer.length > 0) {
       updateUIwithBatchTransferData(userData)
     } else {
-      console.log('No batch transfer available');
+       customLog('No batch transfer available');
     }
 
     await fetchBalance();
@@ -161,14 +166,14 @@ const App: React.FC = () => {
       if (!identity) throw new Error('Identity is undefined');
 
       const backend = getAuthClient();
-      console.log('backend', backend);
+       customLog('backend', backend);
 
       const target = overrideTarget ? Principal.fromText(overridePrincipal) : validateTargetPrincipal();
-      console.log('target', target);
+       customLog('target', target);
 
       const { principal } = isUserLogged();
       if (!principal) throw new Error('Principal is undefined');
-      console.log('principal', principal);
+       customLog('principal', principal);
 
       const agent = await createAgentWithHost(identity);
       const myledger = createLedgerActor(agent);
@@ -177,7 +182,7 @@ const App: React.FC = () => {
         await Promise.all(
           allUsers.map(async ([userPrincipal, userData]) => {
             const balance = await myledger.icrc1_balance_of({ owner: userPrincipal, subaccount: [] });
-            console.log(label, userData.nickname, balance, userPrincipal.toText());
+             customLog(label, userData.nickname, balance, userPrincipal.toText());
           })
         );
       }
@@ -185,7 +190,7 @@ const App: React.FC = () => {
       await getBalance('balance_before');
 
       const theSpender = Principal.fromText(canisterId);
-      console.log('Spender: ', theSpender.toText());
+       customLog('Spender: ', theSpender.toText());
 
       const feeFromLedger = await myledger.icrc1_fee() as Tokens;// TODO(mtlk) why Tokens not imported automatically
 
@@ -200,14 +205,14 @@ const App: React.FC = () => {
         spender: { owner: theSpender, subaccount: [] },
       });
 
-      console.log('approve_result', approveResult);
+       customLog('approve_result', approveResult);
 
       const allowanceResult = await myledger.icrc2_allowance({
         account: { owner: principal, subaccount: [] },
         spender: { owner: theSpender, subaccount: [] },
       });
 
-      console.log('allowance_result', allowanceResult);
+       customLog('allowance_result', allowanceResult);
 
       const transferArgs: TransferArgs = {
         to_account: { owner: target, subaccount: [] },
@@ -218,7 +223,7 @@ const App: React.FC = () => {
 
       const result = await backend.transfer(transferArgs);
       await getBalance('balance_after');
-      console.log(result);
+       customLog(result);
 
     } catch (error) {
       if (error instanceof Error) {
@@ -240,13 +245,13 @@ const App: React.FC = () => {
   }
 
   const login = async () => {
-    console.log('In frontent login->')
+     customLog('In frontent login->')
     const authClient = await AuthClient.create()
-    console.log('In frontent login-> authClient: ', authClient)
+     customLog('In frontent login-> authClient: ', authClient)
     await authClient.login({
       identityProvider: IDENTITY_PROVIDER,
       onSuccess: async () => {
-        console.log('In frontent login on success authClient: ', authClient)
+         customLog('In frontent login on success authClient: ', authClient)
         await handleAuthentication(authClient)
       },
     })
@@ -280,7 +285,7 @@ const App: React.FC = () => {
       execution_delay_seconds: BigInt(0),
       of_inactivity: true,
     };
-    console.log('clearBeneficiaries triggered with payload:', payload);
+     customLog('clearBeneficiaries triggered with payload:', payload);
     const backend = getAuthClient();
     await backend.register_batch_transfer(payload);
   }
@@ -300,7 +305,7 @@ const App: React.FC = () => {
       const overallSum = BigInt(assetsSum) + overallTransactionCost;
 
       const theSpender = Principal.fromText(canisterId);
-      console.log('Spender: ', theSpender.toText());
+       customLog('Spender: ', theSpender.toText());
 
       const approveResult = await myledger.icrc2_approve({
         fee: [],
@@ -315,7 +320,7 @@ const App: React.FC = () => {
         spender: { owner: theSpender, subaccount: [] },
       });
 
-      console.log('batch_approve_result', approveResult);
+       customLog('batch_approve_result', approveResult);
 
     } catch (error) {
       if (error instanceof Error) {
@@ -329,9 +334,9 @@ const App: React.FC = () => {
 
   const saveAndActivate = async () => {
     if (isSaveAndActivateEnabled) {
-      console.log('Save and Activate triggered');
+      customLog('Save and Activate triggered');
       const executionTimeInSeconds = BigInt(executionAfterYears * 31536000 + executionAfterMonths * 2592000 + executionAfterSeconds);
-      console.log('this.benefficiaries', beneficiaries);
+      customLog('this.benefficiaries', beneficiaries);
       const payload = {
         beneficiaries: beneficiaries.map(b => ({
           beneficiary_principal: b.userPrincipal,
@@ -342,10 +347,10 @@ const App: React.FC = () => {
         execution_delay_seconds: executionTimeInSeconds,
         of_inactivity: inactivityChecked,
       };
-      console.log('Save and Activate triggered with payload:', payload);
+       customLog('Save and Activate triggered with payload:', payload);
       const backend = getAuthClient();
       await backend.register_batch_transfer(payload);
-      console.log('After Save and Activate triggered with payload:', payload);
+       customLog('After Save and Activate triggered with payload:', payload);
 
       setupAllowancesForBatchTransfer()
 
@@ -361,28 +366,28 @@ const App: React.FC = () => {
 
   const handleAuthentication = async (authClient: AuthClient) => {
     const identity = authClient.getIdentity()
-    console.log('In handleAuthentication , identity: ', identity)
+     customLog('In handleAuthentication , identity: ', identity)
     const principal = identity.getPrincipal()
-    console.log('In handleAuthentication , principal: ', principal)
+     customLog('In handleAuthentication , principal: ', principal)
     setPrincipal(principal)
     setIdentity(identity)
 
-    console.log('Zalogowano', principal)
+     customLog('Zalogowano', principal)
     await announceActivity(identity)
     await getUserData()
     await getAllUsers()
   }
 
   const announceActivity = async (identity: Identity) => {
-    // console.log('In frontend announceActivity')
-    // console.log('In frontend announceActivity before isUserLogged()')
+    //  customLog('In frontend announceActivity')
+    //  customLog('In frontend announceActivity before isUserLogged()')
     // const { principal } = isUserLogged()
-    console.log('In frontend announceActivity after isUserLogged()')
+     customLog('In frontend announceActivity after isUserLogged()')
     const backend = getAuthClient(identity)
-    console.log('In frontend announceActivity backend:}', backend)
-    console.log('In frontend announceActivity Before await backend.announce_activity()')
+     customLog('In frontend announceActivity backend:}', backend)
+     customLog('In frontend announceActivity Before await backend.announce_activity()')
     await backend.announce_activity()
-    console.log('In frontend announceActivity After await backend.announce_activity()')
+     customLog('In frontend announceActivity After await backend.announce_activity()')
   }
 
   const fetchBalance = async () => {
@@ -394,17 +399,17 @@ const App: React.FC = () => {
     } else {
       setBalance(null)
     }
-    console.log(result)
+     customLog(result)
   }
 
 
   const cancelTimer = async () => {
-    console.log('in cancelTimer')
+     customLog('in cancelTimer')
     const backend = getAuthClient()
-    console.log('in cancelTimer backend: ', backend)
+     customLog('in cancelTimer backend: ', backend)
 
     let result = await backend.cancel_batch_activation()
-    console.log('in cancelTimer result ', result)
+     customLog('in cancelTimer result ', result)
 
 
   }
@@ -412,7 +417,7 @@ const App: React.FC = () => {
   // Helper function to create an agent
   async function createAgentWithHost(identity: Identity) {
     const fetchRootKey = NETWORK !== '--ic';
-    console.log('fetchRootKey: ', fetchRootKey)
+     customLog('fetchRootKey: ', fetchRootKey)
     return await createAgent({
       identity,
       host: AGENT_HOST,
@@ -487,10 +492,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-      console.log('In useEffect ()')
+       customLog('In useEffect ()')
       const authClient = await AuthClient.create()
       const isAuthenticated = await authClient.isAuthenticated()
-      console.log('Is authenticated', isAuthenticated)
+       customLog('Is authenticated', isAuthenticated)
       if (isAuthenticated) {
         await handleAuthentication(authClient)
       }
@@ -503,7 +508,7 @@ const App: React.FC = () => {
     if (principal !== undefined) {
       // Define an async function inside the effect
       const fetchData = async () => {
-        console.log('Principal is now defined', principal);
+         customLog('Principal is now defined', principal);
         await getUserData();
         await getAllUsers();
       };
