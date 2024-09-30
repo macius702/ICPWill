@@ -1,83 +1,81 @@
+
 Research:
-  Prague 2024 hackaton - see the (fiat) echange combo
-  protocol with a beneficiary (while execution )if it is ready/alive (e.g send small amount of tokens with a message - please send something back. When succeededs sent the rest sum)
-  license
-  print  get_transactions : (GetTransactionsRequest) -> (GetTransactionsResponse) query; after approve, trransfer - after everything that returns BlockIndex
-    // mtlk todo
-    // The following method is marked as 'update' because it internally performs an inter-canister call.
-    // Consider performing the balance retrieval from the frontend?
-    "get_balance" : () -> (ResultNat);
-  consider all as a plugin into larger app (a wallet ?)
-  Perhaps a wallet can be connectable. Can give delegation ?
-  How costly are the timers 
-  Debuggable frontend and backend
-  Who pays for transaction and approval fees - inheritors? - to decide . Option
-  Notyfikacje - websocket?
-  Jak rozwiązać sprawę ról. Ze beneficiray nie powinien od razu być testatorem 😃
-  Frontend Button register as default (pressing Enter)
+  - Prague 2024 hackathon - see the (fiat) exchange combo.
+  - Protocol with a beneficiary (during execution): Check if it is ready/alive (e.g., send a small amount of tokens with a message - "please send something back". If successful, send the remaining sum).
+  - License.
+  - Print `get_transactions`: `(GetTransactionsRequest) -> (GetTransactionsResponse)` query; after approval, transfer - after everything that returns `BlockIndex`.
+    - // mtlk todo
+    - The following method is marked as 'update' because it internally performs an inter-canister call.
+    - Consider performing the balance retrieval from the frontend?
+    - `"get_balance" : () -> (ResultNat);`
+  - Consider all as a plugin into a larger app (a wallet?).
+  - Perhaps a wallet can be connectable. Can it give delegation?
+  - How costly are the timers?
+  - Debuggable frontend and backend.
+  - Who pays for transaction and approval fees - inheritors? - To decide. Option.
+  - Notifications - websocket?
+  - How to handle roles: the beneficiary should not immediately become the testator 😃.
+  - Frontend: Button register as default (pressing Enter).
 
 Features:
-  show account-id in GUI, next to the Principal
-  refreshing
-  Polling - ok . Only update buttons if timer gone. Eventually check the info of transfer got as beneficiary( balance)
-  Send - messgae - notofican on recipients side
-  toast or snack when timer execution successfull or not
-  Frontend - react to all data (beneficiaries) after getUser
-  Canelling timers, reinstantiating - may fail - handle it and test
-  Frontend - show version
-  Frontend - e8 precision
-  Frontend show principal along with nickname is select beneficiary drop down list box
-  Frontend Display .Info ile czasu zostalo i data exekucji
-  Frontend Show token balance (asterisk*** mode)
-  Send invite to app to be a beneficiary or testator
-  Dockerfile with versions, Dockerfile - print current versions - insert them into Dockerfile
-  Is beneficiary ready - small amounts protocol
-  Bitcoin
-  back to branch main
-  Upgrades of canister - hook - jpierw hooki do upgrade
-
+  - Show account-id in GUI, next to the Principal.
+  - Refreshing.
+  - Polling - ok. Only update buttons if the timer is gone. Eventually, check the transfer info obtained as the beneficiary (balance).
+  - Send - message - notification on the recipient's side.
+  - Toast or snack when timer execution is successful or not.
+  - Frontend - react to all data (beneficiaries) after `getUser`.
+  - Canceling timers, reinstantiating - may fail - handle it and test.
+  - Frontend - show version.
+  - Frontend - e8 precision.
+  - Frontend - show principal along with nickname in the select beneficiary dropdown list box.
+  - Frontend - display information about the remaining time and execution date.
+  - Frontend - show token balance (asterisk*** mode).
+  - Send an invite to the app to be a beneficiary or testator.
+  - Dockerfile with versions, Dockerfile - print current versions - insert them into Dockerfile.
+  - Is the beneficiary ready? - small amounts protocol.
+  - Bitcoin.
+  - Back to branch main.
+  - Upgrades of canister - hook - use hooks for upgrade first.
 
 Tests:
-  e2e:
-    A test for after_inactivity, test for inactivity_period
-    A test for timer
-  unit
-  system
+  - e2e:
+    - A test for `after_inactivity`.
+    - A test for `inactivity_period`.
+    - A test for the timer.
+  - Unit.
+  - System.
 
 Defects:
-  identityToUse - not needed
-  Why beneficiary icp count is not displayed after refesh ?
-  Frontend - not folnding bak when this same user selected
-  Dockerfile - nvm what for ?
-  W tescie sleepy. Timy. I refactor zeby bardziej opisowe funckcje. Do kazdego okna ibiekt z nickiem i tym ile ma kasy szidziczyc zamiast vectorów [0.1400,1500] Debugi savepage wywal
-  How to name identity that is giving money for nothing (instead of Alice)
+  - `identityToUse` - not needed.
+  - Why is the beneficiary ICP count not displayed after refresh?
+  - Frontend - not finding back when the same user is selected.
+  - Dockerfile - `nvm` what for?
+  - In the `sleepy` test. `Timy`. Refactor to have more descriptive functions. For each window, include an object with a nickname and how much money it should allocate instead of vectors [0.1400,1500]. Remove debugging `savepage`.
+  - How to name the identity that is giving money for nothing (instead of Alice).
 
-
-
-
-
-DONE DRY setuserdata
-DONE Perhaps not polling. But one shot timer in gui ?
-DONE Update balance as well
-DONE Uruchom test na realu
-DONE reac t bug - move (before inactivity_period
-    await announceActivity(identity)
-    await getUserData()
-    await getAllUsers()
-DONE to use effect [proncipat]
-DONE git stash save cleanup_inactivity_period done , switch to fixes and do it
-DONE After inactivity Condition on x of inactivity
-DONE Frontend - grey save show Cancel
-DONE Test - selenium create 3 II
-DONE Loged in as display proncipal. Nick
-DONE Save log session
-DONE Send - messgae
-DONE Nvm use 20 do build.sh
-DONE Send - token
-DONE Send token delayed
-DONE Zablokuj środki pod transakcję
-DONE Batch transaction
-DONE Wysyłanie na zewnetrzny adres
-DONE Bug z balancem
-DONE Connect cancel action
-DONE Selenium - //TODO(mtlk) - amore sophisticated wait here
+DONE:
+  - DRY `setUserData`.
+  - Perhaps not polling. Use a one-shot timer in the GUI?
+  - Update balance as well.
+  - Run the test on the real system.
+  - React bug - move (before `inactivity_period`):
+    - `await announceActivity(identity)`.
+    - `await getUserData()`.
+    - `await getAllUsers()`.
+  - Use effect `[principal]`.
+  - `git stash save cleanup_inactivity_period done`, switch to fixes, and do it.
+  - After inactivity: Condition on `x` of inactivity.
+  - Frontend - grey save, show Cancel.
+  - Test - Selenium, create 3 II.
+  - Logged in as: display principal and nickname.
+  - Save log session.
+  - Send - message.
+  - `nvm` use 20 for `build.sh`.
+  - Send - token.
+  - Send token delayed.
+  - Block funds for the transaction.
+  - Batch transaction.
+  - Send to an external address.
+  - Bug with balance.
+  - Connect cancel action.
+  - Selenium - //TODO(mtlk) - a more sophisticated wait here.
