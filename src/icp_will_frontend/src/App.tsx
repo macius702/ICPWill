@@ -29,6 +29,7 @@ import { CheckedState } from '@radix-ui/react-checkbox'
 
 import { createAgent } from "@dfinity/utils";
 import { SaveIcon } from 'lucide-react'
+import { getAccountId } from "./accountUtils"
 
 interface IBeneficiary {
   nickname: string
@@ -677,6 +678,7 @@ const App: React.FC = () => {
                 <Card className="flex flex-col gap-6 py-4 px-8">
                   <p>Nick: {userData.nickname}</p>
                   <p>Principal: {principal.toString()}</p>
+                  <p>Account-id: {getAccountId(principal)}</p>
                   <p>Balance: {Number(balance)}</p>
 
                   {allUsers && (

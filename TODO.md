@@ -42,6 +42,7 @@ Tests:
     - [ ] A test for `after_inactivity`.
     - [ ] A test for `inactivity_period`.
     - [ ] A test for the timer.
+    - [ ] A test for the Account-id display
   - [ ] Unit.
   - [ ] System.
 
