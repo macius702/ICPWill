@@ -46,12 +46,12 @@ Tests:
   - [ ] System.
 
 Defects:
-  - [ ] `identityToUse` - not needed.
   - [ ] Why is the beneficiary ICP count not displayed after refresh?
   - [ ] Frontend - not finding back when the same user is selected.
   - [ ] Dockerfile - `nvm` what for?
   - [ ] In the `sleepy` test. `Timy`. Refactor to have more descriptive functions. For each window, include an object with a nickname and how much money it should allocate instead of vectors [0.1400,1500]. Remove debugging `savepage`.
   - [ ] How to name the identity that is giving money for nothing (instead of Alice).
+  - [ ] `identityToUse` - not needed.
 
 DONE:
   - [x] DRY `setUserData`.
