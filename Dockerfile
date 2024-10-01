@@ -89,8 +89,32 @@ ENV DFX_HOST=0.0.0.0
 ENV DFX_PORT=4943
 ENV ICPWILL_CHROME_HEADLESS_TESTING=1
 
-# Set working directory
+WORKDIR /bitcoin_replica_daemon
+
+RUN wget https://bitcoin.org/bin/bitcoin-core-27.0/bitcoin-27.0-x86_64-linux-gnu.tar.gz && \
+    tar -xzf bitcoin-27.0-x86_64-linux-gnu.tar.gz && \
+    cd bitcoin-27.0/ && \
+    mkdir data && \
+    cat <<EOF > bitcoin.conf
+regtest=1
+rpcuser=ic-btc-integration
+rpcpassword=QPQiNaph19FqUsCrBRN0FII7lyM26B51fAMeBQzCb-E=
+rpcauth=ic-btc-integration:cdf2741387f3a12438f69092f0fdad8e\$62081498c98bee09a0dce2b30671123fa561932992ce377585e8e08bb0c11dfa
+fallbackfee=0.0000002
+txindex=1
+EOF
+
+WORKDIR /bitcoin_replica_daemon/bitcoin-27.0
+
+RUN cat <<'EOF' > start-bitcoind.sh
+#!/bin/bash
+cd /bitcoin_replica_daemon/bitcoin-27.0
+./bin/bitcoind -conf=$(pwd)/bitcoin.conf -datadir=$(pwd)/data --port=18444 &
+EOF
+
+RUN chmod +x start-bitcoind.sh
+
+# Change the working directory to /app
 WORKDIR /app
 
-# Default command
-CMD [ "bash" ]
+CMD /bitcoin_replica_daemon/bitcoin-27.0/start-bitcoind.sh && bash
