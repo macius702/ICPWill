@@ -106,10 +106,44 @@ EOF
 
 WORKDIR /bitcoin_replica_daemon/bitcoin-27.0
 
+
+# Create the startup script
 RUN cat <<'EOF' > start-bitcoind.sh
 #!/bin/bash
 cd /bitcoin_replica_daemon/bitcoin-27.0
+# Start bitcoind in the background
 ./bin/bitcoind -conf=$(pwd)/bitcoin.conf -datadir=$(pwd)/data --port=18444 &
+
+# Wait for bitcoind to be ready
+echo "Waiting for bitcoind to start..."
+until ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf -datadir=$(pwd)/data getblockchaininfo 2>/dev/null; do
+    sleep 1
+done
+
+echo "bitcoind is ready."
+
+
+# Generate blocks to the specified address
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 100 mtbZzVBwLnDmhH4pE9QynWAgh6H3aC1E6M
+
+# Create and load a wallet
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf createwallet "mywallet"
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf loadwallet "mywallet"
+
+# Get wallet info
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getwalletinfo
+
+# Create new addresses
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getnewaddress "etykietkaadresu"
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getnewaddress "etykietkaadresu2" legacy
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getnewaddress "p2sh-segwit_address"
+
+# List addresses by label
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getaddressesbylabel "etykietkaadresu2"
+
+# Get address information (example address)
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getaddressinfo bcrt1qqe88w3tplky7cpn8zxzhumhcl9tetrhmacf89s
+
 EOF
 
 RUN chmod +x start-bitcoind.sh
