@@ -1,0 +1,16 @@
+[package]
+name = "basic_bitcoin"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+hex = "0.4.3"
+bitcoin = "0.30.2"
+candid = "0.10"
+ic-cdk = "0.13"
+ic-cdk-macros = "0.13"
+serde = "1.0.197"
+
