@@ -94,28 +94,28 @@ DFX_PORT=${DFX_PORT:-4943}
 
 
 
-# Run dfx stop in the background
-dfx stop &
-# Get the PID of the last background command
-DFX_PID=$!
-# Use a subshell to wait for dfx stop to finish for up to the timeout value
-if ! timeout 30s bash -c -- "(while kill -0 $DFX_PID; do sleep 1; done)"; then
-    echo "dfx stop did not finish in time, killing it..."
-    dfx killall
-fi
+# # Run dfx stop in the background
+# dfx stop &
+# # Get the PID of the last background command
+# DFX_PID=$!
+# # Use a subshell to wait for dfx stop to finish for up to the timeout value
+# if ! timeout 30s bash -c -- "(while kill -0 $DFX_PID; do sleep 1; done)"; then
+#     echo "dfx stop did not finish in time, killing it..."
+#     dfx killall
+# fi
 
 set -eu
 
-echo "===========SETUP========="
-if [ "$MODE" = "local" ]; then
-  if [ "$CLEAN" == "--clean" ]; then
-    dfx start --background --clean --host "$DFX_HOST:$DFX_PORT"
-  else
-    dfx start --background --host "$DFX_HOST:$DFX_PORT"
-  fi
-else
-  dfx start --background --host "$DFX_HOST:$DFX_PORT"
-fi
+# echo "===========SETUP========="
+# if [ "$MODE" = "local" ]; then
+#   if [ "$CLEAN" == "--clean" ]; then
+#     dfx start --background --clean --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN
+#   else
+#     dfx start --background --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN
+#   fi
+# else
+#   dfx start --background --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN
+# fi
 
 sleep 5
 dfx identity list

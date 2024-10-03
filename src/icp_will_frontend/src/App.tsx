@@ -77,6 +77,10 @@ const App: React.FC = () => {
   const [overridePrincipal, setOverridePrincipal] = useState('');
   const [inactivityChecked, setInactivityChecked] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [BITCOIN, setBITCOIN] = useState(true);
+  const [btcAddress, setBtcAddress] = useState<string | null>(null);
+
+
 
 
   const isBeneficiaryValid =
@@ -157,7 +161,7 @@ const App: React.FC = () => {
     if (userData && userData.batch_transfer.length > 0) {
       updateUIwithBatchTransferData(userData)
     } else {
-       customLog('No batch transfer available');
+      customLog('No batch transfer available');
     }
 
     await fetchBalance();
@@ -166,25 +170,25 @@ const App: React.FC = () => {
 
 
   const getUserHasActiveTimer = async (): Promise<TimerStatus> => {
-     customLog('Entering getUserHasActiveTimer')
+    customLog('Entering getUserHasActiveTimer')
     const { principal } = isUserLogged();
-     customLog('getUserHasActiveTimer principal: ', principal)
+    customLog('getUserHasActiveTimer principal: ', principal)
 
     const maybeUserData = await icp_will_backend.get_user(principal);
-     customLog('getUserHasActiveTimer maybeUserData: ', maybeUserData)
+    customLog('getUserHasActiveTimer maybeUserData: ', maybeUserData)
 
     const userData = maybeUserData.length === 0 ? undefined : maybeUserData[0];
-     customLog('getUserHasActiveTimer userData: ', userData)
+    customLog('getUserHasActiveTimer userData: ', userData)
 
     if (userData) {
-       customLog('getUserHasActiveTimer if(userData)')
+      customLog('getUserHasActiveTimer if(userData)')
       if (userData.has_active_timer)
         return TimerStatus.Active
       else
         return TimerStatus.Inactive
     }
     else {
-       customLog('getUserHasActiveTimer else')
+      customLog('getUserHasActiveTimer else')
       return TimerStatus.CannotTell
     }
   };
@@ -201,14 +205,14 @@ const App: React.FC = () => {
       if (!identity) throw new Error('Identity is undefined');
 
       const backend = getAuthClient();
-       customLog('backend', backend);
+      customLog('backend', backend);
 
       const target = overrideTarget ? Principal.fromText(overridePrincipal) : validateTargetPrincipal();
-       customLog('target', target);
+      customLog('target', target);
 
       const { principal } = isUserLogged();
       if (!principal) throw new Error('Principal is undefined');
-       customLog('principal', principal);
+      customLog('principal', principal);
 
       const agent = await createAgentWithHost(identity);
       const myledger = createLedgerActor(agent);
@@ -217,7 +221,7 @@ const App: React.FC = () => {
         await Promise.all(
           allUsers.map(async ([userPrincipal, userData]) => {
             const balance = await myledger.icrc1_balance_of({ owner: userPrincipal, subaccount: [] });
-             customLog(label, userData.nickname, balance, userPrincipal.toText());
+            customLog(label, userData.nickname, balance, userPrincipal.toText());
           })
         );
       }
@@ -225,7 +229,7 @@ const App: React.FC = () => {
       await getBalance('balance_before');
 
       const theSpender = Principal.fromText(canisterId);
-       customLog('Spender: ', theSpender.toText());
+      customLog('Spender: ', theSpender.toText());
 
       const feeFromLedger = await myledger.icrc1_fee() as Tokens;// TODO(mtlk) why Tokens not imported automatically
 
@@ -240,14 +244,14 @@ const App: React.FC = () => {
         spender: { owner: theSpender, subaccount: [] },
       });
 
-       customLog('approve_result', approveResult);
+      customLog('approve_result', approveResult);
 
       const allowanceResult = await myledger.icrc2_allowance({
         account: { owner: principal, subaccount: [] },
         spender: { owner: theSpender, subaccount: [] },
       });
 
-       customLog('allowance_result', allowanceResult);
+      customLog('allowance_result', allowanceResult);
 
       const transferArgs: TransferArgs = {
         to_account: { owner: target, subaccount: [] },
@@ -258,7 +262,7 @@ const App: React.FC = () => {
 
       const result = await backend.transfer(transferArgs);
       await getBalance('balance_after');
-       customLog(result);
+      customLog(result);
 
     } catch (error) {
       if (error instanceof Error) {
@@ -280,13 +284,13 @@ const App: React.FC = () => {
   }
 
   const login = async () => {
-     customLog('In frontent login->')
+    customLog('In frontent login->')
     const authClient = await AuthClient.create()
-     customLog('In frontent login-> authClient: ', authClient)
+    customLog('In frontent login-> authClient: ', authClient)
     await authClient.login({
       identityProvider: IDENTITY_PROVIDER,
       onSuccess: async () => {
-         customLog('In frontent login on success authClient: ', authClient)
+        customLog('In frontent login on success authClient: ', authClient)
         await handleAuthentication(authClient)
       },
     })
@@ -320,7 +324,7 @@ const App: React.FC = () => {
       execution_delay_seconds: BigInt(0),
       of_inactivity: true,
     };
-     customLog('clearBeneficiaries triggered with payload:', payload);
+    customLog('clearBeneficiaries triggered with payload:', payload);
     const backend = getAuthClient();
     await backend.register_batch_transfer(payload);
   }
@@ -340,7 +344,7 @@ const App: React.FC = () => {
       const overallSum = BigInt(assetsSum) + overallTransactionCost;
 
       const theSpender = Principal.fromText(canisterId);
-       customLog('Spender: ', theSpender.toText());
+      customLog('Spender: ', theSpender.toText());
 
       const approveResult = await myledger.icrc2_approve({
         fee: [],
@@ -355,7 +359,7 @@ const App: React.FC = () => {
         spender: { owner: theSpender, subaccount: [] },
       });
 
-       customLog('batch_approve_result', approveResult);
+      customLog('batch_approve_result', approveResult);
 
     } catch (error) {
       if (error instanceof Error) {
@@ -372,17 +376,17 @@ const App: React.FC = () => {
 
 
       // 
-       customLog('saveAndActivate userData: ', userData)
+      customLog('saveAndActivate userData: ', userData)
       if (userData) {
-         customLog('saveAndActivate userData: ', userData)
+        customLog('saveAndActivate userData: ', userData)
         setUserData(prevData => {
-           customLog('saveAndActivate prevData =>', prevData)
+          customLog('saveAndActivate prevData =>', prevData)
           if (!prevData) {
             // If prevData is undefined, return it or handle accordingly
             return prevData;
           }
 
-           customLog('saveAndActivate After prevData =>')
+          customLog('saveAndActivate After prevData =>')
 
           // Prepare the new object
           const updatedData = {
@@ -393,19 +397,19 @@ const App: React.FC = () => {
           };
 
 
-             // Log the new object being returned
-           customLog('Returning updated data:', updatedData);
+          // Log the new object being returned
+          customLog('Returning updated data:', updatedData);
           return updatedData;
         });
       }
-      else{
-         customLog('saveAndActivate no userData')
+      else {
+        customLog('saveAndActivate no userData')
       }
 
 
-       customLog('Save and Activate triggered');
+      customLog('Save and Activate triggered');
       const executionTimeInSeconds = BigInt(executionAfterYears * 31536000 + executionAfterMonths * 2592000 + executionAfterSeconds);
-       customLog('this.benefficiaries', beneficiaries);
+      customLog('this.benefficiaries', beneficiaries);
       const payload = {
         beneficiaries: beneficiaries.map(b => ({
           beneficiary_principal: b.userPrincipal,
@@ -416,10 +420,10 @@ const App: React.FC = () => {
         execution_delay_seconds: executionTimeInSeconds,
         of_inactivity: inactivityChecked,
       };
-       customLog('Save and Activate triggered with payload:', payload);
+      customLog('Save and Activate triggered with payload:', payload);
       const backend = getAuthClient();
       await backend.register_batch_transfer(payload);
-       customLog('After Save and Activate triggered with payload:', payload);
+      customLog('After Save and Activate triggered with payload:', payload);
 
       setupAllowancesForBatchTransfer()
 
@@ -431,13 +435,13 @@ const App: React.FC = () => {
 
   const handleAuthentication = async (authClient: AuthClient) => {
     const identity = authClient.getIdentity()
-     customLog('In handleAuthentication , identity: ', identity)
+    customLog('In handleAuthentication , identity: ', identity)
     const principal = identity.getPrincipal()
-     customLog('In handleAuthentication , principal: ', principal)
+    customLog('In handleAuthentication , principal: ', principal)
     setPrincipal(principal)
     setIdentity(identity)
 
-     customLog('Zalogowano', principal)
+    customLog('Zalogowano', principal)
     await announceActivity(identity)
   }
 
@@ -445,12 +449,12 @@ const App: React.FC = () => {
     //  customLog('In frontend announceActivity')
     //  customLog('In frontend announceActivity before isUserLogged()')
     // const { principal } = isUserLogged()
-     customLog('In frontend announceActivity after isUserLogged()')
+    customLog('In frontend announceActivity after isUserLogged()')
     const backend = getAuthClient(identity)
-     customLog('In frontend announceActivity backend:}', backend)
-     customLog('In frontend announceActivity Before await backend.announce_activity()')
+    customLog('In frontend announceActivity backend:}', backend)
+    customLog('In frontend announceActivity Before await backend.announce_activity()')
     await backend.announce_activity()
-     customLog('In frontend announceActivity After await backend.announce_activity()')
+    customLog('In frontend announceActivity After await backend.announce_activity()')
   }
 
   const fetchBalance = async () => {
@@ -463,17 +467,17 @@ const App: React.FC = () => {
     } else {
       setBalance(null)
     }
-     customLog(result)
+    customLog(result)
   }
 
 
   const cancelTimer = async () => {
-     customLog('in cancelTimer')
+    customLog('in cancelTimer')
     const backend = getAuthClient()
-     customLog('in cancelTimer backend: ', backend)
+    customLog('in cancelTimer backend: ', backend)
 
     let result = await backend.cancel_batch_activation()
-     customLog('in cancelTimer result ', result)
+    customLog('in cancelTimer result ', result)
 
 
   }
@@ -481,7 +485,7 @@ const App: React.FC = () => {
   // Helper function to create an agent
   async function createAgentWithHost(identity: Identity) {
     const fetchRootKey = NETWORK !== '--ic';
-     customLog('fetchRootKey: ', fetchRootKey)
+    customLog('fetchRootKey: ', fetchRootKey)
     return await createAgent({
       identity,
       host: AGENT_HOST,
@@ -554,17 +558,27 @@ const App: React.FC = () => {
     setExecutionAfterSeconds(executionAfterSeconds)
   }
 
+  // Helper function to get BTC address of the canister
+  const getBtcAddress = async () => {
+    customLog('Entering getBtcAddress');
+    const backend = getAuthClient()
+    customLog('in getBtcAddress backend: ', backend);
+    const address = await backend.btc_get_p2pkh_address();
+    customLog('in getBtcAddress address: ', address);
+    return address;
+  }
+
   function startPolling(intervalTime: number) {
-     customLog('in startPolling identity: ', identity)
+    customLog('in startPolling identity: ', identity)
     const intervalId = setInterval(async () => {
-       customLog('in setInterval identity: ', identity)
+      customLog('in setInterval identity: ', identity)
       try {
         // const data = await canister.getData();
-         customLog('in setInterval try{: ', identity)
+        customLog('in setInterval try{: ', identity)
         //const backend = getAuthClient();
         const timerStatus = await getUserHasActiveTimer()
-         customLog('in setInterval timerStatus: ', timerStatus)
-         customLog('in setInterval userData: ', userData)
+        customLog('in setInterval timerStatus: ', timerStatus)
+        customLog('in setInterval userData: ', userData)
 
         if (userData) {
           setUserData(prevData => {
@@ -585,7 +599,7 @@ const App: React.FC = () => {
           });
         }
         else {
-           customLog('Cannot tell the timer status')
+          customLog('Cannot tell the timer status')
         }
       } catch (error) {
         console.error('Error telling the timer status: ', error);
@@ -596,10 +610,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-       customLog('In useEffect ()')
+      customLog('In useEffect ()')
       const authClient = await AuthClient.create()
       const isAuthenticated = await authClient.isAuthenticated()
-       customLog('Is authenticated', isAuthenticated)
+      customLog('Is authenticated', isAuthenticated)
       if (isAuthenticated) {
         await handleAuthentication(authClient)
       }
@@ -612,9 +626,18 @@ const App: React.FC = () => {
     if (principal !== undefined) {
       // Define an async function inside the effect
       const fetchData = async () => {
-         customLog('Principal is now defined', principal);
+        customLog('Principal is now defined', principal);
         await getUserData();
         await getAllUsers();
+        if (BITCOIN)
+        {
+          try {
+            const address = await getBtcAddress();
+            setBtcAddress(address);
+          } catch (error) {
+            console.error('Failed to fetch BTC address:', error);
+            setBtcAddress(null);
+          }        }
       };
 
       // Call the async function
@@ -623,10 +646,9 @@ const App: React.FC = () => {
   }, [principal]);
 
   useEffect(() => {
-     console.log('useEffect [userData]:', userData)
+    console.log('useEffect [userData]:', userData)
     if (userData != undefined) {
-      if(userData.has_active_timer)
-      {
+      if (userData.has_active_timer) {
         const intervalId = startPolling(10000)
 
         return () => {
@@ -639,7 +661,7 @@ const App: React.FC = () => {
         const fetchBalanceAsync = async () => {
           await fetchBalance();
         };
-  
+
         fetchBalanceAsync();
       }
 
@@ -674,11 +696,17 @@ const App: React.FC = () => {
 
             {principal && userData && (
               <>
-                <h2 className="text-2xl font-bold mb-4">My testament ICP</h2>
+                <h2 className="text-2xl font-bold mb-4">
+                My testament {BITCOIN ? 'BTC' : 'ICP'}
+                </h2>
                 <Card className="flex flex-col gap-6 py-4 px-8">
                   <p>Nick: {userData.nickname}</p>
                   <p>Principal: {principal.toString()}</p>
-                  <p>Account-id: {getAccountId(principal)}</p>
+                  {BITCOIN ? (
+                    <p>Address: {btcAddress ? btcAddress : 'Loading...'}</p>
+                  ) : (
+                    <p>Account-id: {getAccountId(principal)}</p>
+                  )}
                   <p>Balance: {Number(balance)}</p>
 
                   {allUsers && (
