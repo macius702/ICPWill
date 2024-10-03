@@ -64,6 +64,10 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && rustup target add wasm32-unknown-unknown
 ENV PATH="/home/developer/.cargo/bin:${PATH}"
 
+# Install candid-extractor
+RUN cargo install candid-extractor
+
+
 # Install nvm (Node Version Manager)
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash \
     && export NVM_DIR="$HOME/.nvm" \

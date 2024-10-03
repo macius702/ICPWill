@@ -40,7 +40,6 @@ pub fn init(network: BitcoinNetwork) {
 }
 
 /// Returns the balance of the given bitcoin address.
-#[update]
 pub async fn get_balance(address: String) -> u64 {
     let network = NETWORK.with(|n| n.get());
     bitcoin_api::get_balance(network, address).await
@@ -87,7 +86,6 @@ pub async fn get_current_fee_percentiles() -> Vec<MillisatoshiPerByte> {
 }
 
 /// Returns the P2PKH address of this canister at a specific derivation path.
-#[update]
 pub async fn get_p2pkh_address() -> String {
     let derivation_path = DERIVATION_PATH.with(|d| d.clone());
     let key_name = KEY_NAME.with(|kn| kn.borrow().to_string());

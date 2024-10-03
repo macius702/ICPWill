@@ -1,5 +1,6 @@
 use std::{cell::RefCell, collections::HashMap};
 
+use basic_bitcoin;
 use candid::Principal;
 use ic_cdk::caller;
 use ic_cdk_timers::TimerId;
@@ -13,6 +14,11 @@ pub mod balance;
 
 use crate::batch_transaction_to_execute::get_batch_transfer_data;
 use crate::batch_transaction_to_execute::schedule_batch_transfer;
+
+use icrc_ledger_types::icrc1::transfer::NumTokens;
+use crate::batch_transaction_to_execute::BatchTransfer;
+use crate::transfer::TransferArgs;
+use icrc_ledger_types::icrc1::transfer::BlockIndex;
 
 thread_local! {
     static CHAT: RefCell<HashMap<[Principal; 2], Vec<String>>> = RefCell::default();
@@ -166,3 +172,16 @@ pub fn reinstantiate_timer(user: Principal) {
     }
 }
 
+
+#[ic_cdk::update]
+async fn btc_get_p2pkh_address() -> String {
+    return basic_bitcoin::get_p2pkh_address().await;
+}
+
+#[ic_cdk::update]
+async fn btc_get_balance(address: String) -> u64 {
+    return basic_bitcoin::get_balance(address).await;
+}
+
+
+ic_cdk::export_candid!();

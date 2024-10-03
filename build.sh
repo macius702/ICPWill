@@ -15,6 +15,7 @@ dfx identity new Alice  --storage-mode=plaintext
 # Default values
 MODE="local"
 CLEAN=""
+ENABLE_BITCOIN=--enable-bitcoin
 
 usage() {
   echo "Usage: $0 [--clean] [--mode MODE] [local|nonlocal]"

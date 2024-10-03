@@ -1,52 +1,41 @@
 type Account = record { owner : principal; subaccount : opt blob };
-type ResultNat = variant { Ok : nat; Err : text };
-type Result = variant { Ok; Err : text };
-
-type Beneficiary = record {
-  beneficiary_principal : principal;
-  nickname : text;
-  amount_icp : nat64;
-};
-
 type BatchTransfer = record {
-  beneficiaries : vec Beneficiary;
   execution_delay_seconds : nat64;
+  beneficiaries : vec Beneficiary;
   of_inactivity : bool;
 };
-
+type Beneficiary = record {
+  nickname : text;
+  beneficiary_principal : principal;
+  amount_icp : nat64;
+};
 type ResponseUserData = record {
   nickname : text;
   avatar_url : opt text;
   batch_transfer : opt BatchTransfer;
-  has_active_timer : bool
+  has_active_timer : bool;
 };
-
-
+type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : nat; Err : text };
 type TransferArgs = record {
-  amount : nat;
-  to_account : Account;
   delay_in_seconds : nat64;
-  from_account: Account
+  to_account : Account;
+  from_account : Account;
+  amount : nat;
 };
-
 service : {
-  "get_chat" : (vec principal) -> (opt vec text) query;
-  "add_chat_msg" : (text, principal) -> ();
-  "announce_activity" : () -> ();
-  "register" : (text) -> ();
-  "get_users" : () -> (vec record { principal; ResponseUserData });
-  "get_user" : (principal) -> (opt ResponseUserData);
-  "transfer" : (TransferArgs) -> (ResultNat);
-  "get_balance" : () -> (ResultNat);
-  "register_batch_transfer" : (
-    batch_transfer_data : BatchTransfer
-  ) -> (Result);
-
-  "execute_batch_transfers" : () -> (Result);
-
-
-  "cancel_activation": () -> (Result);
-  "cancel_batch_activation": () -> (Result);
-
-
-};
+  add_chat_msg : (text, principal) -> ();
+  announce_activity : () -> ();
+  btc_get_balance : (text) -> (nat64);
+  btc_get_p2pkh_address : () -> (text);
+  cancel_activation : () -> (Result);
+  cancel_batch_activation : () -> (Result);
+  execute_batch_transfers : () -> (Result);
+  get_balance : () -> (Result_1);
+  get_chat : (vec principal) -> (opt vec text) query;
+  get_user : (principal) -> (opt ResponseUserData) query;
+  get_users : () -> (vec record { principal; ResponseUserData }) query;
+  register : (text) -> ();
+  register_batch_transfer : (BatchTransfer) -> (Result);
+  transfer : (TransferArgs) -> (Result_1);
+}
