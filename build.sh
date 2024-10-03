@@ -185,7 +185,7 @@ fi
 dfx generate icp_will_backend
 
 # npm install
-dfx deploy $PLAYGROUND icp_will_backend
+dfx deploy $PLAYGROUND icp_will_backend --argument '(variant { regtest })'
 
 export BACKEND_CANISTER_ID=$(dfx canister $PLAYGROUND id icp_will_backend)
 

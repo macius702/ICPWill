@@ -2,6 +2,7 @@ use std::{cell::RefCell, collections::HashMap};
 
 use basic_bitcoin;
 use candid::Principal;
+use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk::caller;
 use ic_cdk_timers::TimerId;
 use user::{UserData, ResponseUserData};
@@ -183,5 +184,9 @@ async fn btc_get_balance(address: String) -> u64 {
     return basic_bitcoin::get_balance(address).await;
 }
 
+#[ic_cdk::init]
+fn init(network: BitcoinNetwork) {
+    basic_bitcoin::init(network);
+}
 
 ic_cdk::export_candid!();

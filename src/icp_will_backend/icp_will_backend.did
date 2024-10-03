@@ -9,6 +9,7 @@ type Beneficiary = record {
   beneficiary_principal : principal;
   amount_icp : nat64;
 };
+type BitcoinNetwork = variant { mainnet; regtest; testnet };
 type ResponseUserData = record {
   nickname : text;
   avatar_url : opt text;
@@ -23,7 +24,7 @@ type TransferArgs = record {
   from_account : Account;
   amount : nat;
 };
-service : {
+service : (BitcoinNetwork) -> {
   add_chat_msg : (text, principal) -> ();
   announce_activity : () -> ();
   btc_get_balance : (text) -> (nat64);

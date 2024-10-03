@@ -7,7 +7,7 @@ use candid::{CandidType, Deserialize};
 use ic_cdk::api::management_canister::bitcoin::{
     BitcoinNetwork, GetUtxosResponse, MillisatoshiPerByte,
 };
-use ic_cdk_macros::{init, update};
+use ic_cdk_macros::{update};
 use std::cell::{Cell, RefCell};
 
 thread_local! {
@@ -25,7 +25,6 @@ thread_local! {
     static KEY_NAME: RefCell<String> = RefCell::new(String::from(""));
 }
 
-#[init]
 pub fn init(network: BitcoinNetwork) {
     NETWORK.with(|n| n.set(network));
 
