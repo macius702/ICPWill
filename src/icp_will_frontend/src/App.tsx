@@ -559,11 +559,14 @@ const App: React.FC = () => {
   }
 
   // Helper function to get BTC address of the canister
-  const getBtcAddress = async () => {
+  const getBtcAddress = async (principal : Principal) => {
     customLog('Entering getBtcAddress');
     const backend = getAuthClient()
     customLog('in getBtcAddress backend: ', backend);
-    const address = await backend.btc_get_p2pkh_address();
+    const principalArray = principal.toUint8Array();
+    customLog('in getBtcAddress principalArray: ', principalArray)
+
+    const address = await backend.btc_get_p2pkh_address([principalArray]);
     customLog('in getBtcAddress address: ', address);
     return address;
   }
@@ -632,7 +635,7 @@ const App: React.FC = () => {
         if (BITCOIN)
         {
           try {
-            const address = await getBtcAddress();
+            const address = await getBtcAddress(principal);
             setBtcAddress(address);
           } catch (error) {
             console.error('Failed to fetch BTC address:', error);

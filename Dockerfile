@@ -116,7 +116,7 @@ RUN cat <<'EOF' > start-bitcoind.sh
 #!/bin/bash
 cd /bitcoin_replica_daemon/bitcoin-27.0
 # Start bitcoind in the background
-./bin/bitcoind -conf=$(pwd)/bitcoin.conf -datadir=$(pwd)/data --port=18444 &
+./bin/bitcoind -conf=$(pwd)/bitcoin.conf -datadir=$(pwd)/data --port=18444 -deprecatedrpc=create_bdb &
 
 # Wait for bitcoind to be ready
 echo "Waiting for bitcoind to start..."

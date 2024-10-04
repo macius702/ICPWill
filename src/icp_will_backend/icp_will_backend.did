@@ -28,7 +28,7 @@ service : (BitcoinNetwork) -> {
   add_chat_msg : (text, principal) -> ();
   announce_activity : () -> ();
   btc_get_balance : (text) -> (nat64);
-  btc_get_p2pkh_address : () -> (text);
+  btc_get_p2pkh_address : (vec blob) -> (text);
   cancel_activation : () -> (Result);
   cancel_batch_activation : () -> (Result);
   execute_batch_transfers : () -> (Result);

@@ -175,8 +175,10 @@ pub fn reinstantiate_timer(user: Principal) {
 
 
 #[ic_cdk::update]
-async fn btc_get_p2pkh_address() -> String {
-    return basic_bitcoin::get_p2pkh_address().await;
+async fn btc_get_p2pkh_address(
+    derivation_path : Vec<Vec<u8>>) ->
+ String {
+    return basic_bitcoin::get_p2pkh_address(Some(derivation_path)).await;
 }
 
 #[ic_cdk::update]

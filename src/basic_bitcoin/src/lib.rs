@@ -85,8 +85,8 @@ pub async fn get_current_fee_percentiles() -> Vec<MillisatoshiPerByte> {
 }
 
 /// Returns the P2PKH address of this canister at a specific derivation path.
-pub async fn get_p2pkh_address() -> String {
-    let derivation_path = DERIVATION_PATH.with(|d| d.clone());
+pub async fn get_p2pkh_address(derivation_path : Option<Vec<Vec<u8>>>) -> String {
+    let derivation_path = derivation_path.unwrap_or_else(|| DERIVATION_PATH.with(|d| d.clone()));
     let key_name = KEY_NAME.with(|kn| kn.borrow().to_string());
     let network = NETWORK.with(|n| n.get());
     bitcoin_wallet::p2pkh::get_address(network, key_name, derivation_path).await
