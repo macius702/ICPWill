@@ -174,10 +174,11 @@ pub fn reinstantiate_timer(user: Principal) {
 }
 
 
-pub fn btc_get_user_address(account_address: &String) -> String {
+pub fn btc_get_user_address(_recipient_principal: &Principal) -> String {
     
     //TODO(mtlk)
-    account_address.clone()
+    return String::new();
+    
 }
 
 #[ic_cdk::update]

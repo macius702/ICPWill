@@ -416,7 +416,6 @@ const App: React.FC = () => {
           nickname: b.nickname ? b.nickname : "",
           assets: BITCOIN ? [{
             ticker: 'BTC',
-            account_address: btcAddress!,
             amount: BigInt(b.icpAmount),     //TODO(mtlk) - amount is more general, not only for ICP
         }] : [],
         amount_icp: BigInt(b.icpAmount),

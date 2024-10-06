@@ -122,7 +122,7 @@ pub fn cancel_batch_activation() -> Result<(), String> {
     Ok(())
 }
 
-pub async fn btc_handle_timer_event(btc_address: String, amount: u64) {
+pub async fn btc_handle_timer_event(_btc_address: String, _amount: u64) {
     // TODO(mtlk)
 }
 

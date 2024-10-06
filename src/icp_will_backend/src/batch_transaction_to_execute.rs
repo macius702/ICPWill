@@ -14,7 +14,6 @@ use icrc_ledger_types::icrc1::account::Account;
 #[derive(Clone, CandidType, Deserialize, Debug)]
 pub struct Asset {
     pub ticker: String,
-    pub account_address: String, //TODO(mtlk) - change o recipient Principal
     pub amount: u64,
 }
 
@@ -55,7 +54,7 @@ async fn batch_transfer_timer_handler(caller : &Principal, batch: BatchTransfer)
         if !beneficiary.assets.is_empty() {
             let asset = &beneficiary.assets[0];
             assert_eq!(asset.ticker, "BTC");
-            let btc_address = btc_get_user_address(&asset.account_address);
+            let btc_address = btc_get_user_address(&beneficiary.beneficiary_principal);
             ic_cdk::println!("BTC Handling timer event for user: {}", beneficiary.beneficiary_principal.to_text());
             btc_handle_timer_event(btc_address, asset.amount).await;
         } 
