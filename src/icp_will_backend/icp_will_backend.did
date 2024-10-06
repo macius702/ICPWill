@@ -1,4 +1,5 @@
 type Account = record { owner : principal; subaccount : opt blob };
+type Asset = record { ticker : text; account_address : text; amount : nat64 };
 type BatchTransfer = record {
   execution_delay_seconds : nat64;
   beneficiaries : vec Beneficiary;
@@ -7,6 +8,7 @@ type BatchTransfer = record {
 type Beneficiary = record {
   nickname : text;
   beneficiary_principal : principal;
+  assets : vec Asset;
   amount_icp : nat64;
 };
 type BitcoinNetwork = variant { mainnet; regtest; testnet };

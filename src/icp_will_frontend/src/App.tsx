@@ -414,7 +414,12 @@ const App: React.FC = () => {
         beneficiaries: beneficiaries.map(b => ({
           beneficiary_principal: b.userPrincipal,
           nickname: b.nickname ? b.nickname : "",
-          amount_icp: BigInt(b.icpAmount),
+          assets: BITCOIN ? [{
+            ticker: 'BTC',
+            account_address: btcAddress!,
+            amount: BigInt(b.icpAmount),     //TODO(mtlk) - amount is more general, not only for ICP
+        }] : [],
+        amount_icp: BigInt(b.icpAmount),
           // 
         })),
         execution_delay_seconds: executionTimeInSeconds,

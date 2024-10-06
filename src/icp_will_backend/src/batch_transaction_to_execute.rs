@@ -11,10 +11,18 @@ use icrc_ledger_types::icrc1::account::Account;
 
 
 #[derive(Clone, CandidType, Deserialize, Debug)]
+pub struct Asset {
+    pub ticker: String,
+    pub account_address: String,
+    pub amount: u64,
+}
+
+#[derive(Clone, CandidType, Deserialize, Debug)]
 pub struct Beneficiary {
     pub beneficiary_principal: Principal,
     pub nickname: String,
     pub amount_icp: u64,
+    pub assets: Vec<Asset>,
 }
 
 #[derive(Clone, CandidType, Deserialize, Debug)]
