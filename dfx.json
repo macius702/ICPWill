@@ -4,9 +4,7 @@
     "icp_will_backend": {
       "candid": "src/icp_will_backend/icp_will_backend.did",
       "package": "icp_will_backend",
-      "build": "./custom_build_step.sh icp_will_backend",
-      "wasm": "target/wasm32-unknown-unknown/release/icp_will_backend.wasm",
-      "type": "custom"
+      "type": "rust"
     },
     "icrc1_ledger_canister": {
       "type": "custom",

@@ -12,12 +12,15 @@ use crate::{GetBlockHeadersRequest, GetBlockHeadersResponse};
 /// See https://internetcomputer.org/docs/current/references/ic-interface-spec/#ic-bitcoin_get_balance
 pub async fn get_balance(network: BitcoinNetwork, address: String) -> u64 {
     let min_confirmations = None;
+    ic_cdk::println!("In bitcoin_api::get_balance address: {address} network: {:?} min_confirmations: {:?}",  network, min_confirmations);
     let balance_res = bitcoin_get_balance(GetBalanceRequest {
         address,
         network,
         min_confirmations,
     })
     .await;
+
+    ic_cdk::println!("In bitcoin_api::get_balance balance_res: {:?}", balance_res);
 
     balance_res.unwrap().0
 }

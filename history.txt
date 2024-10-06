@@ -1,0 +1,131 @@
+    1  cd /bitcoin_replica_daemon/
+    2  ll
+    3  cd bitcoin-27.0
+    4  ll
+    5  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getwalletinfo
+    6  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getbalance
+    7  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getaddressesbylabel etykietkaadresu2
+    8  # musw2Wx8H91L2Ewx2CUSujNstUYr6MsPLU
+    9  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 100 mtbZzVBwLnDmhH4pE9QynWAgh6H3aC1E6M
+   10  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getaddressesbylabel etykietkaadresu2
+   11  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 100 mtbZzVBwLnDmhH4pE9QynWAgh6H3aC1E6M
+   12  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getaddressesbylabel etykietkaadresu2
+   13  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getbalance
+   14  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getaddressesbylabel etykietkaadresu2
+   15  ll
+   16  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf gettransaction 351add2c688dde55dc0be04a395b2112d5422b34445e703c35db5ea2691991a0
+   17  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf gettransaction 51f96c8debb5973545345d6961b80844321df9eb33fb0b07af55f3c6a59701eb
+   18  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf gettransaction 5c5938003bccf357c7a0519cac41c39e47878b2452eb3f19223dccb52f5028c8
+   19  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 101 musw2Wx8H91L2Ewx2CUSujNstUYr6MsPLU
+   20  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf gettransaction 376a566adb2a229107eb4eca74fe08ed19bfad6cbcf1c34ac0b3f1f091363c06
+   21  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getrawtransaction 376a566adb2a229107eb4eca74fe08ed19bfad6cbcf1c34ac0b3f1f091363c06
+   22  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getrawtransaction 376a566adb2a229107eb4eca74fe08ed19bfad6cbcf1c34ac0b3f1f091363c06 true
+   23  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockchaininfo
+   24  alias bitcoin-cli='./bin/bitcoin-cli '
+   25  alias bitcoin-cli='./bin/bitcoin-cli'
+   26  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockchaininfo
+   27  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash <block_height>
+   28  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash 700
+   29  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash 701
+   30  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash 702
+   31  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash 701
+   32  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock <blockhash> true
+   33  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock 59711a64a1ce79537d9b25ca4de34d79e8dc505441eecc12b47459538efd2de9 true
+   34  for i in $(seq 0 $(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockcount)); do   blockhash=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash $i);   bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock $blockhash true; done
+   35  for i in $(seq 0 $(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockcount)); do   blockhash=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash $i);   bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock $blockhash true | jq '.tx[]'; done
+   36  sudo apt-get install jq
+   37  for i in $(seq 0 $(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockcount)); do   blockhash=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash $i);   bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock $blockhash true | jq '.tx[]'; done
+   38  for i in $(seq 0 $(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockcount)); do
+  blockhash=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash $i)  
+  block=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock $blockhash true)  
+  txids=$(echo $block | jq -r '.tx[]')  
+  for txid in $txids; do
+    transaction=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getrawtransaction $txid true);     echo $transaction;   done; done
+   39  q
+   40  touch blockchain_explorer_curses.py
+   41  cd -
+   42  cd /app
+   43  touch blockchain_explorer_curses.py
+   44  python blockchain_explorer_curses.py
+   45  python3 blockchain_explorer_curses.py
+   46  cd -
+   47  python3 /app/blockchain_explorer_curses.py 
+   48  ll bin/
+   49  realpath bin/bitcoin-cli*
+   50  export PATH=$PATH:/bitcoin_replica_daemon/bitcoin-27.0/bin
+   51  PATH
+   52  echo $PATH
+   53  python3 /app/blockchain_explorer_curses.py 
+   54  ./bin/bitcoin-cli -conf=bitcoin.conf getblockhash 700
+   55  pwd
+   56  ./bin/bitcoin-cli -conf=bitcoin.conf getblockhash 700
+   57  ./bin/bitcoin-cli -conf=./bitcoin.conf getblockhash 700
+   58  ll
+   59  bitcoin-cli -conf=./bitcoin.conf getblockhash 700
+   60  bitcoin-cli -conf=/bitcoin.conf getblockhash 700
+   61  bitcoin-cli -conf=bitcoin.conf getblockhash 700
+   62  bitcoin-cli 
+   63  alias
+   64  bitcoin-cli 
+   65  ./bin/bitcoin-cli -conf=bitcoin.conf getblockhash 700
+   66  echo $PATH
+   67  ./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf getwalletinfo
+   68  $(pwd)
+   69  echo $(pwd)
+   70  python3 /app/blockchain_explorer_curses.py 
+   71  for i in $(seq 0 $(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockcount)); do
+  blockhash=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash $i)  
+  block=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock $blockhash true)  
+  txids=$(echo $block | jq -r '.tx[]')  
+  for txid in $txids; do
+    transaction=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getrawtransaction $txid true);     echo $transaction;   done; done
+   72  for i in $(seq 0 $(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockcount)); do   blockhash=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockhash $i)  ;   block=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getblock $blockhash true)  ;   txids=$(echo $block | jq -r '.tx[]')  ;   for txid in $txids; do     transaction=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf getrawtransaction $txid true);     echo $transaction;   done; done > /app/transactions.json
+   73  cd -
+   74  touch transactions.py
+   75  mv transactions.py transactions.sh
+   76  chmod 755  transactions.sh 
+   77  ll transactions.sh 
+   78  cat transactions.sh
+   79  cd -
+   80  ll
+   81  ./transactions.sh 
+   82  cd -
+   83  ./transactions.sh 
+   84  /app/transactions.sh 
+   85  /app/transactions.sh  > /app/all_transactions.json
+   86  cd -
+   87  ll
+   88  cd -
+   89  /app/transactions.sh  > /app/all_transactions.json
+   90  \
+   91  bitcoin-cli -conf=$(pwd)/bitcoin.conf getblockcount
+   92  /app/transactions.sh  > /app/all_transactions.json
+   93  bitcoin-cli -conf=$(pwd)/bitcoin.conf scantxoutset start "[{\"desc\": \"addr(musw2Wx8H91L2Ewx2CUSujNstUYr6MsPLU)\"}]"
+   94  bitcoin-cli -conf=$(pwd)/bitcoin.conf scantxoutset start "[{\"desc\": \"addr(musw2Wx8H91L2Ewx2CUSujNstUYr6MsPLU"}]"
+   95  bitcoin-cli -conf=$(pwd)/bitcoin.conf scantxoutset start "[{\"desc\": \"addr(musw2Wx8H91L2Ewx2CUSujNstUYr6MsPLU\"}]"
+   96  bitcoin-cli -conf=$(pwd)/bitcoin.conf scantxoutset start "[{\"desc\": \"addr(musw2Wx8H91L2Ewx2CUSujNstUYr6MsPLU)\"}]"
+   97  # musw2Wx8H91L2Ewx2CUSujNstUYr6MsPLU
+   98  # 
+   99  # mtbZzVBwLnDmhH4pE9QynWAgh6H3aC1E6M
+  100  bitcoin-cli -conf=$(pwd)/bitcoin.conf scantxoutset start "[{\"desc\": \"addr(mtbZzVBwLnDmhH4pE9QynWAgh6H3aC1E6M)\"}]"
+  101  history > /app/history.txt
+
+bitcoin-cli -rpcwallet=my_new_wallet listaddressgroupings
+
+
+c4446f68f707d64f5b02e3f271e72b56c6b520c70c1d6fb30f1e63e39fd2f414
+0.1
+raw_tx=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf createrawtransaction '[{"txid":"c4446f68f707d64f5b02e3f271e72b56c6b520c70c1d6fb30f1e63e39fd2f414","vout":1}]' '{"minidsaDsfVa8mwHosULLYotFooA6UBJyU":0.1}')
+funded_tx=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf fundrawtransaction "$raw_tx")
+funded_tx_hex=$(echo $funded_tx | jq -r '.hex')
+signed_tx=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf signrawtransactionwithwallet "$funded_tx_hex")
+signed_tx_hex=$(echo $signed_tx | jq -r '.hex')
+txid=$(bitcoin-cli -conf=$(pwd)/bitcoin.conf sendrawtransaction "$signed_tx_hex")
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 1 mtbZzVBwLnDmhH4pE9QynWAgh6H3aC1E6M
+
+
+or 
+bitcoin-cli -conf=$(pwd)/bitcoin.conf sendtoaddress "minidsaDsfVa8mwHosULLYotFooA6UBJyU" 0.134567
+./bin/bitcoin-cli -conf=$(pwd)/bitcoin.conf generatetoaddress 1 mtbZzVBwLnDmhH4pE9QynWAgh6H3aC1E6M
+
+

@@ -58,7 +58,18 @@ def create__internet_identity(nickname, with_icp_feed = False):
 
         print("Principal Value:", principal_value)    
     
+
+
         subprocess.call(["./feed_local.sh", principal_value])
+
+
+        address_paragraph = click_element(driver, By.XPATH, "//p[contains(text(), 'Address:')]")
+        address_text = address_paragraph.text
+        address_value = address_text.split(': ')[1]  
+
+        print("Address Value:", address_value)    
+
+        subprocess.call(["./btc_create_feeding_address.sh", address_value])
     
     print('DONE.')
         

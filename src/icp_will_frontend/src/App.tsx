@@ -460,14 +460,25 @@ const App: React.FC = () => {
   const fetchBalance = async () => {
     const { principal } = isUserLogged()
     const backend = getAuthClient()
-    let result = await backend.get_balance()
     console.log('fetching balance')
-    if ('Ok' in result) {
-      setBalance(result.Ok)
-    } else {
-      setBalance(null)
+    if(BITCOIN)
+    {
+      if(btcAddress)
+      {
+        let result = await backend.btc_get_balance(btcAddress)
+        setBalance(result)
+        return
+      }
     }
-    customLog(result)
+    else
+    {
+      let result = await backend.get_balance()
+        if ('Ok' in result) {
+          setBalance(result.Ok)
+          return
+        }
+    }
+    setBalance(null)
   }
 
 
