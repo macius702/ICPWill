@@ -174,6 +174,12 @@ pub fn reinstantiate_timer(user: Principal) {
 }
 
 
+pub fn btc_get_user_address(account_address: &String) -> String {
+    
+    //TODO(mtlk)
+    account_address.clone()
+}
+
 #[ic_cdk::update]
 async fn btc_get_p2pkh_address(
     derivation_path : Vec<Vec<u8>>) ->

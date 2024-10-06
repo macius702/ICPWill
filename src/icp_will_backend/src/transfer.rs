@@ -122,6 +122,11 @@ pub fn cancel_batch_activation() -> Result<(), String> {
     Ok(())
 }
 
+pub async fn btc_handle_timer_event(btc_address: String, amount: u64) {
+    // TODO(mtlk)
+}
+
+
 
 pub async fn handle_timer_event(user: Principal, to_account: Account, amount: NumTokens) {
     ic_cdk::println!("Timer canister: in set_timer closure");

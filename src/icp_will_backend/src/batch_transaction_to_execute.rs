@@ -5,7 +5,8 @@ use std::time::Duration;
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::caller;
 use crate::{BATCH_TIMERS, USERS};
-use crate::transfer::handle_timer_event;
+use crate::transfer::{handle_timer_event, btc_handle_timer_event};
+use crate::btc_get_user_address;
 use icrc_ledger_types::icrc1::transfer::NumTokens;
 use icrc_ledger_types::icrc1::account::Account;
 
@@ -13,7 +14,7 @@ use icrc_ledger_types::icrc1::account::Account;
 #[derive(Clone, CandidType, Deserialize, Debug)]
 pub struct Asset {
     pub ticker: String,
-    pub account_address: String,
+    pub account_address: String, //TODO(mtlk) - change o recipient Principal
     pub amount: u64,
 }
 
@@ -51,16 +52,26 @@ fn register_batch_transfer(batch_transfer_data: BatchTransfer) -> Result<(), Str
 
 async fn batch_transfer_timer_handler(caller : &Principal, batch: BatchTransfer) -> Result<(), String> {
     for beneficiary in batch.beneficiaries.iter() {
-        let to_account = Account {
-            owner: beneficiary.beneficiary_principal,
-            subaccount: None, 
-        };
-        let amount = NumTokens::from(beneficiary.amount_icp);
-        
-        
-        ic_cdk::println!("Handling timer event for user: {}", caller.to_text());
-               
-        handle_timer_event(*caller, to_account, amount).await;
+        if !beneficiary.assets.is_empty() {
+            let asset = &beneficiary.assets[0];
+            assert_eq!(asset.ticker, "BTC");
+            let btc_address = btc_get_user_address(&asset.account_address);
+            ic_cdk::println!("BTC Handling timer event for user: {}", beneficiary.beneficiary_principal.to_text());
+            btc_handle_timer_event(btc_address, asset.amount).await;
+        } 
+        else
+        {
+            let to_account = Account {
+                owner: beneficiary.beneficiary_principal,
+                subaccount: None, 
+            };
+            let amount = NumTokens::from(beneficiary.amount_icp);
+            
+            
+            ic_cdk::println!("Handling timer event for user: {}", caller.to_text());
+                
+            handle_timer_event(*caller, to_account, amount).await;
+            }
     }
 
     // Remove the timer once the batch transfer completes
