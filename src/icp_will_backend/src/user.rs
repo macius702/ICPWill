@@ -4,14 +4,16 @@ use crate::batch_transaction_to_execute::BatchTransfer;
 #[derive(Clone, CandidType)]
 pub struct UserData {
     nickname: String,
+    btc_address : String,
     avatar_url: Option<String>,
     batch_transfer: Option<BatchTransfer>,
 }
 
 impl UserData {
-    pub fn new(nickname: String) -> Self {
+    pub fn new(nickname: String, btc_address: String) -> Self {
         Self {
             nickname,
+            btc_address : btc_address,
             avatar_url: None,
             batch_transfer: None,
         }
@@ -33,6 +35,10 @@ impl UserData {
     pub fn get_batch_transfer(&self) -> Option<BatchTransfer> {
         self.batch_transfer.clone()
     }
+
+    pub fn get_btc_address(&self) -> &String {
+        &self.btc_address
+    }    
 }
 
 #[derive(CandidType)]

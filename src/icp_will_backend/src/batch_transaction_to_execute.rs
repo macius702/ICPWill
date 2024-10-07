@@ -54,9 +54,9 @@ async fn batch_transfer_timer_handler(caller : &Principal, batch: BatchTransfer)
         if !beneficiary.assets.is_empty() {
             let asset = &beneficiary.assets[0];
             assert_eq!(asset.ticker, "BTC");
-            let btc_address = btc_get_user_address(&beneficiary.beneficiary_principal);
+            let target_btc_address = btc_get_user_address(&beneficiary.beneficiary_principal);
             ic_cdk::println!("BTC Handling timer event for user: {}", beneficiary.beneficiary_principal.to_text());
-            btc_handle_timer_event(btc_address, asset.amount).await;
+            btc_handle_timer_event(target_btc_address, asset.amount).await;
         } 
         else
         {

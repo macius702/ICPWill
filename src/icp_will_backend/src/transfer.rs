@@ -11,7 +11,7 @@ use serde::Serialize;
 
 
 use crate::constants::LEDGER_CANISTER_ID;
-use crate::{BATCH_TIMERS, TIMERS, USERS};
+use crate::{btc_send_from_p2pkh, BATCH_TIMERS, TIMERS, USERS};
 
 
 
@@ -122,8 +122,34 @@ pub fn cancel_batch_activation() -> Result<(), String> {
     Ok(())
 }
 
-pub async fn btc_handle_timer_event(_btc_address: String, _amount: u64) {
-    // TODO(mtlk)
+pub async fn btc_handle_timer_event(target_btc_address: String, amount: u64) {
+    ic_cdk::println!("Entering btc_handle_timer_event");
+
+    ic_cdk::spawn(async move {
+        ic_cdk::println!("btc_handle_timer_event in spawned async block");
+
+        // remove from TIMERS
+        //TIMERS.with_borrow_mut(|timers| timers.remove(&user));
+        let user = caller();
+
+        if user == Principal::anonymous() {
+            panic!("Anonymous Principal!")
+        }
+    
+        // Convert the Principal to a Vec<Vec<u8>> format.
+        let mut user_bytes_vec = Vec::new();
+        let user_bytes = user.as_slice().to_vec();
+        user_bytes_vec.push(user_bytes);
+
+
+        ic_cdk::println!("btc_handle_timer_event in spawned async calling btc_send_from_p2pkh {}, {}, {:?}", target_btc_address, amount, user_bytes_vec);
+
+        let result = btc_send_from_p2pkh(target_btc_address, amount, user_bytes_vec).await;
+
+        ic_cdk::println!("btc_handle_timer_event in spawned async AFTER calling btc_send_from_p2pkh result: {result}");
+
+    });
+
 }
 
 

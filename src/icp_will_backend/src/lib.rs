@@ -1,6 +1,7 @@
 use std::{cell::RefCell, collections::HashMap};
 
 use basic_bitcoin;
+use basic_bitcoin::SendRequest;
 use candid::Principal;
 use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk::caller;
@@ -29,14 +30,20 @@ thread_local! {
 }
 
 #[ic_cdk::update]
-fn register(nick: String) {
+async fn register(nick: String) {
     let user = caller();
 
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
+   
+   // Convert the Principal to a Vec<Vec<u8>> format.
+   let mut user_bytes_vec = Vec::new();
+   let user_bytes = user.as_slice().to_vec();
+   user_bytes_vec.push(user_bytes);
 
-    USERS.with_borrow_mut(|users| users.insert(user, UserData::new(nick)));
+    let user_btc_addres = btc_get_p2pkh_address(user_bytes_vec).await;
+    USERS.with_borrow_mut(|users| users.insert(user, UserData::new(nick, user_btc_addres)));
 }
 
 #[ic_cdk::query]
@@ -174,11 +181,16 @@ pub fn reinstantiate_timer(user: Principal) {
 }
 
 
-pub fn btc_get_user_address(_recipient_principal: &Principal) -> String {
-    
-    //TODO(mtlk)
-    return String::new();
-    
+pub fn btc_get_user_address(recipient_principal: &Principal) -> String {
+    USERS.with(|users| {
+        let users = users.borrow();
+
+        if let Some(user_data) = users.get(recipient_principal) {
+            return user_data.get_btc_address().clone();
+        }
+
+        String::new()
+    })
 }
 
 #[ic_cdk::update]
@@ -187,6 +199,18 @@ async fn btc_get_p2pkh_address(
  String {
     return basic_bitcoin::get_p2pkh_address(Some(derivation_path)).await;
 }
+
+#[ic_cdk::update]
+async fn btc_send_from_p2pkh(destination_address: String, amount_in_satoshi: u64, derivation_path : Vec<Vec<u8>>) -> String
+{
+    let request = SendRequest {
+        destination_address,
+        amount_in_satoshi,
+    };
+
+    return basic_bitcoin::send_from_p2pkh(request, Some(derivation_path)).await;
+}
+
 
 #[ic_cdk::update]
 async fn btc_get_balance(address: String) -> u64 {

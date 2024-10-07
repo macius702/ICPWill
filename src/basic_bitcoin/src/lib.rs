@@ -94,9 +94,8 @@ pub async fn get_p2pkh_address(derivation_path : Option<Vec<Vec<u8>>>) -> String
 
 /// Sends the given amount of bitcoin from this canister's p2pkh address to the given address.
 /// Returns the transaction ID.
-#[update]
-pub async fn send_from_p2pkh(request: SendRequest) -> String {
-    let derivation_path = DERIVATION_PATH.with(|d| d.clone());
+pub async fn send_from_p2pkh(request: SendRequest, derivation_path : Option<Vec<Vec<u8>>>) -> String {
+    let derivation_path = derivation_path.unwrap_or_else(|| DERIVATION_PATH.with(|d| d.clone()));
     let network = NETWORK.with(|n| n.get());
     let key_name = KEY_NAME.with(|kn| kn.borrow().to_string());
     let tx_id = bitcoin_wallet::p2pkh::send(
