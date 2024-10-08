@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 # ./venv/lib/python3.10/site-packages/selenium/webdriver/common/linux/selenium-manager --driver=chromedriver
 
 import time
+import subprocess
 from colorama import Fore, Style
 import os
 
@@ -152,6 +153,8 @@ class Mytest:
         self.inheritance = inheritance
 
     def refresh_all(self):
+        subprocess.call("./btc_advance_blocks.sh")
+
         for driver in self.drivers:
             driver.refresh()
     

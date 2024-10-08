@@ -31,18 +31,24 @@ thread_local! {
 
 #[ic_cdk::update]
 async fn register(nick: String) {
+    ic_cdk::println!("Entering function: fn register");
+
     let user = caller();
 
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
-   
-   // Convert the Principal to a Vec<Vec<u8>> format.
-   let mut user_bytes_vec = Vec::new();
-   let user_bytes = user.as_slice().to_vec();
-   user_bytes_vec.push(user_bytes);
+
+    // Convert the Principal to a Vec<Vec<u8>> format.
+    let mut user_bytes_vec = Vec::new();
+    let user_bytes = user.as_slice().to_vec();
+    user_bytes_vec.push(user_bytes);
+
+    ic_cdk::println!("fn register Derivation Path: {:?}", user_bytes_vec);
 
     let user_btc_addres = btc_get_p2pkh_address(user_bytes_vec).await;
+    ic_cdk::println!("fn register user_btc_addres: {}", user_btc_addres);
+
     USERS.with_borrow_mut(|users| users.insert(user, UserData::new(nick, user_btc_addres)));
 }
 

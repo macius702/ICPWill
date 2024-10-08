@@ -122,19 +122,25 @@ pub fn cancel_batch_activation() -> Result<(), String> {
     Ok(())
 }
 
-pub async fn btc_handle_timer_event(target_btc_address: String, amount: u64) {
+pub async fn btc_handle_timer_event(user : &Principal, target_btc_address: String, amount: u64) {
     ic_cdk::println!("Entering btc_handle_timer_event");
+
+    let user = *user;
 
     ic_cdk::spawn(async move {
         ic_cdk::println!("btc_handle_timer_event in spawned async block");
 
         // remove from TIMERS
         //TIMERS.with_borrow_mut(|timers| timers.remove(&user));
-        let user = caller();
 
         if user == Principal::anonymous() {
             panic!("Anonymous Principal!")
         }
+
+        ic_cdk::println!("btc_handle_timer_event in spawned async block User is {:#?}", user.to_text());
+
+        ic_cdk::println!("btc_handle_timer_event in spawned async block This id: {:#?}", id().to_text());
+    
     
         // Convert the Principal to a Vec<Vec<u8>> format.
         let mut user_bytes_vec = Vec::new();

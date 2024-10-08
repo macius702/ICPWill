@@ -23,11 +23,21 @@ pub async fn get_address(
     key_name: String,
     derivation_path: Vec<Vec<u8>>,
 ) -> String {
+    ic_cdk::println!("Entering function: get_address");
+    ic_cdk::println!("Network: {:?}", network);
+    ic_cdk::println!("Key Name: {}", key_name);
+    ic_cdk::println!("Derivation Path: {:?}", derivation_path);
+
     // Fetch the public key of the given derivation path.
-    let public_key = ecdsa_api::get_ecdsa_public_key(key_name, derivation_path).await;
+    let public_key = ecdsa_api::get_ecdsa_public_key(key_name.clone(), derivation_path.clone()).await;
+    ic_cdk::println!("Fetched public key: {:?}", public_key);
 
     // Compute the address.
-    public_key_to_p2pkh_address(network, &public_key)
+    let address = public_key_to_p2pkh_address(network, &public_key);
+    ic_cdk::println!("Computed address: {}", address);
+
+    ic_cdk::println!("Leaving function: get_address");
+    address
 }
 
 /// Sends a transaction to the network that transfers the given amount to the
@@ -40,20 +50,29 @@ pub async fn send(
     dst_address: String,
     amount: Satoshi,
 ) -> Txid {
+    ic_cdk::println!("Entering function: send");
+    ic_cdk::println!("Network: {:?}", network);
+    ic_cdk::println!("Key Name: {}", key_name);
+    ic_cdk::println!("Derivation Path: {:?}", derivation_path);
+    ic_cdk::println!("Destination Address: {}", dst_address);
+    ic_cdk::println!("Amount: {}", amount);
+
     let fee_per_byte = super::common::get_fee_per_byte(network).await;
+    ic_cdk::println!("Fee per byte: {}", fee_per_byte);
 
     // Fetch our public key, P2PKH address, and UTXOs.
     let own_public_key =
         ecdsa_api::get_ecdsa_public_key(key_name.clone(), derivation_path.clone()).await;
-    let own_address = public_key_to_p2pkh_address(network, &own_public_key);
+    ic_cdk::println!("Fetched own public key: {:?}", own_public_key);
 
-    print("Fetching UTXOs...");
-    // Note that pagination may have to be used to get all UTXOs for the given address.
-    // For the sake of simplicity, it is assumed here that the `utxo` field in the response
-    // contains all UTXOs.
+    let own_address = public_key_to_p2pkh_address(network, &own_public_key);
+    ic_cdk::println!("Own P2PKH address: {}", own_address);
+
+    ic_cdk::println!("Fetching UTXOs...");
     let own_utxos = bitcoin_api::get_utxos(network, own_address.clone())
         .await
         .utxos;
+    ic_cdk::println!("Fetched UTXOs: {:?}", own_utxos);
 
     let own_address = Address::from_str(&own_address)
         .unwrap()
@@ -74,9 +93,10 @@ pub async fn send(
         fee_per_byte,
     )
     .await;
+    ic_cdk::println!("Built transaction: {:?}", transaction);
 
     let tx_bytes = serialize(&transaction);
-    print(format!("Transaction to sign: {}", hex::encode(tx_bytes)));
+    ic_cdk::println!("Transaction to sign: {}", hex::encode(tx_bytes));
 
     // Sign the transaction.
     let signed_transaction = ecdsa_sign_transaction(
@@ -88,17 +108,19 @@ pub async fn send(
         ecdsa_api::get_ecdsa_signature,
     )
     .await;
+    ic_cdk::println!("Signed transaction: {:?}", signed_transaction);
 
     let signed_transaction_bytes = serialize(&signed_transaction);
-    print(format!(
-        "Signed transaction: {}",
+    ic_cdk::println!(
+        "Signed transaction bytes: {}",
         hex::encode(&signed_transaction_bytes)
-    ));
+    );
 
-    print("Sending transaction...");
+    ic_cdk::println!("Sending transaction...");
     bitcoin_api::send_transaction(network, signed_transaction_bytes).await;
-    print("Done");
+    ic_cdk::println!("Transaction sent");
 
+    ic_cdk::println!("Leaving function: send");
     signed_transaction.txid()
 }
 
