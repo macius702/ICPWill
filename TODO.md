@@ -3,6 +3,8 @@ Research:
   - [ ] Prague 2024 hackathon - see the (fiat) exchange combo.
   - [ ] Protocol with a beneficiary (during execution): Check if it is ready/alive (e.g., send a small amount of tokens with a message - "please send something back". If successful, send the remaining sum).
   - [ ] License.
+  - [ ] rock solid transfer - fallback account
+  - [ ] integrate payment method - to me
   - [ ] Print `get_transactions`: `(GetTransactionsRequest) -> (GetTransactionsResponse)` query; after approval, transfer - after everything that returns `BlockIndex`.
     - // mtlk todo
     - The following method is marked as 'update' because it internally performs an inter-canister call.
@@ -14,8 +16,9 @@ Research:
   - [ ] Debuggable frontend and backend.
   - [ ] Who pays for transaction and approval fees - inheritors? - To decide. Option.
   - [ ] Notifications - websocket?
-  - [ ] How to handle roles: the beneficiary should not immediately become the testator 😃.
+  - [ ] How to handle roles: the beneficiary should not immediately become the testator 😃. Also an administrator role, a cashier role - receipts ?
   - [ ] Frontend: Button register as default (pressing Enter).
+  - [ ] Options what should happen if the beneficiary is not responding - send and receive money to prove the beneficiary exists, distribute nonresponding share to other beneficiaries equally, send do fallback addresses, do nothing
 
 Features:
   - [ ] Show account-id in GUI, next to the Principal.
@@ -53,6 +56,8 @@ Defects:
   - [ ] In the `sleepy` test. `Timy`. Refactor to have more descriptive functions. For each window, include an object with a nickname and how much money it should allocate instead of vectors [0.1400,1500]. Remove debugging `savepage`.
   - [ ] How to name the identity that is giving money for nothing (instead of Alice).
   - [ ] `identityToUse` - not needed.
+  - [ ] change title of Your App
+  - [ ] change text on tab in chrome
 
 DONE:
   - [x] DRY `setUserData`.
