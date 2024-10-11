@@ -122,7 +122,12 @@ fi
 
 # Execute the dfx start command with the constructed options
 
-dfx start $DFX_OPTIONS 2>&1
+
+dfx start $DFX_OPTIONS 2>&1 > dfx_raw.log
+
+tail -F dfx_raw.log | ./filter_output.sh > dfx.log &
+
+# dfx start $DFX_OPTIONS 2>&1
 # dfx start $DFX_OPTIONS 2>&1 | ./filter_output.sh
 
 
