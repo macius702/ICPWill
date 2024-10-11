@@ -111,15 +111,20 @@ if [ -n "$ENABLE_BITCOIN" ]; then
 fi
 
 echo "===========SETUP========="
-if [ "$MODE" = "local" ]; then
-  if [ "$CLEAN" == "--clean" ]; then
-    dfx start --background --clean --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN 2> dfx.log
-  else
-    dfx start --background --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN 2> dfx.log
-  fi
-else
-  dfx start --background --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN 2> dfx.log
+
+# Initialize DFX_OPTIONS with common options
+DFX_OPTIONS="--background --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN"
+
+# Add --clean option if applicable
+if [ "$MODE" = "local" ] && [ "$CLEAN" = "--clean" ]; then
+  DFX_OPTIONS="--clean $DFX_OPTIONS"
 fi
+
+# Execute the dfx start command with the constructed options
+
+dfx start $DFX_OPTIONS 2>&1
+# dfx start $DFX_OPTIONS 2>&1 | ./filter_output.sh
+
 
 sleep 5
 dfx identity list
