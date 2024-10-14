@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cloc  --exclude-list-file=cloc_exclude_exactly.txt  .
+
 #source ~/.nvm/nvm.sh
 
 # from my bash src
@@ -112,27 +114,19 @@ fi
 
 echo "===========SETUP========="
 
-# Initialize DFX_OPTIONS with common options
-DFX_OPTIONS="--background --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN"
-
-# Add --clean option if applicable
-if [ "$MODE" = "local" ] && [ "$CLEAN" = "--clean" ]; then
-  DFX_OPTIONS="--clean $DFX_OPTIONS"
-fi
-
-# Execute the dfx start command with the constructed options
+dfx start --background --clean --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN 2> dfx_raw.log
 
 
-dfx start $DFX_OPTIONS 2>&1 > dfx_raw.log
-
-tail -F dfx_raw.log | ./filter_output.sh > dfx.log &
-
-# dfx start $DFX_OPTIONS 2>&1
-# dfx start $DFX_OPTIONS 2>&1 | ./filter_output.sh
 
 
 sleep 5
+
+
+
 dfx identity list
+
+tail -F dfx_raw.log | stdbuf -o0  ./filter_output.sh > dfx.log &
+
 
 PUSH_RED="\e[31m"
 PUSH_GREEN="\e[32m"

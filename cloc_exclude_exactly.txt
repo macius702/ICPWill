@@ -1,0 +1,37 @@
+# Exclude directory names
+node_modules
+dist
+build
+out
+.coverage
+.idea
+.vscode
+__pycache__
+venv
+bin
+obj
+lib
+tmp
+token_transfer_from
+token_transfer_original
+src/basic_bitcoin
+src/icp_will_frontend/src/components/ui
+target
+src/icp_will_frontend/dist
+src/declarations
+
+# Exclude file extensions
+*.lock
+*.min.js
+*.min.css
+*.map
+
+# Exclude specific files
+./src/basic_bitcoin/percentiles.json
+./src/basic_bitcoin/utxos.json
+./blockchain_explorer_curses.py
+package-lock.json
+yarn.lock
+*.generated.*
+Dockerfile
+*.md

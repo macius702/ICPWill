@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     sudo \
+    cloc \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Google Chrome
