@@ -77,7 +77,7 @@ const App: React.FC = () => {
   const [overridePrincipal, setOverridePrincipal] = useState('');
   const [inactivityChecked, setInactivityChecked] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [BITCOIN, setBITCOIN] = useState(true);
+  const [BITCOIN, setBITCOIN] = useState(false);
   const [btcAddress, setBtcAddress] = useState<string | null>(null);
 
 

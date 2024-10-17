@@ -63,7 +63,7 @@ def create__internet_identity(nickname, with_icp_feed = False):
         subprocess.call(["./feed_local.sh", principal_value])
 
 
-        address_paragraph = click_element(driver, By.XPATH, "//p[contains(text(), 'Address:')]")
+        address_paragraph = click_element(driver, By.XPATH, "//p[contains(text(), 'Account-id:')]")
         address_text = address_paragraph.text
         address_value = address_text.split(': ')[1]  
 
