@@ -16,7 +16,7 @@ use crate::{btc_send_from_p2pkh, BATCH_TIMERS, TIMERS, USERS};
 
 
 
-#[derive(CandidType, Deserialize, Serialize)]
+#[derive(CandidType, Deserialize, Serialize, Debug)]
 pub struct TransferArgs {
     pub amount: NumTokens,
     pub to_account: Account,
@@ -26,6 +26,8 @@ pub struct TransferArgs {
 
 #[ic_cdk::update]
 pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
+    ic_cdk::println!("logmtlk transfer {:?}", args);
+
     ic_cdk::println!(
         "Transferring {} tokens to account {} \nafter {} seconds from account {}",
         &args.amount,
@@ -82,6 +84,7 @@ pub async fn transfer(args: TransferArgs) -> Result<BlockIndex, String> {
 // TODO(mtlk) implement a button in gui and test
 #[ic_cdk::update]
 pub fn cancel_activation() -> Result<(), String> {
+    ic_cdk::println!("logmtlk cancel_activation");
     let user = caller();
 
     if user == Principal::anonymous() {
@@ -102,6 +105,7 @@ pub fn cancel_activation() -> Result<(), String> {
 // TODO(mtlk) implement a button in gui and test
 #[ic_cdk::update]
 pub fn cancel_batch_activation() -> Result<(), String> {
+    ic_cdk::println!("logmtlk cancel_batch_activation");
     ic_cdk::println!("Entering cancel_batch_activation");
     let user = caller();
 

@@ -3,7 +3,7 @@
 
 # Path to the file containing regular expressions
 FILTER_FILE="filter_rules.txt"
-LOG_FILE="filter_debug.log"
+LOG_FILE="../unsaved/filter_debug.log"
 
 # Clear the log file at the start
 > "$LOG_FILE"

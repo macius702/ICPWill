@@ -53,7 +53,7 @@ EOF
 
 #### In dfx replica directory ####
 ### start local replica
-dfx start --clean --enable-bitcoin --log file --logfile dfx.log 
+dfx start --clean --enable-bitcoin --log file --logfile ../unsaved/dfx.log 
 
 
 #### In dfx project directory ####

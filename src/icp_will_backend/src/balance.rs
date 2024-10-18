@@ -8,6 +8,7 @@ use crate::constants::LEDGER_CANISTER_ID;
 
 #[ic_cdk::update]
 async fn get_balance() -> Result<NumTokens, String> {
+    ic_cdk::println!("logmtlk get_balance");
 
     let principal  = ic_cdk::caller();
     //make an account oft of the caller

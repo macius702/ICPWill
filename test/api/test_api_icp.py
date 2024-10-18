@@ -49,8 +49,14 @@ def test_send(setup_principals):
 
     # Read balances
     for p in principals:
-        logger.info(f"Balance for {p.name}: {p.get_balance()}")
+        logger.info(f"Balance for {p.name}: {p.api_get_balance()}")
         logger.info(f"Balance2 for {p.name}: {p.get_balance_of_ledger()}")
+        p.api_register()
+
+        logger.info(f"get_user for {p.name}: {p.api_get_user()}")
+        # logger.info(f"get_users for {p.name}: {p.api_get_users()}")
+
+    
 
 
     assert True
@@ -61,7 +67,27 @@ class Principal:
         self.principal = principal_str
         self.keep_me_after_finish = keep_me_after_finish
 
-    def get_balance(self):
+    def api_get_users(self):
+        result = subprocess.check_output(
+            ["dfx", "canister", "--identity", self.name , "call", ICP_WILL_BACKEND, "get_users"],
+            text=True
+        ).strip()
+        return result
+
+
+    def api_get_user(self):
+        result = subprocess.check_output(
+            ["dfx", "canister", "--identity", self.name , "call", ICP_WILL_BACKEND, "get_user", f'(principal "{self.principal}")'],
+            text=True
+        ).strip()
+        return result
+
+    def api_register(self):
+        subprocess.run(
+            ["dfx", "canister", "--identity", self.name , "call", ICP_WILL_BACKEND, "register", self.name ])
+
+
+    def api_get_balance(self):
         get_balance_returned = subprocess.check_output(
             ["dfx", "canister", "--identity", self.name , "call", ICP_WILL_BACKEND, "get_balance"],
             text=True

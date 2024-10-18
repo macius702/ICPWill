@@ -114,7 +114,7 @@ fi
 
 echo "===========SETUP========="
 
-dfx start --background --clean --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN 2> dfx_raw.log
+dfx start --background --clean --host "$DFX_HOST:$DFX_PORT" $ENABLE_BITCOIN 2> ../unsaved/dfx_raw.log
 
 
 
@@ -125,7 +125,7 @@ sleep 5
 
 dfx identity list
 
-tail -F dfx_raw.log | stdbuf -o0  ./filter_output.sh > dfx.log &
+tail -F ../unsaved/dfx_raw.log | stdbuf -o0  ./filter_output.sh > ../unsaved/dfx.log &
 
 
 PUSH_RED="\e[31m"
@@ -198,7 +198,7 @@ echo -e "${PUSH_YELLOW}BACKEND_CANISTER_ID: $BACKEND_CANISTER_ID$POP"
 dfx deploy $PLAYGROUND icp_will_frontend
 
 
-python3 test/e2e/create_internet_identity.py
+# python3 test/e2e/create_internet_identity.py
 pytest -v
 
 echo DONE.

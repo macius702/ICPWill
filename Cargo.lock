@@ -405,6 +405,7 @@ version = "0.1.0"
 dependencies = [
  "basic_bitcoin",
  "candid",
+ "hex",
  "ic-cdk",
  "ic-cdk-timers",
  "icrc-ledger-types",

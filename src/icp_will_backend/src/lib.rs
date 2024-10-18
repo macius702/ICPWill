@@ -31,6 +31,9 @@ thread_local! {
 
 #[ic_cdk::update]
 async fn register(nick: String) {
+    
+    ic_cdk::println!("logmtlk register {nick}");
+
     ic_cdk::println!("Entering function: fn register");
 
     let user = caller();
@@ -54,6 +57,7 @@ async fn register(nick: String) {
 
 #[ic_cdk::query]
 fn get_users() -> HashMap<Principal, ResponseUserData> {
+    ic_cdk::println!("logmtlk get_users");
     USERS.with_borrow(|users| {
         users.iter().map(|(principal, user_data)| {
             let has_active_timer = check_for_active_timer(principal);
@@ -65,6 +69,8 @@ fn get_users() -> HashMap<Principal, ResponseUserData> {
 
 #[ic_cdk::query]
 fn get_user(user: Principal) -> Option<ResponseUserData> {
+    ic_cdk::println!("logmtlk get_user {}", user.to_text());
+
     USERS.with_borrow(|users| {
         users.get(&user).map(|user_data| {
             user_data.to_response(check_for_active_timer(&user))
@@ -84,6 +90,7 @@ fn check_for_active_timer(user: &Principal) -> bool {
 
 #[ic_cdk::query]
 fn get_chat(mut chat_path: [Principal; 2]) -> Option<Vec<String>> {
+    ic_cdk::println!("logmtlk get_chat");
     chat_path.sort();    
 
     ic_cdk::println!("{:?}", chat_path);    
@@ -95,6 +102,7 @@ fn get_chat(mut chat_path: [Principal; 2]) -> Option<Vec<String>> {
 
 #[ic_cdk::update]
 fn announce_activity() {
+    ic_cdk::println!("logmtlk announce_activity");
     let user = caller();
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
@@ -106,6 +114,7 @@ fn announce_activity() {
 
 #[ic_cdk::update]
 fn add_chat_msg(msg: String, user2: Principal) {
+    ic_cdk::println!("logmtlk add_chat_msg {} {}", msg, user2.to_text());
     let user1 = caller();
 
     ic_cdk::println!("In add_chat_msg user1: {:#?}", user1);
@@ -199,12 +208,30 @@ pub fn btc_get_user_address(recipient_principal: &Principal) -> String {
     })
 }
 
+use hex;
+
+
+fn format_derivation_path(derivation_path: &Vec<Vec<u8>>) -> Vec<String> {
+    derivation_path
+        .iter()
+        .map(|segment| hex::encode(segment))
+        .collect()
+}
+
 #[ic_cdk::update]
 async fn btc_get_p2pkh_address(
-    derivation_path : Vec<Vec<u8>>) ->
- String {
-    return basic_bitcoin::get_p2pkh_address(Some(derivation_path)).await;
+    derivation_path: Vec<Vec<u8>>,
+) -> String {
+    let formatted_path = format_derivation_path(&derivation_path);
+    ic_cdk::println!(
+        "logmtlk btc_get_p2pkh_address from Principal: {:?}",
+        formatted_path
+    );
+
+    basic_bitcoin::get_p2pkh_address(Some(derivation_path)).await
 }
+
+
 
 #[ic_cdk::update]
 async fn btc_send_from_p2pkh(destination_address: String, amount_in_satoshi: u64, derivation_path : Vec<Vec<u8>>) -> String
@@ -220,6 +247,7 @@ async fn btc_send_from_p2pkh(destination_address: String, amount_in_satoshi: u64
 
 #[ic_cdk::update]
 async fn btc_get_balance(address: String) -> u64 {
+    ic_cdk::println!("logmtlk btc_get_balance {address}");
     return basic_bitcoin::get_balance(address).await;
 }
 

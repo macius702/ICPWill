@@ -9,6 +9,8 @@ use crate::transfer::{handle_timer_event, btc_handle_timer_event};
 use crate::btc_get_user_address;
 use icrc_ledger_types::icrc1::transfer::NumTokens;
 use icrc_ledger_types::icrc1::account::Account;
+use std::fmt;
+
 
 
 #[derive(Clone, CandidType, Deserialize, Debug)]
@@ -17,7 +19,7 @@ pub struct Asset {
     pub amount: u64,
 }
 
-#[derive(Clone, CandidType, Deserialize, Debug)]
+#[derive(Clone, CandidType, Deserialize)]
 pub struct Beneficiary {
     pub beneficiary_principal: Principal,
     pub nickname: String,
@@ -32,8 +34,22 @@ pub struct BatchTransfer {
     pub of_inactivity: bool,
 }
 
+impl fmt::Debug for Beneficiary {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Beneficiary")
+            .field("beneficiary_principal", &self.beneficiary_principal.to_text()) // Use to_text() here
+            .field("nickname", &self.nickname)
+            .field("amount_icp", &self.amount_icp)
+            .field("assets", &self.assets)
+            .finish()
+    }
+}
+
+
+
 #[ic_cdk::update]
 fn register_batch_transfer(batch_transfer_data: BatchTransfer) -> Result<(), String> {
+    ic_cdk::println!("logmtlk register_batch_transfer {:#?}", batch_transfer_data);
     let user = caller();
 
     if user == Principal::anonymous() {
@@ -119,6 +135,7 @@ pub fn schedule_batch_transfer(user: Principal, batch_transfer_data: BatchTransf
 // we will repeat repeat the remainging transfers the next time, according to the repeat ratio then fallback recipient
 #[ic_cdk::update]
 async fn execute_batch_transfers() -> Result<(), String> {
+    ic_cdk::println!("logmtlk execute_batch_transfers");
     ic_cdk::println!("Entering execute_batch_transfers");
     let user = ic_cdk::caller();
 

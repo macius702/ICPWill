@@ -35,4 +35,4 @@ $BITCOIND_INSTALL_DIR/bin/bitcoind -conf=$BITCOIND_INSTALL_DIR/bitcoin.conf -dat
 sleep 2
 $BITCOIND_INSTALL_DIR/bin/bitcoin-cli -conf=$BITCOIND_INSTALL_DIR/bitcoin.conf getblockchaininfo
 
-# dfx start --background --clean --enable-bitcoin 2>$BITCOIND_INSTALL_DIR/dfx.log 
+# dfx start --background --clean --enable-bitcoin 2>$BITCOIND_INSTALL_DIR/../unsaved/dfx.log 
